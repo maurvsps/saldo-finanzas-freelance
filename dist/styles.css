@@ -182,6 +182,47 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .rates { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .rates .form-actions { grid-column: 1 / -1; }
 
+/* ── Cobros por mes ── */
+.ink { color: var(--ink); }
+.hero-actions { margin-top: 16px; }
+.hero-actions .btn { flex: 1; }
+.btn.block { width: 100%; }
+.btn.big { min-height: 58px; font-size: 17px; }
+.field-hint { color: var(--faint); font-size: 13px; font-weight: 500; }
+.field-hint:empty { display: none; }
+.progress { height: 12px; overflow: hidden; border-radius: 999px; background: var(--surface-2); }
+.progress span { display: block; height: 100%; border-radius: inherit; background: var(--green); }
+.progress-legend { display: flex; justify-content: space-between; gap: 12px; margin-top: 10px; color: var(--muted); font-size: 14px; }
+.progress-legend b { color: var(--ink); font-family: var(--display); }
+.row-side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.row.late .row-main small { color: var(--amber); }
+.link.more { display: inline-block; margin-top: 8px; }
+.bill-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+.amount.big { font-size: 21px; }
+.bill-lines { display: flex; flex-direction: column; gap: 6px; margin: 14px 0; padding: 12px 14px; border-radius: 12px; background: var(--surface-2); font-size: 15px; }
+.bill-lines div { display: flex; justify-content: space-between; gap: 12px; }
+.bill-lines span:last-child { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.paid { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 14px; border-radius: 12px; background: var(--green-soft); color: var(--green-ink); font-size: 15px; }
+.paid > span { flex: 1; }
+.client-head { justify-content: flex-start; }
+.client-head .row-main { flex: 1; }
+.row.compact { grid-template-columns: minmax(0, 1fr) auto; }
+.btn-sm.add { margin-top: 10px; }
+
+/* ── Plan de retiros ── */
+.segmented.four span { padding: 11px 4px; font-size: 14px; line-height: 1.2; }
+.table { display: flex; flex-direction: column; margin-top: 14px; font-size: 14px; }
+.table-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1.2fr; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.table-row span:not(:first-child) { text-align: right; white-space: nowrap; }
+.table-head { color: var(--faint); font-size: 12px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; }
+.table-row.hit span:last-child { color: var(--green); font-weight: 700; }
+.sub { margin: 20px 0 4px; font: 700 16px var(--display); }
+.compare-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+.compare-row:last-child { border-bottom: 0; }
+.compare-row small { display: block; color: var(--muted); font-size: 13px; }
+.compare-row.current b { color: var(--green-ink); }
+#planResult { margin-top: 16px; }
+
 /* ── Aviso ── */
 .toast { position: fixed; left: 50%; bottom: 24px; z-index: 30; max-width: calc(100% - 32px); padding: 12px 18px; border-radius: 12px; background: var(--ink); color: #fff; font-size: 15px; font-weight: 600; text-align: center; opacity: 0; pointer-events: none; transform: translate(-50%, 10px); transition: .2s; }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
