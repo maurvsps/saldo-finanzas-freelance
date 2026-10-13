@@ -1217,11 +1217,24 @@ async function fetchRates() {
   }
 }
 
-function exportData() {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+async function exportData() {
+  const name = `saldo-respaldo-${todayISO()}.json`;
+  const json = JSON.stringify(data, null, 2);
+  // Dentro de la app de Android no hay descargas: se guarda el archivo y se abre el menú de compartir.
+  const native = window.Capacitor?.isNativePlatform?.() && window.Capacitor.Plugins;
+  if (native?.Filesystem && native?.Share) {
+    try {
+      const file = await native.Filesystem.writeFile({ path: name, data: json, directory: 'CACHE', encoding: 'utf8' });
+      await native.Share.share({ title: 'Respaldo de Saldo', files: [file.uri], dialogTitle: 'Guardar respaldo' });
+    } catch (e) {
+      if (!/cancel/i.test(e?.message || '')) toast('No se pudo compartir el respaldo');
+    }
+    return;
+  }
+  const blob = new Blob([json], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `saldo-respaldo-${todayISO()}.json`;
+  a.download = name;
   a.click();
   URL.revokeObjectURL(a.href);
   toast('Respaldo descargado');

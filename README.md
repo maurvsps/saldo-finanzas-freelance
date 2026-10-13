@@ -18,3 +18,13 @@ Abre `index.html` en un navegador moderno. No requiere instalación. GitHub Page
 ## Datos
 
 Todo se guarda en el navegador. Si entras con Google, se guarda una copia en una carpeta oculta de tu Google Drive para usar la app en varios dispositivos. Los datos de versiones anteriores se convierten automáticamente.
+
+## App de Android
+
+La carpeta `android-app/` convierte la web en una app de Android con [Capacitor](https://capacitorjs.com/). La app abre la web publicada, así que los cambios de la web llegan solos sin reinstalar.
+
+El workflow **APK de Android** compila el APK cuando cambia `android-app/` (o a mano desde la pestaña Actions) y lo publica en **Releases** como `saldo.apk`. Para instalarlo, ábrelo desde el teléfono y permite la instalación desde esa fuente.
+
+La app guarda sus datos aparte del navegador: para pasar tus datos, usa **Descargar respaldo** en la web e **Importar respaldo** en la app.
+
+Para firmar con una clave propia (y poder actualizar el APK sin desinstalar), añade en el repo los secretos `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD` y `ANDROID_KEY_ALIAS`.

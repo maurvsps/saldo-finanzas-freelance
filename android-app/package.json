@@ -1,0 +1,16 @@
+{
+  "name": "saldo-android",
+  "private": true,
+  "version": "1.0.0",
+  "description": "App de Android para Saldo: abre la web publicada en GitHub Pages dentro de un contenedor nativo.",
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/filesystem": "^7.0.0",
+    "@capacitor/share": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^7.0.0"
+  }
+}

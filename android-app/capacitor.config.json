@@ -1,0 +1,12 @@
+{
+  "appId": "com.maurvsps.saldo",
+  "appName": "Saldo",
+  "webDir": "www",
+  "server": {
+    "url": "https://maurvsps.github.io/saldo-finanzas-freelance/",
+    "errorPath": "offline.html"
+  },
+  "android": {
+    "backgroundColor": "#f5f5f0"
+  }
+}
