@@ -1,4 +1,8 @@
 const KEY='saldo-freelance-v1';
+// ID de cliente OAuth (público). Se usa para guardar tus datos en tu Google Drive (carpeta oculta de la app).
+const GOOGLE_CLIENT_ID='1057047663238-a3prjms222f111drrcse66qtrpu400sv.apps.googleusercontent.com';
+const DRIVE_FILE='saldo-datos.json';
+let gToken=null,gExpires=0,gTokenClient=null,gFileId=null,driveTimer,driveNeedsSave=false;
 const colors=[['#e9f1eb','#397655'],['#eef1fa','#626fa8'],['#fbf0e7','#b8794f'],['#f5eafa','#916ca0'],['#e9f3f2','#47847d']];
 const now=new Date(); now.setHours(0,0,0,0);
 const uid=()=>Math.random().toString(36).slice(2,10);
@@ -13,7 +17,7 @@ function seed(){
 }
 function load(){try{const d=JSON.parse(localStorage.getItem(KEY));if(d?.clients&&d?.wallets&&d?.rates)return d;}catch{}return seed()}
 let data=load();let selectedMonth=Number(data.monthOffset)||0;let forecastMonths=[3,6,12].includes(Number(data.forecastMonths))?Number(data.forecastMonths):3;let toastTimer;
-const save=()=>{data.monthOffset=selectedMonth;data.forecastMonths=forecastMonths;localStorage.setItem(KEY,JSON.stringify(data));render()};
+const save=()=>{data.monthOffset=selectedMonth;data.forecastMonths=forecastMonths;localStorage.setItem(KEY,JSON.stringify(data));render();queueCloudSave()};
 function fmtRate(c){return (Number(data.rates[c])||0).toFixed(2)}
 function toPEN(n,c){return Number(n||0)*(c==='PEN'?1:Number(data.rates[c])||0)}
 function activeProducts(){return data.clients.flatMap(c=>c.products.map(p=>({...p,client:c}))).filter(p=>p.frequency!=='once'||p.months!==0)}
@@ -54,3 +58,83 @@ function importData(file){if(!file)return;const reader=new FileReader();reader.o
 window.addEventListener('hashchange',()=>{const view=location.hash.slice(6);if(['inicio','clientes','meses','retiros'].includes(view))go(view)});document.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>go(b.dataset.goto));document.getElementById('editRates').onclick=editRates;document.getElementById('quickAdd').onclick=addIncome;document.getElementById('newClient').onclick=()=>openClient();document.getElementById('newClientBottom').onclick=()=>openClient();document.getElementById('addMonthIncome').onclick=addIncome;document.getElementById('exportBtn').onclick=exportData;document.getElementById('editWallets').onclick=editWallets;document.getElementById('newWithdrawal').onclick=()=>{go('retiros');document.getElementById('withdrawAmount').focus()};document.getElementById('monthPrev').onclick=()=>{selectedMonth--;save()};document.getElementById('monthNext').onclick=()=>{selectedMonth++;save()};document.getElementById('withdrawWallet').onchange=renderWithdrawals;for(const id of ['withdrawAmount','withdrawFee','withdrawDate'])document.getElementById(id).oninput=renderWithdrawals;document.getElementById('saveWithdrawal').onclick=saveWithdrawal;document.getElementById('closeModal').onclick=closeModal;document.getElementById('modalBackdrop').addEventListener('click',e=>{if(e.target.id==='modalBackdrop')closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 document.getElementById('brandHome').onclick=e=>{e.preventDefault();go('inicio');history.replaceState(null,'','#view-inicio')};document.getElementById('periodLabel').onclick=()=>{forecastMonths=forecastMonths===3?6:forecastMonths===6?12:3;save()};document.getElementById('importBtn').onclick=()=>document.getElementById('importFile').click();document.getElementById('importFile').onchange=e=>{importData(e.target.files?.[0]);e.target.value=''};
 render();if(location.hash.startsWith('#view-')){const initialView=location.hash.slice(6);if(['inicio','clientes','meses','retiros'].includes(initialView))go(initialView)}
+// ── Cuenta de Google + guardado en tu Google Drive (carpeta oculta de la app) ──
+const DRIVE_CONNECTED='saldo-drive-connected';
+function setAuthButton(label,signedIn){const b=document.getElementById('authBtn');b.textContent=label;b.dataset.signedIn=signedIn?'1':''}
+function driveAuthed(){return gToken&&Date.now()<gExpires}
+async function driveFetch(url,opts={}){
+  if(!driveAuthed())throw new Error('auth');
+  const r=await fetch(url,{...opts,headers:{Authorization:`Bearer ${gToken}`,...(opts.headers||{})}});
+  if(r.status===401){gToken=null;throw new Error('auth')}
+  if(!r.ok)throw new Error('drive '+r.status);
+  return r;
+}
+async function findDriveFile(){
+  const q=encodeURIComponent(`name='${DRIVE_FILE}'`);
+  const r=await driveFetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&fields=files(id,name)&q=${q}`);
+  const {files}=await r.json();
+  return files?.[0]?.id||null;
+}
+async function pushDrive(){
+  if(!driveAuthed())return;
+  const boundary='saldo'+Date.now();
+  const meta=gFileId?{name:DRIVE_FILE}:{name:DRIVE_FILE,parents:['appDataFolder']};
+  const body=`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(data)}\r\n--${boundary}--`;
+  const url=gFileId
+    ?`https://www.googleapis.com/upload/drive/v3/files/${gFileId}?uploadType=multipart`
+    :'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+  const r=await driveFetch(url,{method:gFileId?'PATCH':'POST',headers:{'Content-Type':`multipart/related; boundary=${boundary}`},body});
+  gFileId=(await r.json()).id;
+}
+async function loadDrive(){
+  try{
+    gFileId=await findDriveFile();
+    if(!gFileId){await pushDrive();showToast('Datos guardados en tu Google Drive');return}
+    const r=await driveFetch(`https://www.googleapis.com/drive/v3/files/${gFileId}?alt=media`);
+    data={...seed(),...JSON.parse(await r.text())};
+    selectedMonth=Number(data.monthOffset)||0;
+    forecastMonths=[3,6,12].includes(Number(data.forecastMonths))?Number(data.forecastMonths):3;
+    localStorage.setItem(KEY,JSON.stringify(data));
+    render();showToast('Datos cargados desde tu Google Drive');
+  }catch(e){
+    if(e.message==='auth')return driveExpired();
+    showToast('No se pudieron cargar tus datos de Drive');
+  }
+}
+function driveExpired(){setAuthButton('Entrar con Google',false);localStorage.removeItem(DRIVE_CONNECTED);showToast('Vuelve a entrar con Google para seguir guardando')}
+function onDriveToken(r){
+  if(r.error){showToast('No se pudo iniciar sesión con Google');return}
+  gToken=r.access_token;gExpires=Date.now()+(Number(r.expires_in)-60)*1000;
+  localStorage.setItem(DRIVE_CONNECTED,'1');
+  setAuthButton('Sincronizado',true);
+  if(driveNeedsSave){driveNeedsSave=false;pushDrive().catch(()=>showToast('No se pudo guardar en Drive'))}
+  else loadDrive();
+}
+function queueCloudSave(){
+  if(!driveAuthed()){
+    // El token dura ~1 h: si expiró, pedimos uno nuevo sin ventana y guardamos después
+    if(gTokenClient&&localStorage.getItem(DRIVE_CONNECTED)){driveNeedsSave=true;gTokenClient.requestAccessToken({prompt:''})}
+    return;
+  }
+  clearTimeout(driveTimer);
+  driveTimer=setTimeout(()=>pushDrive().catch(e=>{if(e.message==='auth')driveExpired();else showToast('No se pudo guardar en Drive')}),800);
+}
+function toggleAuth(){
+  if(!gTokenClient)return;
+  if(driveAuthed()){
+    if(!confirm('¿Desconectar Google? Tus datos seguirán en este navegador y en tu Drive.'))return;
+    google.accounts.oauth2.revoke(gToken,()=>{});
+    gToken=null;gFileId=null;localStorage.removeItem(DRIVE_CONNECTED);
+    setAuthButton('Entrar con Google',false);showToast('Cuenta desconectada');return;
+  }
+  gTokenClient.requestAccessToken({prompt:''});
+}
+function initDrive(){
+  const btn=document.getElementById('authBtn');
+  if(!window.google?.accounts?.oauth2)return;
+  gTokenClient=google.accounts.oauth2.initTokenClient({client_id:GOOGLE_CLIENT_ID,scope:'https://www.googleapis.com/auth/drive.appdata',callback:onDriveToken});
+  btn.hidden=false;
+  btn.onclick=toggleAuth;
+  if(localStorage.getItem(DRIVE_CONNECTED)){try{gTokenClient.requestAccessToken({prompt:''})}catch{}}
+}
+window.addEventListener('load',initDrive);
