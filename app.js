@@ -127,6 +127,7 @@ function blank() {
     payments: [], // { id, clientId, month, amount, currency, wallet, date, balanceBefore, balanceAfter }
     withdrawals: [], // { id, date, from, to, amount, received, fromBefore, fromAfter, toBefore, toAfter, note }
     plan: { strategy: 'monthly', threshold: 200, rate: 0, fee: 0, from: '', to: '' },
+    horizon: 'eom', // fecha de la previsión en Inicio: eom, next, 3m, 6m, eoy o una fecha AAAA-MM-DD
   };
 }
 
@@ -248,6 +249,7 @@ function normalize(raw) {
     payments: arr(raw.payments),
     withdrawals: arr(raw.withdrawals),
     plan: { ...d.plan, ...(raw.plan || {}) },
+    horizon: raw.horizon || d.horizon,
   };
 }
 
@@ -317,19 +319,45 @@ const linesText = lines => lines.map(x => `${x.qty > 1 ? `${x.qty} × ` : ''}${x
 
 // Lo que esperas facturarle a un cliente en un mes: lo anotado más lo que falta según cuántas veces haces cada producto.
 function monthExpected(c, m) {
-  const now = thisMonth();
   const logged = monthLogged(c, m);
-  if (m < now) return logged;
-  const from = m === now ? addDays(todayISO(), 1) : m + '-01';
-  const to = lastDay(m);
+  if (m < thisMonth()) return logged;
+  return round2(logged + estimateRange(c, maxStr(m + '-01', addDays(todayISO(), 1)), lastDay(m)));
+}
+// Trabajo aún no anotado que esperas hacer entre dos fechas, según cuántas veces haces cada producto.
+function estimateRange(c, from, to) {
   let est = 0;
-  for (const p of c.products) {
-    if (!p.active || !(p.estCount > 0)) continue;
-    // Al mes: faltan las que aún no anotas. Por semana: proporcional a los días que quedan.
-    if (p.estPer === 'month') est += p.price * Math.max(0, p.estCount - productCount(c, p, m));
-    else if (from <= to) est += (p.price * p.estCount * (dayDiff(from, to) + 1)) / 7;
+  for (let m = monthKey(from); from <= to && m <= monthKey(to); m = shiftMonth(m, 1)) {
+    const a = maxStr(from, m + '-01'), b = minStr(to, lastDay(m));
+    if (a > b) continue;
+    const days = dayDiff(a, b) + 1;
+    for (const p of c.products) {
+      if (!p.active || !(p.estCount > 0)) continue;
+      // Al mes: las que faltan anotar, repartidas en los días que quedan. Por semana: proporcional a los días.
+      if (p.estPer === 'month') est += (p.price * Math.max(0, p.estCount - productCount(c, p, m)) * days) / (dayDiff(a, lastDay(m)) + 1);
+      else est += (p.price * p.estCount * days) / 7;
+    }
   }
-  return round2(logged + est);
+  return round2(est);
+}
+
+// ── Previsión ──
+const HORIZONS = { eom: 'Fin de este mes', next: 'Fin del próximo mes', '3m': 'En 3 meses', '6m': 'En 6 meses', eoy: 'Fin de año' };
+function horizonDate(h) {
+  const t = todayISO(), m = thisMonth();
+  if (h === 'next') return lastDay(shiftMonth(m, 1));
+  if (h === '3m') return addMonthsClamped(t, 3);
+  if (h === '6m') return addMonthsClamped(t, 6);
+  if (h === 'eoy') return t.slice(0, 4) + '-12-31';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(h || '') && h > t) return h;
+  return lastDay(m);
+}
+// Dinero de hoy + lo anotado sin cobrar + lo que estimas hacer hasta la fecha, todo en soles.
+function forecast(until) {
+  const now = data.wallets.reduce((s, w) => s + toPEN(w.balance, w.currency), 0);
+  const pending = pendingCharges().reduce((s, x) => s + toPEN(x.due, clientCur(x.c)), 0);
+  const tomorrow = addDays(todayISO(), 1);
+  const future = data.clients.reduce((s, c) => s + toPEN(estimateRange(c, tomorrow, until), clientCur(c)), 0);
+  return { now, pending, future, total: now + pending + future };
 }
 // Meses con trabajo anotado que todavía no te pagan (incluye el mes en curso).
 function pendingCharges() {
@@ -469,7 +497,6 @@ function productRow(c, p, m, showClient = false, detail = false) {
 
 function viewHome() {
   const now = thisMonth();
-  const total = data.wallets.reduce((s, w) => s + toPEN(w.balance, w.currency), 0);
   const foreign = [...new Set(data.wallets.map(w => w.currency))].filter(c => c !== 'PEN');
   const rateNote = foreign.length ? foreign.map(c => `1 ${c} = ${money(data.rates[c])}`).join(' · ') : 'Todo en soles';
   const pend = pendingCharges();
@@ -477,8 +504,7 @@ function viewHome() {
   const t = monthTotals(now);
   return `
   <section class="card hero">
-    <p class="label">Tienes en total</p>
-    <p class="hero-amount">${money(total)}</p>
+    ${forecastBlock()}
     <p class="muted small">${esc(rateNote)}</p>
     <div class="wallet-list">${data.wallets.map(w => `
       <button class="wallet" data-act="editWallet" data-id="${w.id}" aria-label="Escribir saldo de ${esc(w.name)}">
@@ -512,6 +538,33 @@ function viewHome() {
     </div>
   </section>
   ${nextWithdrawalCard()}`;
+}
+
+function forecastBlock() {
+  const until = horizonDate(data.horizon), f = forecast(until);
+  const preset = HORIZONS[data.horizon] ? data.horizon : 'custom';
+  return `<div class="forecast">
+    <div class="fc-box">
+      <p class="label">Hoy tienes</p>
+      <p class="hero-amount">${money(f.now)}</p>
+    </div>
+    <div class="fc-box future">
+      <label class="label fc-label" for="horizonSel">Al ${fmtDate(until, { day: 'numeric', month: 'short', year: until.slice(0, 4) === todayISO().slice(0, 4) ? undefined : 'numeric' })}</label>
+      <p class="hero-amount pos">${money(f.total)}</p>
+    </div>
+  </div>
+  <div class="fc-controls">
+    <select id="horizonSel" aria-label="Fecha de la previsión">
+      ${Object.entries(HORIZONS).map(([k, l]) => `<option value="${k}"${preset === k ? ' selected' : ''}>${l}</option>`).join('')}
+      <option value="custom"${preset === 'custom' ? ' selected' : ''}>Otra fecha</option>
+    </select>
+    <input type="date" id="horizonDate" value="${until}" min="${addDays(todayISO(), 1)}"${preset === 'custom' ? '' : ' hidden'} aria-label="Elegir fecha">
+  </div>
+  <div class="fc-breakdown">
+    <span>Hoy <b>${money(f.now)}</b></span>
+    <span>Por cobrar <b>+${money(f.pending)}</b></span>
+    <span>Por hacer <b>+${money(f.future)}</b></span>
+  </div>`;
 }
 
 function chargeRow({ c, m, due }) {
@@ -1314,6 +1367,25 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('input', onPlanInput);
 document.addEventListener('change', onPlanInput);
+document.addEventListener('change', e => {
+  if (e.target.id === 'horizonSel') {
+    if (e.target.value === 'custom') {
+      const input = $('horizonDate');
+      input.hidden = false;
+      input.focus();
+      input.showPicker?.();
+      return;
+    }
+    data.horizon = e.target.value;
+    persist();
+    render();
+  }
+  if (e.target.id === 'horizonDate' && e.target.value > todayISO()) {
+    data.horizon = e.target.value;
+    persist();
+    render();
+  }
+});
 document.addEventListener('submit', e => {
   if (e.target.id === 'planForm') { e.preventDefault(); return; }
   if (e.target.id !== 'ratesForm') return;
