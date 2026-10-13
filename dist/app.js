@@ -428,9 +428,10 @@ function simulate(strategy, st) {
       || (strategy === 'every3' && i % 3 === 2)
       || (strategy === 'threshold' && st.threshold > 0 && bal >= st.threshold);
     let out = 0, got = 0;
-    if (go && bal > st.fee) {
+    // El costo fijo se cobra en la moneda de destino (soles) y se descuenta de lo recibido.
+    if (go && bal * st.rate > st.fee) {
       out = bal;
-      got = (bal - st.fee) * st.rate;
+      got = bal * st.rate - st.fee;
       received += got;
       fees += st.fee;
       count++;
@@ -495,7 +496,6 @@ function viewHome() {
   const foreign = [...new Set(data.wallets.map(w => w.currency))].filter(c => c !== 'PEN');
   const rateNote = foreign.length ? foreign.map(c => `1 ${c} = ${money(data.rates[c])}`).join(' · ') : 'Todo en soles';
   const pend = pendingCharges();
-  const active = data.clients.flatMap(c => c.products.filter(p => p.active).map(p => ({ c, p })));
   const t = monthTotals(now);
   return `
   <section class="card hero">
@@ -514,12 +514,7 @@ function viewHome() {
       <button class="btn primary" data-act="newWithdrawal">${icon('banknote')}Retiré</button>
     </div>
   </section>
-  <section class="card">
-    <div class="card-head"><h2>Anotar trabajo</h2><span class="muted small">${cap(monthName(now))}</span></div>
-    ${active.length ? `<div class="prod-list">${active.map(({ c, p }) => productRow(c, p, now, data.clients.length > 1)).join('')}</div>`
-      : data.clients.length ? emptyState('Agrega los productos que haces para cada cliente.', `<a class="btn primary" href="#clientes">Ir a clientes</a>`)
-      : emptyState('Agrega a tus clientes y lo que les haces para ir anotando cada entrega.', newClientButton())}
-  </section>
+  ${data.clients.length ? '' : `<section class="card">${emptyState('Agrega a tus clientes y lo que les haces para ir anotando cada entrega.', newClientButton())}</section>`}
   ${pend.length ? `<section class="card">
     <div class="card-head"><h2>Por cobrar</h2></div>
     <div class="rows">${pend.map(chargeRow).join('')}</div>
@@ -655,7 +650,7 @@ function planCard() {
       <div data-threshold${p.strategy === 'threshold' ? '' : ' hidden'}>${moneyField('Retirar cuando tengas', 'threshold', st.from.currency, p.threshold || '', 'min="0"')}</div>
       <div class="grid2">
         <label class="field"><span>Recibes por cada ${CURRENCIES[st.from.currency]} 1</span><input name="rate" type="number" step="0.001" min="0" inputmode="decimal" value="${Number(p.rate) > 0 ? p.rate : ''}" placeholder="${roundTo(st.autoRate, 3)}"></label>
-        ${moneyField('Costo fijo por retiro', 'fee', st.from.currency, p.fee || '', 'min="0"')}
+        ${moneyField('Costo fijo por retiro', 'fee', st.to.currency, p.fee || '', 'min="0"')}
       </div>
       <small class="field-hint">${Number(p.rate) > 0 ? 'Usando el valor que escribiste.' : st.fromLast ? 'Según tu último retiro real.' : 'Según el tipo de cambio de Ajustes.'}</small>
     </form>
@@ -672,7 +667,7 @@ function planResult() {
   <div class="stats">
     <div class="stat"><span>Recibirías en ${PLAN_MONTHS} meses</span><b class="pos">${money(sim.received, tc)}</b></div>
     <div class="stat"><span>Retiros</span><b>${sim.count}</b></div>
-    <div class="stat"><span>Costos fijos</span><b>${money(sim.fees, fc)}</b></div>
+    <div class="stat"><span>Costos fijos</span><b>${money(sim.fees, tc)}</b></div>
   </div>
   <div class="table" role="table">
     <div class="table-row table-head" role="row"><span>Mes</span><span>Te pagan</span><span>Retiras</span><span>Recibes</span></div>
@@ -680,7 +675,7 @@ function planResult() {
   </div>
   <h3 class="sub">Comparar</h3>
   <div class="rows">${compare.map(({ k, r }) => `<div class="compare-row${data.plan.strategy === k ? ' current' : ''}">
-    <span><b>${STRATEGIES[k]}${k === 'threshold' ? ` ${moneyShort(st.threshold, fc)}` : ''}</b><small>${r.count} ${r.count === 1 ? 'retiro' : 'retiros'} · ${money(r.fees, fc)} en costos</small></span>
+    <span><b>${STRATEGIES[k]}${k === 'threshold' ? ` ${moneyShort(st.threshold, fc)}` : ''}</b><small>${r.count} ${r.count === 1 ? 'retiro' : 'retiros'} · ${money(r.fees, tc)} en costos</small></span>
     <span class="amount">${money(r.received, tc)}${best - r.received < 0.005 ? '<small class="pos">La mejor</small>' : `<small>${money(r.received - best, tc)}</small>`}</span>
   </div>`).join('')}</div>
   <small class="field-hint">Lo que te pagarán sale de lo anotado y de la frecuencia de cada producto. Supone el mismo tipo de cambio todo el año.</small>`;
