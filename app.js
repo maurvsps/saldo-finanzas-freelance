@@ -11,7 +11,15 @@ const DRIVE_CONNECTED = 'saldo-drive-connected';
 const CURRENCIES = { PEN: 'S/', USD: '$', EUR: '€', GBP: '£' };
 const CURRENCY_NAMES = { PEN: 'Soles (PEN)', USD: 'Dólares (USD)', EUR: 'Euros (EUR)', GBP: 'Libras (GBP)' };
 const COLORS = ['#2f7a59', '#7b3fa0', '#2563a8', '#b26a2c', '#3f7f88', '#a8445a'];
-const OTHERS = 'Otros cobros';
+const OTHERS = 'Otros trabajos';
+// Cada cuánto haces un producto: solo se usa para estimar lo que falta del mes.
+const FREQ = {
+  daily: 'Cada día',
+  weekdays: 'De lunes a viernes',
+  weekly: 'Cada semana',
+  monthly: 'Una vez al mes',
+  ondemand: 'A pedido',
+};
 const STRATEGIES = {
   monthly: 'Cada mes',
   every2: 'Cada 2 meses',
@@ -24,11 +32,12 @@ const PLAN_MONTHS = 12;
 // ── Iconos (SVG, nunca caracteres) ──
 const PATHS = {
   home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/>',
-  receipt: '<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/>',
   banknote: '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/>',
   users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
   settings: '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
+  minus: '<path d="M5 12h14"/>',
+  list: '<path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/>',
   x: '<path d="M18 6 6 18M6 6l12 12"/>',
   check: '<path d="M20 6 9 17l-5-5"/>',
   chevronLeft: '<path d="m15 18-6-6 6-6"/>',
@@ -52,6 +61,7 @@ const roundTo = (n, p) => Math.round((Number(n) || 0) * 10 ** p) / 10 ** p;
 const round2 = n => roundTo(n, 2);
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 const maxStr = (...xs) => xs.filter(Boolean).reduce((a, b) => (a > b ? a : b));
+const minStr = (...xs) => xs.filter(Boolean).reduce((a, b) => (a < b ? a : b));
 
 const pad = n => String(n).padStart(2, '0');
 const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -59,6 +69,7 @@ const parse = s => new Date(s + 'T12:00:00');
 const todayISO = () => iso(new Date());
 const thisMonth = () => todayISO().slice(0, 7);
 const addDays = (s, n) => { const d = parse(s); d.setDate(d.getDate() + n); return iso(d); };
+const dayDiff = (a, b) => Math.round((parse(b) - parse(a)) / 864e5);
 const monthKey = s => String(s || '').slice(0, 7);
 const shiftMonth = (m, n) => iso(new Date(+m.slice(0, 4), +m.slice(5, 7) - 1 + n, 1, 12)).slice(0, 7);
 const lastDay = m => iso(new Date(+m.slice(0, 4), +m.slice(5, 7), 0, 12));
@@ -89,7 +100,7 @@ const moneyShort = (n, cur = 'PEN') => `${CURRENCIES[cur] || cur} ${Math.round(N
 // ── Datos ──
 function blank() {
   return {
-    version: 3,
+    version: 4,
     updatedAt: 0,
     rates: { USD: 3.72, EUR: 4.05, GBP: 4.72 },
     ratesDate: '',
@@ -98,7 +109,8 @@ function blank() {
       { id: 'yape', name: 'Yape', currency: 'PEN', balance: 0, color: 1, updated: '' },
       { id: 'paypal', name: 'PayPal', currency: 'USD', balance: 0, color: 2, updated: '' },
     ],
-    clients: [], // { id, name, note, wallet, since, services: [{ id, name, amount, frequency, start, end, active }] }
+    clients: [], // { id, name, note, wallet, products: [{ id, name, price, freq, active }] }
+    entries: [], // trabajos anotados: { id, clientId, productId, name, price, qty, date }
     payments: [], // { id, clientId, month, amount, currency, wallet, date, balanceBefore, balanceAfter }
     withdrawals: [], // { id, date, from, to, amount, received, fromBefore, fromAfter, toBefore, toAfter, note }
     plan: { strategy: 'monthly', threshold: 200, rate: 0, fee: 0, from: '', to: '' },
@@ -109,8 +121,6 @@ function copyRates(d, raw) {
   if (raw.rates) for (const c of ['USD', 'EUR', 'GBP']) if (Number(raw.rates[c]) > 0) d.rates[c] = Number(raw.rates[c]);
   if (raw.ratesDate) d.ratesDate = raw.ratesDate;
 }
-
-// Herramientas compartidas por las migraciones de versiones anteriores.
 function migrationKit(d) {
   const conv = (n, from, to) => {
     const v = Number(n) || 0;
@@ -121,10 +131,9 @@ function migrationKit(d) {
   const walletByCur = cur => (d.wallets.find(w => w.currency === cur) || d.wallets[0]).id;
   return { conv, walletCur, walletByCur };
 }
-// Los ingresos sueltos de versiones anteriores no se convierten en meses cobrados:
-// eran pagos por semana o por evento, y los saldos ya los incluyen.
 
-// Versión 1: billeteras fijas y clientes con productos (rango de unidades).
+// Las versiones 1 y 2 se pasan primero al formato 3 (clientes con cobros programados) y de ahí al actual.
+// Sus ingresos sueltos no se convierten en meses cobrados: los saldos ya los incluyen.
 function fromV1(raw) {
   const d = blank();
   copyRates(d, raw);
@@ -136,21 +145,19 @@ function fromV1(raw) {
     const start = /^\d{4}-\d{2}-\d{2}$/.test(p.start || '') ? p.start : todayISO();
     const months = Number(p.months) || 0;
     return {
-      id: p.id || uid(), name: String(p.name || 'Cobro'),
+      id: p.id || uid(), name: String(p.name || 'Trabajo'),
       amount: round2(k.conv(price * (low + high) / 2, p.currency || cur, cur)),
       frequency, start, end: frequency === 'monthly' && months > 0 ? addDays(addMonthsClamped(start, months), -1) : '', active: true,
     };
   };
   const mkClient = (id, name, note, products) => {
     const wid = k.walletByCur(CURRENCIES[products[0]?.currency] ? products[0].currency : 'USD');
-    return { id: id || uid(), name, note, wallet: wid, since: thisMonth(), services: products.map(p => service(p, k.walletCur(wid))) };
+    return { id: id || uid(), name, note, wallet: wid, services: products.map(p => service(p, k.walletCur(wid))) };
   };
   d.clients = arr(raw.clients).map(c => mkClient(c.id, String(c.name || 'Cliente'), String(c.description || ''), arr(c.products)));
   if (arr(raw.products).length) d.clients.push(mkClient('', OTHERS, '', raw.products));
   return d;
 }
-
-// Versión 2: cobros fijos sueltos y movimientos; las transferencias pasan a ser retiros.
 function fromV2(raw) {
   const d = blank();
   copyRates(d, raw);
@@ -161,7 +168,7 @@ function fromV2(raw) {
   const mkClient = (id, name, note, list) => {
     const first = list[0];
     const wid = first && d.wallets.some(w => w.id === first.wallet) ? first.wallet : k.walletByCur(first?.currency || 'USD');
-    return { id: id || uid(), name, note, wallet: wid, since: thisMonth(), services: list.map(r => toService(r, k.walletCur(wid))) };
+    return { id: id || uid(), name, note, wallet: wid, services: list.map(r => toService(r, k.walletCur(wid))) };
   };
   d.clients = arr(raw.clients).map(c => mkClient(c.id, c.name, c.note || '', recs.filter(r => r.clientId === c.id)));
   const orphans = recs.filter(r => !d.clients.some(c => c.id === r.clientId));
@@ -169,6 +176,44 @@ function fromV2(raw) {
   for (const m of arr(raw.movements)) {
     if (m.type === 'transfer') {
       d.withdrawals.push({ id: m.id || uid(), date: m.date, from: m.wallet, to: m.to, amount: round2(m.amount), received: round2(m.toAmount), fromBefore: null, fromAfter: null, toBefore: null, toAfter: null, note: m.note || '' });
+    }
+  }
+  return d;
+}
+
+// Versión 3 → 4: los cobros programados pasan a ser productos, y lo ya hecho este mes queda anotado.
+function fromV3(raw) {
+  const d = blank();
+  copyRates(d, raw);
+  if (arr(raw.wallets).length) d.wallets = raw.wallets.map(w => ({ color: 0, updated: '', ...w, balance: round2(w.balance) }));
+  d.payments = arr(raw.payments);
+  d.withdrawals = arr(raw.withdrawals);
+  d.plan = { ...d.plan, ...(raw.plan || {}) };
+  const now = thisMonth(), today = todayISO(), first = now + '-01';
+  for (const c of arr(raw.clients)) {
+    const services = arr(c.services);
+    d.clients.push({
+      id: c.id || uid(), name: c.name, note: c.note || '', wallet: c.wallet,
+      products: services.map(s => ({
+        id: s.id || uid(), name: s.name, price: round2(s.amount),
+        freq: s.frequency === 'weekly' ? 'weekly' : s.frequency === 'monthly' ? 'monthly' : 'ondemand',
+        active: s.active !== false && !(s.end && s.end < today),
+      })),
+    });
+    if (d.payments.some(p => p.clientId === c.id && p.month === now)) continue;
+    for (const s of services) {
+      if (s.active === false || !s.start) continue;
+      const from = maxStr(first, s.start), to = minStr(today, s.end);
+      if (from > to) continue;
+      const dates = [];
+      if (s.frequency === 'weekly') {
+        let x = s.start;
+        if (x < from) x = addDays(x, Math.ceil(dayDiff(x, from) / 7) * 7);
+        for (; x <= to; x = addDays(x, 7)) dates.push(x);
+      } else if (s.frequency === 'monthly' || (s.frequency === 'once' && s.start >= from)) {
+        dates.push(from);
+      }
+      for (const date of dates) d.entries.push({ id: uid(), clientId: c.id, productId: s.id, name: s.name, price: round2(s.amount), qty: 1, date });
     }
   }
   return d;
@@ -182,7 +227,8 @@ function normalize(raw) {
     updatedAt: Number(raw.updatedAt) || 0,
     ratesDate: d.ratesDate,
     wallets: arr(raw.wallets).length ? raw.wallets.map(w => ({ color: 0, updated: '', ...w, balance: round2(w.balance) })) : d.wallets,
-    clients: arr(raw.clients).map(c => ({ note: '', since: '', ...c, services: arr(c.services).map(s => ({ end: '', active: true, ...s })) })),
+    clients: arr(raw.clients).map(c => ({ note: '', ...c, products: arr(c.products).map(p => ({ freq: 'ondemand', active: true, ...p })) })),
+    entries: arr(raw.entries),
     payments: arr(raw.payments),
     withdrawals: arr(raw.withdrawals),
     plan: { ...d.plan, ...(raw.plan || {}) },
@@ -192,8 +238,9 @@ function normalize(raw) {
 // Convierte cualquier versión guardada al formato actual.
 function migrate(raw) {
   if (!raw || typeof raw !== 'object') return blank();
-  if (raw.version === 3) return normalize(raw);
-  return raw.version === 2 ? fromV2(raw) : fromV1(raw);
+  if (raw.version === 4) return normalize(raw);
+  if (raw.version === 3) return fromV3(raw);
+  return fromV3(raw.version === 2 ? fromV2(raw) : fromV1(raw));
 }
 
 function load() {
@@ -204,7 +251,7 @@ function load() {
 }
 
 let data = load();
-let chargeMonth = thisMonth();
+let viewMonth = thisMonth();
 
 function persist() {
   data.updatedAt = Date.now();
@@ -219,6 +266,7 @@ function commit(msg) {
 
 const wallet = id => data.wallets.find(w => w.id === id);
 const client = id => data.clients.find(c => c.id === id);
+const product = (c, id) => c?.products.find(p => p.id === id);
 const toPEN = (n, cur) => (Number(n) || 0) * (cur === 'PEN' ? 1 : Number(data.rates[cur]) || 0);
 const convert = (n, from, to) => (from === to ? Number(n) || 0 : toPEN(n, from) / (to === 'PEN' ? 1 : Number(data.rates[to]) || 1));
 const walletColor = w => COLORS[(w?.color ?? 0) % COLORS.length];
@@ -230,54 +278,78 @@ function setBalance(w, value) {
   w.updated = todayISO();
 }
 
-// ── Cobros por mes ──
-// Cuántas veces se cobra un servicio dentro de un mes.
-function chargeCount(s, m) {
-  if (!s.active || !s.start) return 0;
-  const first = m + '-01', last = lastDay(m);
-  if (s.frequency === 'once') return s.start >= first && s.start <= last ? 1 : 0;
-  if (s.frequency === 'monthly') return monthKey(s.start) <= m && (!s.end || monthKey(s.end) >= m) ? 1 : 0;
-  const from = maxStr(first, s.start), to = s.end && s.end < last ? s.end : last;
-  if (from > to) return 0;
-  let d = s.start, n = 0;
-  if (d < from) d = addDays(d, Math.ceil(Math.round((parse(from) - parse(d)) / 864e5) / 7) * 7);
-  for (; d <= to; d = addDays(d, 7)) n++;
+// ── Cuenta de cada cliente ──
+const monthEntries = (c, m) => data.entries.filter(e => e.clientId === c.id && monthKey(e.date) === m);
+const entryTotal = list => round2(list.reduce((t, e) => t + e.qty * e.price, 0));
+const monthLogged = (c, m) => entryTotal(monthEntries(c, m));
+const productCount = (c, p, m) => monthEntries(c, m).filter(e => e.productId === p.id).reduce((t, e) => t + e.qty, 0);
+const paymentOf = (cId, m) => data.payments.find(p => p.clientId === cId && p.month === m);
+
+// Resumen por producto de lo anotado en un mes, p. ej. "12 × Gráfico".
+function monthLines(c, m) {
+  const map = new Map();
+  for (const e of monthEntries(c, m)) {
+    const key = e.productId || e.name;
+    const x = map.get(key) || { name: product(c, e.productId)?.name || e.name, qty: 0, total: 0 };
+    x.qty += e.qty;
+    x.total += e.qty * e.price;
+    map.set(key, x);
+  }
+  return [...map.values()];
+}
+const linesText = lines => lines.map(x => `${x.qty > 1 ? `${x.qty} × ` : ''}${x.name}`).join(', ');
+
+function workDays(from, to, weekdaysOnly) {
+  let n = 0;
+  for (let d = from; d <= to; d = addDays(d, 1)) {
+    const wd = parse(d).getDay();
+    if (!weekdaysOnly || (wd > 0 && wd < 6)) n++;
+  }
   return n;
 }
-const clientLines = (c, m) => c.services.map(s => ({ s, n: chargeCount(s, m) })).filter(x => x.n > 0);
-const clientDue = (c, m) => round2(clientLines(c, m).reduce((t, x) => t + x.n * x.s.amount, 0));
-const paymentOf = (cId, m) => data.payments.find(p => p.clientId === cId && p.month === m);
-const linesText = lines => lines.map(x => `${x.n > 1 ? `${x.n} × ` : ''}${x.s.name}`).join(', ');
-
-// Primer mes que puede quedar pendiente: desde que existe el cliente o su primer cobro, máximo un año atrás.
-function pendingFloor(c) {
+// Lo que esperas facturarle a un cliente en un mes: lo anotado más lo que falta según la frecuencia de cada producto.
+function monthExpected(c, m) {
   const now = thisMonth();
-  const starts = c.services.map(s => monthKey(s.start)).filter(Boolean).sort();
-  return maxStr(c.since || starts[0] || now, shiftMonth(now, -12));
+  const logged = monthLogged(c, m);
+  if (m < now) return logged;
+  const from = m === now ? addDays(todayISO(), 1) : m + '-01';
+  const to = lastDay(m);
+  let est = 0;
+  for (const p of c.products) {
+    if (!p.active) continue;
+    if (p.freq === 'monthly') { if (!productCount(c, p, m)) est += p.price; continue; }
+    if (from > to) continue;
+    if (p.freq === 'daily') est += p.price * workDays(from, to, false);
+    else if (p.freq === 'weekdays') est += p.price * workDays(from, to, true);
+    else if (p.freq === 'weekly') est += (p.price * (dayDiff(from, to) + 1)) / 7;
+  }
+  return round2(logged + est);
 }
+// Meses con trabajo anotado que todavía no te pagan (incluye el mes en curso).
 function pendingCharges() {
-  const now = thisMonth(), out = [];
+  const now = thisMonth(), floor = shiftMonth(now, -12), out = [];
   for (const c of data.clients) {
-    for (let m = pendingFloor(c); m <= now; m = shiftMonth(m, 1)) {
-      const due = clientDue(c, m);
+    const months = [...new Set(data.entries.filter(e => e.clientId === c.id).map(e => monthKey(e.date)))].filter(m => m >= floor && m <= now).sort();
+    for (const m of months) {
+      const due = monthLogged(c, m);
       if (due > 0 && !paymentOf(c.id, m)) out.push({ c, m, due });
     }
   }
   return out.sort((a, b) => (a.m < b.m ? -1 : a.m > b.m ? 1 : 0));
 }
 function monthTotals(m) {
-  const expected = data.clients.reduce((t, c) => t + toPEN(clientDue(c, m), clientCur(c)), 0);
+  let logged = 0, expected = 0;
+  for (const c of data.clients) {
+    logged += toPEN(monthLogged(c, m), clientCur(c));
+    expected += toPEN(monthExpected(c, m), clientCur(c));
+  }
   const collected = data.payments.filter(p => p.month === m).reduce((t, p) => t + toPEN(p.amount, p.currency), 0);
-  return { expected, collected };
+  return { logged, expected, collected };
 }
-function freqText(s) {
-  let t;
-  if (s.frequency === 'weekly') t = `Cada ${fmtDate(s.start, { weekday: 'long' })}`;
-  else if (s.frequency === 'monthly') t = 'Cada mes';
-  else t = `Una vez, en ${monthName(monthKey(s.start))}`;
-  if (s.frequency !== 'once' && monthKey(s.start) > thisMonth()) t += `, desde ${monthName(monthKey(s.start))}`;
-  if (s.end && s.frequency !== 'once') t += `, hasta ${fmtDate(s.end, { month: 'short', year: 'numeric' })}`;
-  return t;
+// Fecha para anotar con "+" en el mes que estás viendo.
+function logDate(m) {
+  const now = thisMonth();
+  return m === now ? todayISO() : m < now ? lastDay(m) : m + '-01';
 }
 
 // ── Plan de retiros ──
@@ -298,11 +370,16 @@ function planSetup() {
     threshold: Number(p.threshold) || 0,
   };
 }
-// Lo que entra a una billetera en un mes según tus clientes (en el mes actual, solo lo que falta cobrar).
-function incomeInto(w, m, onlyUnpaid) {
-  return data.clients
-    .filter(c => c.wallet === w.id && !(onlyUnpaid && paymentOf(c.id, m)))
-    .reduce((t, c) => t + clientDue(c, m), 0);
+// Lo que te pagarán en una billetera en cada mes. El primer mes suma lo pendiente de meses anteriores.
+function incomeInto(w, m, first) {
+  let total = 0;
+  for (const c of data.clients) {
+    if (c.wallet !== w.id) continue;
+    if (!first) { total += monthExpected(c, m); continue; }
+    if (!paymentOf(c.id, m)) total += monthExpected(c, m);
+    total += pendingCharges().filter(x => x.c === c && x.m < m).reduce((t, x) => t + x.due, 0);
+  }
+  return total;
 }
 function simulate(strategy, st) {
   const now = thisMonth();
@@ -334,12 +411,15 @@ function simulate(strategy, st) {
 // ── Vistas ──
 const VIEWS = {
   inicio: { label: 'Inicio', icon: 'home', render: viewHome },
-  cobros: { label: 'Cobros', icon: 'receipt', render: viewCharges },
-  retiros: { label: 'Retiros', icon: 'banknote', render: viewWithdrawals },
   clientes: { label: 'Clientes', icon: 'users', render: viewClients },
+  retiros: { label: 'Retiros', icon: 'banknote', render: viewWithdrawals },
   ajustes: { label: 'Ajustes', icon: 'settings', render: viewSettings },
 };
-const currentView = () => (VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'inicio');
+const ALIASES = { cobros: 'clientes' };
+function currentView() {
+  const h = location.hash.slice(1);
+  return VIEWS[h] ? h : ALIASES[h] || 'inicio';
+}
 
 function render() {
   const name = currentView();
@@ -353,10 +433,27 @@ function render() {
 const emptyState = (text, action = '') => `<div class="empty"><p>${text}</p>${action}</div>`;
 const avatar = (text, color) => `<span class="avatar" style="--c:${color}">${initial(text)}</span>`;
 const newClientButton = () => `<button class="btn primary" data-act="newClient">${icon('plus')}Nuevo cliente</button>`;
-function progress({ expected, collected }) {
-  const pct = expected > 0 ? Math.min(100, (collected / expected) * 100) : collected > 0 ? 100 : 0;
-  return `<div class="progress"><span style="width:${pct}%"></span></div>
-    <div class="progress-legend"><span>Cobrado <b>${money(collected)}</b></span><span>Esperado <b>${money(expected)}</b></span></div>`;
+const monthSwitch = m => `<div class="month-switch">
+  <button class="icon-btn" data-act="prevMonth" aria-label="Mes anterior">${icon('chevronLeft')}</button>
+  <span>${monthLabel(m)}</span>
+  <button class="icon-btn" data-act="nextMonth" aria-label="Mes siguiente">${icon('chevronRight')}</button>
+</div>`;
+
+// Fila de producto con contador: "+" anota uno, "−" quita el último.
+function productRow(c, p, m, showClient = false) {
+  const cur = clientCur(c), n = productCount(c, p, m);
+  const ids = `data-client="${c.id}" data-id="${p.id}" data-month="${m}"`;
+  return `<div class="prod-row${p.active ? '' : ' paused'}">
+    <button class="prod-main" data-act="editProduct" data-client="${c.id}" data-id="${p.id}">
+      <b>${esc(p.name)}${p.active ? '' : '<em class="tag">Pausado</em>'}</b>
+      <small>${showClient ? `${esc(c.name)} · ` : ''}${money(p.price, cur)}${n ? ` · ${money(n * p.price, cur)}` : ''}</small>
+    </button>
+    <div class="counter">
+      <button class="icon-btn" data-act="unlog" ${ids} aria-label="Quitar uno de ${esc(p.name)}"${n ? '' : ' disabled'}>${icon('minus')}</button>
+      <span class="count" aria-label="${n} anotados">${n}</span>
+      <button class="icon-btn add" data-act="log" ${ids} aria-label="Anotar uno de ${esc(p.name)}">${icon('plus')}</button>
+    </div>
+  </div>`;
 }
 
 function viewHome() {
@@ -365,6 +462,8 @@ function viewHome() {
   const foreign = [...new Set(data.wallets.map(w => w.currency))].filter(c => c !== 'PEN');
   const rateNote = foreign.length ? foreign.map(c => `1 ${c} = ${money(data.rates[c])}`).join(' · ') : 'Todo en soles';
   const pend = pendingCharges();
+  const active = data.clients.flatMap(c => c.products.filter(p => p.active).map(p => ({ c, p })));
+  const t = monthTotals(now);
   return `
   <section class="card hero">
     <p class="label">Tienes en total</p>
@@ -384,24 +483,32 @@ function viewHome() {
     </div>
   </section>
   <section class="card">
-    <div class="card-head"><h2>Por cobrar</h2><a class="link" href="#cobros">Ver cobros</a></div>
-    ${pend.length ? `<div class="rows">${pend.slice(0, 4).map(chargeRow).join('')}</div>${pend.length > 4 ? `<a class="link more" href="#cobros">Ver ${pend.length - 4} más</a>` : ''}`
-      : data.clients.length ? emptyState('Todo cobrado hasta este mes.')
-      : emptyState('Agrega a tus clientes y lo que te pagan cada mes.', newClientButton())}
+    <div class="card-head"><h2>Anotar trabajo</h2><span class="muted small">${cap(monthName(now))}</span></div>
+    ${active.length ? `<div class="prod-list">${active.map(({ c, p }) => productRow(c, p, now, data.clients.length > 1)).join('')}</div>`
+      : data.clients.length ? emptyState('Agrega los productos que haces para cada cliente.', `<a class="btn primary" href="#clientes">Ir a clientes</a>`)
+      : emptyState('Agrega a tus clientes y lo que les haces para ir anotando cada entrega.', newClientButton())}
   </section>
+  ${pend.length ? `<section class="card">
+    <div class="card-head"><h2>Por cobrar</h2></div>
+    <div class="rows">${pend.map(chargeRow).join('')}</div>
+  </section>` : ''}
   <section class="card">
     <div class="card-head"><h2>${monthLabel(now)}</h2></div>
-    ${progress(monthTotals(now))}
+    <div class="stats">
+      <div class="stat"><span>Anotado</span><b>${money(t.logged)}</b></div>
+      <div class="stat"><span>Cobrado</span><b class="pos">${money(t.collected)}</b></div>
+      <div class="stat"><span>Estimado a fin de mes</span><b>${money(t.expected)}</b></div>
+    </div>
   </section>
   ${nextWithdrawalCard()}`;
 }
 
 function chargeRow({ c, m, due }) {
-  const late = m < thisMonth();
+  const now = thisMonth(), late = m < now;
   return `<div class="row${late ? ' late' : ''}">
     ${avatar(c.name, clientColor(c))}
-    <span class="row-main"><b>${esc(c.name)}</b><small>${cap(monthName(m))}${late ? ' (atrasado)' : ''} · ${esc(linesText(clientLines(c, m)))}</small></span>
-    <span class="row-side"><span class="amount">${money(due, clientCur(c))}</span><button class="btn-sm primary" data-act="charge" data-id="${c.id}" data-month="${m}">Cobrar</button></span>
+    <span class="row-main"><b>${esc(c.name)}</b><small>${cap(monthName(m))}${m === now ? ' (en curso)' : ''} · ${esc(linesText(monthLines(c, m)))}</small></span>
+    <span class="row-side"><span class="amount">${money(due, clientCur(c))}</span><button class="btn-sm ${late ? 'primary' : 'ghost'}" data-act="charge" data-id="${c.id}" data-month="${m}">Cobrar</button></span>
   </div>`;
 }
 
@@ -412,35 +519,46 @@ function nextWithdrawalCard() {
   if (!next) return '';
   return `<section class="card">
     <div class="card-head"><h2>Próximo retiro</h2><a class="link" href="#retiros">Ver plan</a></div>
-    <p class="muted">Según tu plan (${STRATEGIES[data.plan.strategy].toLowerCase()}), a fin de ${monthName(next.m)} retirarías <b class="ink">${money(next.out, st.from.currency)}</b> de ${esc(st.from.name)} y recibirías unos <b class="ink">${money(next.got, st.to.currency)}</b>.</p>
+    <p class="muted">Según tu plan (${STRATEGIES[data.plan.strategy].toLowerCase()}), a fin de ${monthName(next.m)} retirarías unos <b class="ink">${money(next.out, st.from.currency)}</b> de ${esc(st.from.name)} y recibirías unos <b class="ink">${money(next.got, st.to.currency)}</b>.</p>
   </section>`;
 }
 
-function viewCharges() {
-  const m = chargeMonth;
+function viewClients() {
+  const m = viewMonth;
+  if (!data.clients.length) return `<section class="card">${emptyState('Agrega a tus clientes y lo que les haces para ir anotando cada entrega.', newClientButton())}</section>`;
+  const t = monthTotals(m);
   return `
-  <div class="month-switch">
-    <button class="icon-btn" data-act="prevMonth" aria-label="Mes anterior">${icon('chevronLeft')}</button>
-    <span>${monthLabel(m)}</span>
-    <button class="icon-btn" data-act="nextMonth" aria-label="Mes siguiente">${icon('chevronRight')}</button>
+  ${monthSwitch(m)}
+  <div class="stats two">
+    <div class="stat"><span>Anotado en ${monthName(m)}</span><b>${money(t.logged)}</b></div>
+    <div class="stat"><span>Cobrado</span><b class="pos">${money(t.collected)}</b></div>
   </div>
-  ${data.clients.length ? `<section class="card">${progress(monthTotals(m))}</section>${data.clients.map(c => billCard(c, m)).join('')}`
-    : `<section class="card">${emptyState('Agrega a tus clientes y lo que te pagan cada mes para empezar a cobrar.', newClientButton())}</section>`}`;
+  ${data.clients.map(c => accountCard(c, m)).join('')}
+  <div class="page-actions end">${newClientButton()}</div>`;
 }
 
-function billCard(c, m) {
-  const cur = clientCur(c), lines = clientLines(c, m), due = clientDue(c, m), pay = paymentOf(c.id, m);
+function accountCard(c, m) {
+  const cur = clientCur(c), now = thisMonth();
+  const logged = monthLogged(c, m), expected = monthExpected(c, m), pay = paymentOf(c.id, m);
+  const count = monthEntries(c, m).length;
   const w = wallet(c.wallet);
-  return `<section class="card bill">
-    <div class="bill-head">
+  return `<section class="card account">
+    <div class="card-head client-head">
       ${avatar(c.name, clientColor(c))}
       <span class="row-main"><b>${esc(c.name)}</b><small>Te paga en ${esc(w ? w.name : 'una billetera eliminada')}</small></span>
-      <span class="amount big">${money(due, cur)}</span>
+      <button class="btn-sm ghost" data-act="editClient" data-id="${c.id}">${icon('edit')}Editar</button>
     </div>
-    <div class="bill-lines">${lines.length ? lines.map(x => `<div><span>${x.n > 1 ? `${x.n} × ` : ''}${esc(x.s.name)}</span><span>${money(x.n * x.s.amount, cur)}</span></div>`).join('')
-      : `<div><span class="muted">Sin cobros programados en ${monthName(m)}</span></div>`}</div>
+    ${c.products.length ? `<div class="prod-list">${c.products.map(p => productRow(c, p, m)).join('')}</div>` : '<p class="muted small">Agrega lo que le haces a este cliente.</p>'}
+    <div class="btn-row tight">
+      <button class="btn-sm ghost" data-act="newProduct" data-client="${c.id}">${icon('plus')}Producto</button>
+      <button class="btn-sm ghost" data-act="entries" data-client="${c.id}" data-month="${m}">${icon('list')}Anotaciones${count ? ` (${count})` : ''}</button>
+    </div>
+    <div class="account-total">
+      <span>Total de ${monthName(m)}${m === now && expected > logged ? `<small>Estimado a fin de mes: ${money(expected, cur)}</small>` : ''}</span>
+      <b>${money(logged, cur)}</b>
+    </div>
     ${pay ? `<div class="paid">${icon('check')}<span>Cobrado ${relDate(pay.date)} · <b>${money(pay.amount, pay.currency)}</b></span><button class="btn-sm ghost" data-act="editPayment" data-id="${pay.id}">Editar</button></div>`
-      : `<button class="btn ${due > 0 ? 'primary' : 'ghost'} block" data-act="charge" data-id="${c.id}" data-month="${m}">${due > 0 ? `Cobrar ${monthName(m)}` : 'Registrar un cobro'}</button>`}
+      : m <= now ? `<button class="btn ${logged > 0 ? 'primary' : 'ghost'} block" data-act="charge" data-id="${c.id}" data-month="${m}">Cobrar ${monthName(m)}</button>` : ''}
   </section>`;
 }
 
@@ -502,7 +620,7 @@ function planResult() {
     <div class="stat"><span>Costos fijos</span><b>${money(sim.fees, fc)}</b></div>
   </div>
   <div class="table" role="table">
-    <div class="table-row table-head" role="row"><span>Mes</span><span>Entra</span><span>Retiras</span><span>Recibes</span></div>
+    <div class="table-row table-head" role="row"><span>Mes</span><span>Te pagan</span><span>Retiras</span><span>Recibes</span></div>
     ${sim.rows.map(r => `<div class="table-row${r.out ? ' hit' : ''}" role="row"><span>${cap(monthShort(r.m))}</span><span>${r.inc ? moneyShort(r.inc, fc) : ''}</span><span>${r.out ? moneyShort(r.out, fc) : ''}</span><span>${r.got ? moneyShort(r.got, tc) : ''}</span></div>`).join('')}
   </div>
   <h3 class="sub">Comparar</h3>
@@ -510,29 +628,7 @@ function planResult() {
     <span><b>${STRATEGIES[k]}${k === 'threshold' ? ` ${moneyShort(st.threshold, fc)}` : ''}</b><small>${r.count} ${r.count === 1 ? 'retiro' : 'retiros'} · ${money(r.fees, fc)} en costos</small></span>
     <span class="amount">${money(r.received, tc)}${best - r.received < 0.005 ? '<small class="pos">La mejor</small>' : `<small>${money(r.received - best, tc)}</small>`}</span>
   </div>`).join('')}</div>
-  <small class="field-hint">Supone el mismo tipo de cambio todo el año: solo cambian los costos fijos.</small>`;
-}
-
-function viewClients() {
-  const now = thisMonth();
-  return `
-  <div class="page-actions end">${newClientButton()}</div>
-  ${data.clients.length ? data.clients.map(c => {
-    const w = wallet(c.wallet);
-    return `<section class="card">
-      <div class="card-head client-head">
-        ${avatar(c.name, clientColor(c))}
-        <span class="row-main"><b>${esc(c.name)}</b><small>${esc(w ? w.name : 'Billetera eliminada')} · ${cap(monthName(now))}: ${money(clientDue(c, now), clientCur(c))}</small></span>
-        <button class="btn-sm ghost" data-act="editClient" data-id="${c.id}">${icon('edit')}Editar</button>
-      </div>
-      ${c.services.length ? `<div class="rows">${c.services.map(s => `
-        <button class="row compact" data-act="editService" data-client="${c.id}" data-id="${s.id}">
-          <span class="row-main"><b>${esc(s.name)}${s.active ? '' : '<em class="tag">Pausado</em>'}</b><small>${esc(freqText(s))}</small></span>
-          <span class="amount">${money(s.amount, clientCur(c))}</span>
-        </button>`).join('')}</div>` : '<p class="muted small">Sin cobros todavía.</p>'}
-      <button class="btn-sm ghost add" data-act="newService" data-client="${c.id}">${icon('plus')}Añadir cobro</button>
-    </section>`;
-  }).join('') : `<section class="card">${emptyState('Todavía no tienes clientes.')}</section>`}`;
+  <small class="field-hint">Lo que te pagarán sale de lo anotado y de la frecuencia de cada producto. Supone el mismo tipo de cambio todo el año.</small>`;
 }
 
 function viewSettings() {
@@ -576,7 +672,7 @@ function viewSettings() {
   </section>
   <section class="card danger">
     <div class="card-head"><h2>Borrar datos</h2></div>
-    <p class="muted small">Elimina billeteras, clientes, cobros y retiros de este dispositivo.</p>
+    <p class="muted small">Elimina billeteras, clientes, trabajos anotados, cobros y retiros de este dispositivo.</p>
     <div class="btn-row"><button class="btn danger" data-act="resetData">${icon('trash')}Borrar todo</button></div>
   </section>`;
 }
@@ -598,6 +694,7 @@ function closeSheet() {
 
 const walletOptions = sel => data.wallets.map(w => `<option value="${w.id}"${w.id === sel ? ' selected' : ''}>${esc(w.name)} · ${w.currency}</option>`).join('');
 const currencyOptions = sel => Object.keys(CURRENCIES).map(c => `<option value="${c}"${c === sel ? ' selected' : ''}>${CURRENCY_NAMES[c]}</option>`).join('');
+const freqOptions = sel => Object.entries(FREQ).map(([k, l]) => `<option value="${k}"${k === sel ? ' selected' : ''}>${l}</option>`).join('');
 const formActions = (label = 'Guardar') => `<div class="form-actions"><button type="button" class="btn ghost" data-act="closeSheet">Cancelar</button><button class="btn primary">${label}</button></div>`;
 const deleteButton = (act, id, label = 'Eliminar', extra = '') => `<button type="button" class="btn danger-ghost" data-act="${act}" data-id="${id}"${extra}>${icon('trash')}${label}</button>`;
 function moneyField(label, name, cur, value, attrs = 'min="0.01" required', hint = '') {
@@ -607,12 +704,12 @@ const setText = (form, sel, text) => { const el = form.querySelector(sel); if (e
 
 // Cobrar el mes de un cliente: registras lo que te pagó y escribes cuánto tienes ahora.
 function chargeForm(c, m, pay = null) {
-  const due = clientDue(c, m);
+  const logged = monthLogged(c, m);
   const w0 = wallet(pay?.wallet) ? pay.wallet : wallet(c.wallet) ? c.wallet : data.wallets[0].id;
-  const lines = clientLines(c, m);
+  const lines = monthLines(c, m);
   openSheet(pay ? `Cobro de ${monthName(m)}` : `Cobrar ${monthName(m)}`, `<form class="form">
-    <p class="preview">${esc(c.name)}${lines.length ? ` · ${esc(linesText(lines))}` : ''}</p>
-    ${moneyField('Te pagó', 'amount', wallet(w0).currency, pay ? pay.amount : due || '')}
+    <p class="preview">${esc(c.name)}${lines.length ? ` · ${esc(linesText(lines))} · ${money(logged, clientCur(c))}` : ''}</p>
+    ${moneyField('Te pagó', 'amount', wallet(w0).currency, pay ? pay.amount : logged || '')}
     <label class="field"><span>Lo recibiste en</span><select name="wallet">${walletOptions(w0)}</select></label>
     ${moneyField('', 'balance', wallet(w0).currency, '', pay ? 'placeholder="Sin cambios"' : 'required', ' ')}
     <label class="field"><span>Fecha</span><input name="date" type="date" required value="${pay?.date || todayISO()}"></label>
@@ -649,6 +746,66 @@ function chargeForm(c, m, pay = null) {
   });
 }
 
+// Lista de lo anotado a un cliente en un mes.
+function entriesSheet(c, m) {
+  const cur = clientCur(c);
+  const list = monthEntries(c, m).sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+  openSheet(`${c.name} · ${monthName(m)}`, `<div class="form">
+    ${list.length ? `<div class="rows">${list.map(e => `
+      <button class="row compact" data-act="editEntry" data-id="${e.id}">
+        <span class="row-main"><b>${e.qty > 1 ? `${e.qty} × ` : ''}${esc(product(c, e.productId)?.name || e.name)}</b><small>${cap(fmtDate(e.date, { weekday: 'short', day: 'numeric', month: 'short' }))}</small></span>
+        <span class="amount">${money(e.qty * e.price, cur)}</span>
+      </button>`).join('')}</div>
+      <div class="account-total"><span>Total</span><b>${money(entryTotal(list), cur)}</b></div>` : emptyState(`Nada anotado en ${monthName(m)}.`)}
+    <button type="button" class="btn ghost" data-act="newEntry" data-client="${c.id}" data-month="${m}">${icon('plus')}Anotar con otra fecha o cantidad</button>
+    <div class="form-actions"><button type="button" class="btn ghost" data-act="closeSheet">Cerrar</button></div>
+  </div>`);
+}
+
+function entryForm(c, m, e = null) {
+  const cur = clientCur(c);
+  const first = c.products.find(p => p.active) || c.products[0];
+  const pid = e ? (product(c, e.productId) ? e.productId : '__other') : first ? first.id : '__other';
+  const price = e ? e.price : first?.price;
+  openSheet(e ? 'Editar anotación' : 'Anotar trabajo', `<form class="form">
+    <label class="field"><span>Qué hiciste</span><select name="product">${c.products.map(p => `<option value="${p.id}"${p.id === pid ? ' selected' : ''}>${esc(p.name)}</option>`).join('')}<option value="__other"${pid === '__other' ? ' selected' : ''}>Otro trabajo</option></select></label>
+    <label class="field" data-other><span>Nombre</span><input name="title" maxlength="60" value="${esc(e && pid === '__other' ? e.name : '')}" placeholder="Ej. Gráfico especial"></label>
+    <div class="grid2">
+      <label class="field"><span>Cantidad</span><input name="qty" type="number" min="1" step="1" inputmode="numeric" required value="${e?.qty || 1}"></label>
+      ${moneyField('Precio c/u', 'price', cur, price)}
+    </div>
+    <label class="field"><span>Fecha</span><input name="date" type="date" required value="${e?.date || logDate(m)}"></label>
+    ${e ? deleteButton('deleteEntry', e.id) : ''}
+    ${formActions(e ? 'Guardar' : 'Anotar')}
+  </form>`, (form, el) => {
+    const sync = changed => {
+      const other = el('product').value === '__other';
+      form.querySelector('[data-other]').hidden = !other;
+      if (changed && !other) el('price').value = product(c, el('product').value).price;
+    };
+    el('product').addEventListener('change', () => sync(true));
+    sync(false);
+    form.onsubmit = ev => {
+      ev.preventDefault();
+      const other = el('product').value === '__other';
+      const p = other ? null : product(c, el('product').value);
+      const next = {
+        productId: p ? p.id : '', name: p ? p.name : el('title').value.trim(),
+        qty: Math.max(1, Math.round(Number(el('qty').value) || 1)), price: round2(el('price').value), date: el('date').value,
+      };
+      if (!next.name) return toast('Escribe qué hiciste');
+      if (!(next.price > 0)) return toast('Escribe el precio');
+      if (e) Object.assign(e, next);
+      else data.entries.push({ id: uid(), clientId: c.id, ...next });
+      const month = monthKey(next.date);
+      persist();
+      render();
+      entriesSheet(c, month);
+      toast(e ? 'Anotación actualizada' : 'Anotado');
+    };
+  });
+}
+
 // Retiré: indicas cuánto sacaste y escribes cuánto tienes ahora en la billetera de destino.
 function withdrawalForm() {
   if (data.wallets.length < 2) return toast('Necesitas al menos dos billeteras');
@@ -666,9 +823,9 @@ function withdrawalForm() {
     ${formActions('Guardar retiro')}
   </form>`, (form, el) => {
     const pair = () => [wallet(el('from').value), wallet(el('to').value)];
-    const sync = changedWallet => {
+    const sync = changed => {
       const [a, b] = pair();
-      if (changedWallet === 'from') el('amount').value = a.balance > 0 ? a.balance : '';
+      if (changed === 'from') el('amount').value = a.balance > 0 ? a.balance : '';
       setText(form, '[data-cur="amount"]', CURRENCIES[a.currency]);
       setText(form, '[data-cur="toAfter"]', CURRENCIES[b.currency]);
       setText(form, '[data-label="toAfter"]', `¿Cuánto tienes ahora en ${b.name}?`);
@@ -711,7 +868,7 @@ function withdrawalDetail(x) {
       <div class="stat"><span>Retiraste</span><b>${money(x.amount, aCur)}</b></div>
       <div class="stat"><span>Recibiste</span><b class="pos">${money(x.received, bCur)}</b></div>
     </div>
-    <p class="preview">${fmtDate(x.date, { weekday: 'long', day: 'numeric', month: 'long' })} · De ${esc(a ? a.name : 'billetera eliminada')} a ${esc(b ? b.name : 'billetera eliminada')}${aCur !== bCur && x.amount > 0 ? ` · ${money(x.received / x.amount, bCur)} por cada ${CURRENCIES[aCur]} 1` : ''}${x.note ? ` · ${esc(x.note)}` : ''}</p>
+    <p class="preview">${cap(fmtDate(x.date, { weekday: 'long', day: 'numeric', month: 'long' }))} · De ${esc(a ? a.name : 'billetera eliminada')} a ${esc(b ? b.name : 'billetera eliminada')}${aCur !== bCur && x.amount > 0 ? ` · ${money(x.received / x.amount, bCur)} por cada ${CURRENCIES[aCur]} 1` : ''}${x.note ? ` · ${esc(x.note)}` : ''}</p>
     ${deleteButton('deleteWithdrawal', x.id, 'Eliminar retiro')}
     <div class="form-actions"><button type="button" class="btn ghost" data-act="closeSheet">Cerrar</button></div>
   </div>`);
@@ -719,7 +876,7 @@ function withdrawalDetail(x) {
 
 function updateBalancesForm() {
   openSheet('Actualizar saldos', `<form class="form">
-    ${data.wallets.map(w => moneyField(`${w.name}`, `w_${w.id}`, w.currency, w.balance, '', w.updated ? `Actualizado ${relDate(w.updated)}` : '')).join('')}
+    ${data.wallets.map(w => moneyField(esc(w.name), `w_${w.id}`, w.currency, w.balance, '', w.updated ? `Actualizado ${relDate(w.updated)}` : '')).join('')}
     ${formActions()}
   </form>`, (form, el) => {
     const first = el(`w_${data.wallets[0].id}`);
@@ -729,8 +886,7 @@ function updateBalancesForm() {
       e.preventDefault();
       for (const w of data.wallets) {
         const v = el(`w_${w.id}`).value;
-        if (v !== '' && round2(v) !== w.balance) setBalance(w, v);
-        else if (v !== '') w.updated = todayISO();
+        if (v !== '') setBalance(w, v);
       }
       closeSheet();
       commit('Saldos actualizados');
@@ -758,7 +914,7 @@ function walletForm(w = null) {
       if (!name) return toast('Escribe un nombre');
       if (w) {
         Object.assign(w, { name, currency: el('currency').value });
-        if (round2(el('balance').value) !== w.balance || !w.updated) setBalance(w, el('balance').value);
+        setBalance(w, el('balance').value);
       } else {
         data.wallets.push({ id: uid(), name, currency: el('currency').value, balance: round2(el('balance').value), color: data.wallets.length % COLORS.length, updated: todayISO() });
       }
@@ -788,72 +944,74 @@ function clientForm(c = null) {
         commit('Cliente actualizado');
         return;
       }
-      const nc = { id: uid(), ...next, since: '', services: [] };
+      const nc = { id: uid(), ...next, products: [] };
       data.clients.push(nc);
       persist();
       render();
-      serviceForm(nc); // seguimos con lo que te paga
+      productForm(nc); // seguimos con lo que le haces
     };
   });
 }
 
-function serviceForm(c, s = null) {
+function productForm(c, p = null) {
   const cur = clientCur(c);
-  const freq = s?.frequency || 'monthly';
-  openSheet(s ? 'Editar cobro' : `¿Qué te paga ${c.name}?`, `<form class="form">
-    <label class="field"><span>Qué cobras</span><input name="title" required maxlength="60" value="${esc(s?.name || '')}" placeholder="Ej. Diseños del mes"></label>
-    ${moneyField('Monto', 'amount', cur, s?.amount)}
-    <div class="segmented" role="radiogroup" aria-label="Frecuencia">
-      <label><input type="radio" name="frequency" value="monthly"${freq === 'monthly' ? ' checked' : ''}><span>Cada mes</span></label>
-      <label><input type="radio" name="frequency" value="weekly"${freq === 'weekly' ? ' checked' : ''}><span>Cada semana</span></label>
-      <label><input type="radio" name="frequency" value="once"${freq === 'once' ? ' checked' : ''}><span>Una vez</span></label>
-    </div>
-    <div class="grid2">
-      <label class="field"><span data-start-label>Desde</span><input name="start" type="date" required value="${s?.start || todayISO()}"></label>
-      <label class="field" data-end><span>Hasta</span><input name="end" type="date" value="${s?.end || ''}"></label>
-    </div>
-    ${s ? `<label class="switch"><span>Activo</span><input type="checkbox" name="active"${s.active ? ' checked' : ''}></label>` : ''}
-    <p class="preview" data-preview></p>
-    ${s ? deleteButton('deleteService', s.id, 'Eliminar', ` data-client="${c.id}"`) : ''}
-    ${formActions()}
+  openSheet(p ? 'Editar producto' : `¿Qué le haces a ${c.name}?`, `<form class="form">
+    <label class="field"><span>Producto</span><input name="title" required maxlength="60" value="${esc(p?.name || '')}" placeholder="Ej. Gráfico para redes"></label>
+    ${moneyField('Precio por unidad', 'price', cur, p?.price)}
+    <label class="field"><span>¿Cada cuánto lo haces?</span><select name="freq">${freqOptions(p?.freq || 'daily')}</select><small class="field-hint">Solo para estimar lo que falta del mes.</small></label>
+    ${p ? `<label class="switch"><span>Activo</span><input type="checkbox" name="active"${p.active ? ' checked' : ''}></label>` : ''}
+    ${p ? deleteButton('deleteProduct', p.id, 'Eliminar', ` data-client="${c.id}"`) : ''}
+    ${formActions(p ? 'Guardar' : 'Agregar')}
   </form>`, (form, el) => {
-    const sync = () => {
-      const f = el('frequency').value;
-      form.querySelector('[data-end]').hidden = f === 'once';
-      setText(form, '[data-start-label]', f === 'weekly' ? 'Primer día' : f === 'once' ? 'Fecha' : 'Desde');
-      const draft = { frequency: f, start: el('start').value, end: f === 'once' ? '' : el('end').value, active: true, amount: Number(el('amount').value) || 0 };
-      if (!draft.start) return setText(form, '[data-preview]', '');
-      const m = maxStr(thisMonth(), monthKey(draft.start));
-      const n = chargeCount(draft, m);
-      setText(form, '[data-preview]', n
-        ? `${freqText(draft)}. En ${monthName(m)}: ${n > 1 ? `${n} × ${money(draft.amount, cur)} = ` : ''}${money(n * draft.amount, cur)}.`
-        : `${freqText(draft)}. Sin cobro en ${monthName(m)}.`);
-    };
-    form.addEventListener('input', sync);
-    form.addEventListener('change', sync);
-    sync();
-    if (!s) el('title').focus();
+    if (!p) el('title').focus();
     form.onsubmit = e => {
       e.preventDefault();
-      const f = el('frequency').value;
-      const next = {
-        name: el('title').value.trim(), amount: round2(el('amount').value), frequency: f,
-        start: el('start').value, end: f === 'once' ? '' : el('end').value, active: s ? el('active').checked : true,
-      };
-      if (!next.name) return toast('Escribe qué cobras');
-      if (!(next.amount > 0)) return toast('Escribe un monto mayor a 0');
-      if (next.end && next.end < next.start) return toast('"Hasta" no puede ser antes de "Desde"');
-      if (s) Object.assign(s, next);
-      else c.services.push({ id: uid(), ...next });
+      const next = { name: el('title').value.trim(), price: round2(el('price').value), freq: el('freq').value, active: p ? el('active').checked : true };
+      if (!next.name) return toast('Escribe el nombre del producto');
+      if (!(next.price > 0)) return toast('Escribe el precio');
+      if (p) Object.assign(p, next);
+      else c.products.push({ id: uid(), ...next });
       closeSheet();
-      commit(s ? 'Cobro actualizado' : 'Cobro agregado');
+      commit(p ? 'Producto actualizado' : 'Producto agregado');
     };
   });
 }
 
 // ── Acciones ──
+function findEntry(id) { return data.entries.find(e => e.id === id); }
 const actions = {
   closeSheet,
+  log: d => {
+    const c = client(d.client), p = product(c, d.id);
+    if (!p) return;
+    data.entries.push({ id: uid(), clientId: c.id, productId: p.id, name: p.name, price: p.price, qty: 1, date: logDate(d.month) });
+    commit(`${p.name}: ${productCount(c, p, d.month)} en ${monthName(d.month)}`);
+  },
+  unlog: d => {
+    const c = client(d.client), p = product(c, d.id);
+    if (!p) return;
+    const list = monthEntries(c, d.month).filter(e => e.productId === p.id);
+    const last = list.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))[0];
+    if (!last) return;
+    if (last.qty > 1) last.qty -= 1;
+    else data.entries = data.entries.filter(e => e !== last);
+    commit(`${p.name}: ${productCount(c, p, d.month)} en ${monthName(d.month)}`);
+  },
+  entries: d => { const c = client(d.client); if (c) entriesSheet(c, d.month); },
+  newEntry: d => { const c = client(d.client); if (c) entryForm(c, d.month); },
+  editEntry: d => {
+    const e = findEntry(d.id), c = e && client(e.clientId);
+    if (c) entryForm(c, monthKey(e.date), e);
+  },
+  deleteEntry: d => {
+    const e = findEntry(d.id), c = e && client(e.clientId);
+    if (!e || !confirm('¿Eliminar esta anotación?')) return;
+    data.entries = data.entries.filter(x => x !== e);
+    persist();
+    render();
+    entriesSheet(c, monthKey(e.date));
+    toast('Anotación eliminada');
+  },
   charge: d => { const c = client(d.id); if (c) chargeForm(c, d.month); },
   editPayment: d => {
     const p = data.payments.find(x => x.id === d.id);
@@ -862,7 +1020,7 @@ const actions = {
   },
   deletePayment: d => {
     const p = data.payments.find(x => x.id === d.id);
-    if (!p || !confirm('¿Deshacer este cobro?')) return;
+    if (!p || !confirm('¿Deshacer este cobro? Lo anotado se mantiene.')) return;
     const w = wallet(p.wallet);
     // Si el saldo no se ha tocado desde el cobro, vuelve al valor anterior.
     if (w && p.balanceBefore != null && w.balance === p.balanceAfter) setBalance(w, p.balanceBefore);
@@ -900,27 +1058,24 @@ const actions = {
   editClient: d => { const c = client(d.id); if (c) clientForm(c); },
   deleteClient: d => {
     const c = client(d.id);
-    if (!c || !confirm(`¿Eliminar a ${c.name} junto con sus cobros registrados?`)) return;
+    if (!c || !confirm(`¿Eliminar a ${c.name} junto con lo anotado y sus cobros?`)) return;
     data.clients = data.clients.filter(x => x !== c);
+    data.entries = data.entries.filter(e => e.clientId !== c.id);
     data.payments = data.payments.filter(p => p.clientId !== c.id);
     closeSheet();
     commit('Cliente eliminado');
   },
-  newService: d => { const c = client(d.client); if (c) serviceForm(c); },
-  editService: d => {
-    const c = client(d.client), s = c?.services.find(x => x.id === d.id);
-    if (s) serviceForm(c, s);
-  },
-  deleteService: d => {
-    const c = client(d.client);
-    const s = c?.services.find(x => x.id === d.id);
-    if (!s || !confirm(`¿Eliminar "${s.name}"? Los meses ya cobrados se conservan.`)) return;
-    c.services = c.services.filter(x => x !== s);
+  newProduct: d => { const c = client(d.client); if (c) productForm(c); },
+  editProduct: d => { const c = client(d.client), p = product(c, d.id); if (p) productForm(c, p); },
+  deleteProduct: d => {
+    const c = client(d.client), p = product(c, d.id);
+    if (!p || !confirm(`¿Eliminar "${p.name}"? Lo ya anotado se conserva.`)) return;
+    c.products = c.products.filter(x => x !== p);
     closeSheet();
-    commit('Cobro eliminado');
+    commit('Producto eliminado');
   },
-  prevMonth: () => { chargeMonth = shiftMonth(chargeMonth, -1); render(); },
-  nextMonth: () => { chargeMonth = shiftMonth(chargeMonth, 1); render(); },
+  prevMonth: () => { viewMonth = shiftMonth(viewMonth, -1); render(); },
+  nextMonth: () => { viewMonth = shiftMonth(viewMonth, 1); render(); },
   fetchRates,
   toggleGoogle,
   exportData,
@@ -1002,7 +1157,7 @@ function toast(msg) {
   el.textContent = msg;
   el.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
 }
 
 // ── Cuenta de Google + guardado en tu Google Drive (carpeta oculta de la app) ──
@@ -1120,7 +1275,7 @@ $('importFile').onchange = e => { importFile(e.target.files?.[0]); e.target.valu
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('sheet').hidden) closeSheet(); });
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
-  if (!el || !actions[el.dataset.act]) return;
+  if (!el || el.disabled || !actions[el.dataset.act]) return;
   e.preventDefault();
   actions[el.dataset.act](el.dataset, el);
 });

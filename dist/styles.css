@@ -209,6 +209,26 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .row.compact { grid-template-columns: minmax(0, 1fr) auto; }
 .btn-sm.add { margin-top: 10px; }
 
+/* ── Productos y anotaciones ── */
+a.btn { text-decoration: none; }
+.prod-list { display: flex; flex-direction: column; }
+.prod-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.prod-row:last-child { border-bottom: 0; }
+.prod-row.paused { opacity: .6; }
+.prod-main { min-width: 0; padding: 0; border: 0; background: none; text-align: left; }
+.prod-main b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.prod-main small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 14px; }
+.counter { display: flex; align-items: center; gap: 6px; }
+.counter .icon-btn { width: 44px; height: 44px; border-radius: 12px; }
+.counter .icon-btn:disabled { opacity: .35; cursor: default; }
+.counter .icon-btn.add { background: var(--green); border-color: var(--green); color: #fff; }
+.counter .icon-btn.add:active { transform: scale(.94); }
+.count { min-width: 32px; text-align: center; font: 800 20px var(--display); font-variant-numeric: tabular-nums; }
+.btn-row.tight { gap: 8px; margin-top: 12px; }
+.account-total { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 14px 0 12px; padding-top: 12px; border-top: 1px solid var(--line); font-weight: 600; }
+.account-total small { display: block; color: var(--faint); font-size: 13px; font-weight: 500; }
+.account-total b { font: 800 22px var(--display); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
 /* ── Plan de retiros ── */
 .segmented.four span { padding: 11px 4px; font-size: 14px; line-height: 1.2; }
 .table { display: flex; flex-direction: column; margin-top: 14px; font-size: 14px; }

@@ -1,13 +1,12 @@
 # Saldo · Finanzas freelance
 
-App personal para cobrar a tus clientes mes a mes, saber cuánto tienes en cada billetera y planear tus retiros.
+App personal para anotar lo que haces para cada cliente, cobrarlo a fin de mes, saber cuánto tienes en cada billetera y planear tus retiros.
 
 ## Secciones
 
-- **Inicio**: lo que tienes en total y en cada billetera, lo que falta cobrar, el avance del mes y tu próximo retiro según el plan.
-- **Cobros**: cada cliente con lo que te debe en el mes (por ejemplo, 4 × diseño semanal). Con «Cobrar octubre» registras el pago y escribes cuánto tienes ahora en la billetera, porque con las comisiones nunca es exacto.
-- **Retiros**: con «Retiré» indicas cuánto sacaste y cuánto tienes ahora en tu cuenta; la app calcula cuánto recibiste y a qué tipo de cambio. El planificador proyecta 12 meses y compara retirar cada mes, cada 2 o 3 meses o al juntar un monto.
-- **Clientes**: lo que te paga cada cliente (cada mes, cada semana o una vez) y en qué billetera.
+- **Inicio**: lo que tienes en total y en cada billetera, botones para anotar cada entrega del día, lo que falta cobrar, el resumen del mes y tu próximo retiro según el plan.
+- **Clientes**: la cuenta de cada cliente por mes. Cada producto (por ejemplo, un gráfico a $8.50) tiene un contador: «+» anota una entrega con la fecha de hoy y «−» quita la última. Al final del mes, «Cobrar octubre» registra el pago y te pide cuánto tienes ahora en PayPal.
+- **Retiros**: con «Retiré» indicas cuánto sacaste y cuánto tienes ahora en tu cuenta; la app calcula cuánto recibiste y a qué tipo de cambio. El planificador proyecta 12 meses con lo anotado y la frecuencia de cada producto, y compara retirar cada mes, cada 2 o 3 meses o al juntar un monto.
 - **Ajustes**: billeteras, tipo de cambio (manual o el del día), Google Drive, respaldo y borrar datos.
 
 Los saldos los escribes tú: la app no suma ni resta sola.
