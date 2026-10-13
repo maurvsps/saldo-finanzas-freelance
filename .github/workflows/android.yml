@@ -31,7 +31,7 @@ jobs:
       - name: Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Java
         uses: actions/setup-java@v4
@@ -41,6 +41,9 @@ jobs:
 
       - name: Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # El paquete "tools" ya no existe; Gradle descarga el resto que necesite.
+          packages: 'platform-tools'
 
       - name: Dependencias
         run: npm install --no-audit --no-fund
