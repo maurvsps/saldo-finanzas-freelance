@@ -55,6 +55,7 @@ const PATHS = {
   check: '<path d="M20 6 9 17l-5-5"/>',
   chevronLeft: '<path d="m15 18-6-6 6-6"/>',
   chevronRight: '<path d="m9 18 6-6-6-6"/>',
+  chevronDown: '<path d="m6 9 6 6 6-6"/>',
   edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
   trash: '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
   cloud: '<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>',
@@ -587,17 +588,39 @@ function viewClients() {
   <div class="page-actions end">${newClientButton()}</div>`;
 }
 
+// Clientes contraídos en la vista de Clientes (preferencia de este dispositivo).
+const COLLAPSED_KEY = 'saldo-collapsed';
+let collapsed = new Set();
+try { collapsed = new Set(JSON.parse(localStorage.getItem(COLLAPSED_KEY)) || []); } catch {}
+function toggleCollapsed(id) {
+  if (collapsed.has(id)) collapsed.delete(id); else collapsed.add(id);
+  try { localStorage.setItem(COLLAPSED_KEY, JSON.stringify([...collapsed])); } catch {}
+}
+
 function accountCard(c, m) {
+  const cur = clientCur(c), now = thisMonth();
+  const logged = monthLogged(c, m), pay = paymentOf(c.id, m);
+  const w = wallet(c.wallet);
+  const open = !collapsed.has(c.id);
+  const status = pay ? 'cobrado' : logged > 0 && m <= now ? 'por cobrar' : '';
+  return `<section class="card account${open ? '' : ' collapsed'}">
+    <div class="card-head client-head">
+      <button class="client-toggle" data-act="toggleClient" data-id="${c.id}" aria-expanded="${open}" aria-label="${open ? 'Contraer' : 'Expandir'} ${esc(c.name)}">
+        ${avatar(c.name, clientColor(c))}
+        <span class="row-main"><b>${esc(c.name)}</b><small>${open ? `${clientCur(c)} · te paga en ${esc(w ? w.name : 'una billetera eliminada')}` : `${money(logged, cur)} en ${monthName(m)}${status ? ` · ${status}` : ''}`}</small></span>
+        ${icon('chevronDown', 'toggle-ic')}
+      </button>
+      ${open ? `<button class="btn-sm ghost" data-act="editClient" data-id="${c.id}">${icon('edit')}Editar</button>` : ''}
+    </div>
+    ${open ? accountBody(c, m) : ''}
+  </section>`;
+}
+
+function accountBody(c, m) {
   const cur = clientCur(c), now = thisMonth();
   const logged = monthLogged(c, m), expected = monthExpected(c, m), pay = paymentOf(c.id, m);
   const count = monthEntries(c, m).length;
-  const w = wallet(c.wallet);
-  return `<section class="card account">
-    <div class="card-head client-head">
-      ${avatar(c.name, clientColor(c))}
-      <span class="row-main"><b>${esc(c.name)}</b><small>${clientCur(c)} · te paga en ${esc(w ? w.name : 'una billetera eliminada')}</small></span>
-      <button class="btn-sm ghost" data-act="editClient" data-id="${c.id}">${icon('edit')}Editar</button>
-    </div>
+  return `
     ${c.products.length ? `<div class="prod-list">${c.products.map(p => productRow(c, p, m, false, true)).join('')}</div>` : '<p class="muted small">Agrega lo que le haces a este cliente.</p>'}
     <div class="btn-row tight">
       <button class="btn-sm ghost" data-act="newProduct" data-client="${c.id}">${icon('plus')}Producto</button>
@@ -608,8 +631,7 @@ function accountCard(c, m) {
       <b>${money(logged, cur)}</b>
     </div>
     ${pay ? `<div class="paid">${icon('check')}<span>Cobrado ${relDate(pay.date)} · <b>${money(pay.amount, pay.currency)}</b></span><button class="btn-sm ghost" data-act="editPayment" data-id="${pay.id}">Editar</button></div>`
-      : m <= now ? `<button class="btn ${logged > 0 ? 'primary' : 'ghost'} block" data-act="charge" data-id="${c.id}" data-month="${m}">Cobrar ${monthName(m)}</button>` : ''}
-  </section>`;
+      : m <= now ? `<button class="btn ${logged > 0 ? 'primary' : 'ghost'} block" data-act="charge" data-id="${c.id}" data-month="${m}">Cobrar ${monthName(m)}</button>` : ''}`;
 }
 
 function viewWithdrawals() {
@@ -1125,6 +1147,7 @@ const actions = {
   },
   newClient: () => clientForm(),
   editClient: d => { const c = client(d.id); if (c) clientForm(c); },
+  toggleClient: d => { toggleCollapsed(d.id); render(); },
   deleteClient: d => {
     const c = client(d.id);
     if (!c || !confirm(`¿Eliminar a ${c.name} junto con lo anotado y sus cobros?`)) return;

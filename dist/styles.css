@@ -206,6 +206,11 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .paid > span { flex: 1; }
 .client-head { justify-content: flex-start; }
 .client-head .row-main { flex: 1; }
+.client-toggle { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 0; border: 0; background: none; text-align: left; }
+.client-toggle .row-main b { font-size: 17px; }
+.client-toggle .toggle-ic { width: 22px; height: 22px; color: var(--faint); transform: rotate(180deg); transition: transform .15s; }
+.account.collapsed .toggle-ic { transform: none; }
+.account.collapsed .card-head { margin-bottom: 0; }
 .row.compact { grid-template-columns: minmax(0, 1fr) auto; }
 .btn-sm.add { margin-top: 10px; }
 
