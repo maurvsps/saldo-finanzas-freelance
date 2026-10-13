@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f5f5f1" />
+  <meta name="description" content="Tu espacio para ordenar clientes, ingresos y proyecciones freelance." />
+  <title>Saldo — Finanzas freelance</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#view-inicio" id="brandHome" aria-label="Saldo inicio"><span class="brand-mark">s.</span><span>saldo<span class="brand-dot">.</span></span></a>
+      <div class="workspace-label">TU ESPACIO</div>
+      <nav class="nav-list" aria-label="Navegación principal">
+        <button class="nav-item active" data-view="inicio"><span class="nav-icon">◫</span> Resumen</button>
+        <button class="nav-item" data-view="clientes"><span class="nav-icon">◎</span> Clientes <span class="nav-count" id="clientCount">0</span></button>
+        <button class="nav-item" data-view="meses"><span class="nav-icon">▦</span> Mes a mes</button>
+        <button class="nav-item" data-view="retiros"><span class="nav-icon">↗</span> Retiros</button>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="currency-card">
+        <div class="currency-top"><span class="live-dot"></span><span>TIPO DE CAMBIO</span></div>
+        <div class="rate-row"><span>🇺🇸 USD / PEN</span><strong id="sideUsd">3.72</strong></div>
+        <div class="rate-row"><span>🇪🇺 EUR / PEN</span><strong id="sideEur">4.05</strong></div>
+        <div class="rate-row"><span>🇬🇧 GBP / PEN</span><strong id="sideGbp">4.72</strong></div>
+        <button class="text-button" id="editRates">Editar cotización <span>↗</span></button>
+      </div>
+      <div class="sidebar-foot"><span class="avatar">D</span><span><b>Mi espacio</b><small>Diseñador freelance</small></span><span class="more">···</span></div>
+    </aside>
+    <main class="main-content">
+      <header class="topbar"><div class="breadcrumb">Finanzas <span>/</span> <b id="crumb">Resumen</b></div><div class="top-actions"><span class="saved-indicator"><i></i> Guardado en este dispositivo</span><button class="icon-button" id="importBtn" title="Importar respaldo">⇧</button><button class="icon-button" id="exportBtn" title="Exportar respaldo">⇩</button><input id="importFile" type="file" accept="application/json,.json" hidden><button class="primary-button" id="quickAdd">＋ Añadir ingreso</button></div></header>
+      <section class="view active" id="view-inicio">
+        <div class="page-heading"><div><div class="eyebrow">HOY, <span id="todayDate"></span></div><h1>Tu dinero, <em>en perspectiva.</em></h1><p>Todo lo que entra, en un solo lugar.</p></div><button class="period-select" id="periodLabel">Próximos 3 meses <span>⌄</span></button></div>
+        <div class="summary-grid">
+          <article class="summary-card balance-card"><div class="card-label">DINERO DISPONIBLE <button class="info-dot" title="Saldo actual convertido a soles">i</button></div><div class="summary-number" id="totalBalance">S/ 0</div><div class="card-note"><span class="positive-chip">↑ Saldo actual</span><span>en todas tus billeteras</span></div><div class="balance-divider"></div><div class="balance-breakdown"><div><span class="wallet-symbol bank">▣</span><span>Cuenta</span><b id="accountValue">S/ 0</b></div><div><span class="wallet-symbol yape">Y</span><span>Yape</span><b id="yapeValue">S/ 0</b></div><div><span class="wallet-symbol paypal">P</span><span>PayPal</span><b id="paypalValue">$0.00</b></div></div></article>
+          <article class="summary-card"><div class="card-label">INGRESO MENSUAL ESTIMADO <button class="info-dot" title="Estimación central, con los encargos activos">i</button></div><div class="summary-number" id="monthlyEstimate">S/ 0</div><div class="card-note"><span class="soft-chip">Escenario medio</span><span>con clientes activos</span></div><div class="mini-chart" id="incomeSpark" aria-label="Tendencia estimada de ingresos"></div><div class="mini-chart-labels"><span>Este mes</span><span>+2 meses</span></div></article>
+          <article class="summary-card projection-card"><div class="card-label">PROYECCIÓN · 3 MESES <button class="info-dot" title="Ingresos mínimos y máximos previstos, antes de retiros">i</button></div><div class="summary-number" id="projectionRange">S/ 0 <span class="range-separator">—</span> S/ 0</div><div class="card-note"><span class="soft-chip green">Ingresos previstos</span><span>antes de retiros</span></div><div class="projection-footer"><span><i class="legend-dot low"></i> Mínimo <b id="lowTotal">S/ 0</b></span><span><i class="legend-dot high"></i> Máximo <b id="highTotal">S/ 0</b></span></div></article>
+        </div>
+        <div class="dashboard-grid">
+          <article class="panel chart-panel"><div class="panel-heading"><div><div class="panel-kicker">VISTA GENERAL</div><h2>Ingresos proyectados</h2></div><div class="chart-legend"><span><i class="legend-dot low"></i>Mínimo</span><span><i class="legend-dot high"></i>Máximo</span></div></div><div class="chart-summary"><span>Rango de ingresos</span><strong id="chartRange">S/ 0 – S/ 0</strong></div><div class="chart-area"><div class="y-axis" id="yAxis"></div><div class="chart-plot"><div class="grid-lines"><i></i><i></i><i></i><i></i></div><svg id="projectionChart" viewBox="0 0 720 220" preserveAspectRatio="none" role="img" aria-label="Gráfico de proyección mensual"></svg><div class="x-axis" id="xAxis"></div></div></div><div class="chart-footnote"><span class="tiny-info">i</span> Las proyecciones usan el rango de encargos semanales y las fechas configuradas.</div></article>
+          <article class="panel clients-panel"><div class="panel-heading"><div><div class="panel-kicker">TRABAJO ACTIVO</div><h2>Tus clientes <span class="heading-count" id="activeClientCount">0</span></h2></div><button class="inline-link" data-goto="clientes">Ver todos <span>→</span></button></div><div id="clientPreview" class="client-list"></div><button class="add-client-row" data-goto="clientes"><span>＋</span> Añadir un cliente</button></article>
+        </div>
+        <div class="panel next-panel"><div class="panel-heading"><div><div class="panel-kicker">LO QUE VIENE</div><h2>Próximos ingresos</h2></div><button class="inline-link" data-goto="meses">Ver calendario <span>→</span></button></div><div id="upcomingList" class="upcoming-list"></div></div>
+      </section>
+      <section class="view" id="view-clientes"><div class="page-heading"><div><div class="eyebrow">TU RED DE TRABAJO</div><h1>Clientes & <em>encargos.</em></h1><p>Define qué haces, cuánto cobras y cuándo llega.</p></div><button class="primary-button" id="newClient">＋ Nuevo cliente</button></div><div class="client-view-layout"><div class="panel client-directory"><div class="panel-heading"><div><div class="panel-kicker">CLIENTES ACTIVOS</div><h2>Tu cartera <span class="heading-count" id="directoryCount">0</span></h2></div></div><div id="clientDirectory" class="directory-list"></div><button class="add-client-row" id="newClientBottom"><span>＋</span> Añadir un cliente</button></div><div class="panel setup-panel"><div class="panel-kicker">CÓMO FUNCIONA</div><h2>Un encargo claro, una proyección precisa.</h2><p>Agrega cada producto o servicio que vendes. Puedes elegir un pago fijo, por semana o por mes, y definir cuántas unidades esperas entregar.</p><div class="setup-step"><span>01</span><div><b>Elige una fecha de inicio</b><small>Se usa para calcular cuándo empezará a entrar el dinero.</small></div></div><div class="setup-step"><span>02</span><div><b>Define un rango de unidades</b><small>Tu proyección mínima y máxima reflejará la variación de los pedidos.</small></div></div><div class="setup-step"><span>03</span><div><b>Todo se convierte a soles</b><small>Ajusta las cotizaciones a tu cambio real cuando quieras.</small></div></div><div class="setup-note">✦　Tus datos se guardan solo en este navegador.</div></div></div></section>
+      <section class="view" id="view-meses"><div class="page-heading"><div><div class="eyebrow">PLANIFICA CON TIEMPO</div><h1>Mes a <em>mes.</em></h1><p>Tus encargos y entradas de dinero, en orden.</p></div><div class="month-nav"><button id="monthPrev" aria-label="Mes anterior">←</button><span id="monthTitle"></span><button id="monthNext" aria-label="Mes siguiente">→</button></div></div><div class="month-kpis" id="monthKpis"></div><div class="panel month-panel"><div class="month-table-heading"><div><div class="panel-kicker">CRONOGRAMA DE INGRESOS</div><h2 id="monthTableTitle">Ingresos del mes</h2></div><button class="inline-link" id="addMonthIncome">＋ Registrar ingreso</button></div><div id="monthSchedule"></div></div><div class="month-disclaimer">Los trabajos recurrentes se distribuyen según su frecuencia. Los pedidos variables aparecen como rangos de unidades.</div></section>
+      <section class="view" id="view-retiros"><div class="page-heading"><div><div class="eyebrow">CUÁNDO MOVER TU DINERO</div><h1>Retiros <em>sin sorpresas.</em></h1><p>Simula cómo y cuándo retirar tus ingresos de PayPal o Yape.</p></div><button class="primary-button" id="newWithdrawal">＋ Simular retiro</button></div><div class="withdrawal-layout"><div class="panel withdrawal-panel"><div class="panel-heading"><div><div class="panel-kicker">SIMULADOR</div><h2>Tu próximo retiro</h2></div><span class="soft-chip green">Estimación</span></div><div class="withdrawal-fields"><label>Billetera<select id="withdrawWallet"><option value="paypal">PayPal · USD</option><option value="yape">Yape · PEN</option><option value="account">Cuenta · PEN</option></select></label><label>Monto a retirar<div class="input-with-prefix"><span id="withdrawCurrency">$</span><input type="number" id="withdrawAmount" min="0" step="0.01" value="0"></div></label><label>Comisión estimada (%)<input type="number" id="withdrawFee" min="0" step="0.1" value="0"></label><label>Fecha del retiro<input type="date" id="withdrawDate"></label></div><div class="withdrawal-result"><div><span>Recibirías en soles</span><strong id="withdrawResult">S/ 0</strong></div><span id="withdrawBreakdown">Ingresa un monto para simular tu retiro.</span></div><button class="primary-button full-button" id="saveWithdrawal">Guardar simulación</button><p class="muted-note">La comisión y el tipo de cambio son editables. El cálculo es referencial.</p></div><div class="panel withdrawal-history"><div class="panel-heading"><div><div class="panel-kicker">MOVIMIENTOS PLANEADOS</div><h2>Retiros guardados</h2></div></div><div id="withdrawalList"></div></div></div><div class="panel wallet-panel"><div class="panel-heading"><div><div class="panel-kicker">SALDOS ACTUALES</div><h2>Tus billeteras</h2></div><button class="inline-link" id="editWallets">Editar saldos <span>↗</span></button></div><div class="wallet-grid" id="walletGrid"></div></div></section>
+      <footer class="footer-note"><span>Hecho para trabajar por cuenta propia.</span><span>Saldo <b>·</b> Tu espacio financiero · <a href="https://github.com/maurvsps/saldo-finanzas-freelance" target="_blank" rel="noopener noreferrer">Ver código en GitHub ↗</a></span></footer>
+    </main>
+  </div>
+  <div class="modal-backdrop" id="modalBackdrop" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-heading"><div><div class="panel-kicker" id="modalKicker">DETALLES</div><h2 id="modalTitle">Añadir</h2></div><button class="close-button" id="closeModal" aria-label="Cerrar">×</button></div><div id="modalBody"></div></div></div>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
+
