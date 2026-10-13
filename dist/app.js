@@ -127,7 +127,7 @@ function blank() {
     payments: [], // { id, clientId, month, amount, currency, wallet, date, balanceBefore, balanceAfter }
     withdrawals: [], // { id, date, from, to, amount, received, fromBefore, fromAfter, toBefore, toAfter, note }
     plan: { strategy: 'monthly', threshold: 200, rate: 0, fee: 0, from: '', to: '' },
-    horizon: 'eom', // fecha de la previsión en Inicio: eom, next, 3m, 6m, eoy o una fecha AAAA-MM-DD
+    horizon: '', // fecha de la previsión en Inicio (AAAA-MM-DD); vacía = fin de este mes
   };
 }
 
@@ -341,15 +341,10 @@ function estimateRange(c, from, to) {
 }
 
 // ── Previsión ──
-const HORIZONS = { eom: 'Fin de este mes', next: 'Fin del próximo mes', '3m': 'En 3 meses', '6m': 'En 6 meses', eoy: 'Fin de año' };
+// Fecha elegida para la previsión; si no hay una válida y futura, fin de este mes.
 function horizonDate(h) {
-  const t = todayISO(), m = thisMonth();
-  if (h === 'next') return lastDay(shiftMonth(m, 1));
-  if (h === '3m') return addMonthsClamped(t, 3);
-  if (h === '6m') return addMonthsClamped(t, 6);
-  if (h === 'eoy') return t.slice(0, 4) + '-12-31';
-  if (/^\d{4}-\d{2}-\d{2}$/.test(h || '') && h > t) return h;
-  return lastDay(m);
+  const t = todayISO();
+  return /^\d{4}-\d{2}-\d{2}$/.test(h || '') && h > t ? h : lastDay(thisMonth()) > t ? lastDay(thisMonth()) : lastDay(shiftMonth(thisMonth(), 1));
 }
 // Dinero de hoy + lo anotado sin cobrar + lo que estimas hacer hasta la fecha, todo en soles.
 function forecast(until) {
@@ -542,24 +537,20 @@ function viewHome() {
 
 function forecastBlock() {
   const until = horizonDate(data.horizon), f = forecast(until);
-  const preset = HORIZONS[data.horizon] ? data.horizon : 'custom';
   return `<div class="forecast">
     <div class="fc-box">
       <p class="label">Hoy tienes</p>
       <p class="hero-amount">${money(f.now)}</p>
     </div>
     <div class="fc-box future">
-      <label class="label fc-label" for="horizonSel">Al ${fmtDate(until, { day: 'numeric', month: 'short', year: until.slice(0, 4) === todayISO().slice(0, 4) ? undefined : 'numeric' })}</label>
+      <label class="label fc-label" for="horizonDate">Al ${fmtDate(until, { day: 'numeric', month: 'short', year: until.slice(0, 4) === todayISO().slice(0, 4) ? undefined : 'numeric' })}</label>
       <p class="hero-amount pos">${money(f.total)}</p>
     </div>
   </div>
-  <div class="fc-controls">
-    <select id="horizonSel" aria-label="Fecha de la previsión">
-      ${Object.entries(HORIZONS).map(([k, l]) => `<option value="${k}"${preset === k ? ' selected' : ''}>${l}</option>`).join('')}
-      <option value="custom"${preset === 'custom' ? ' selected' : ''}>Otra fecha</option>
-    </select>
-    <input type="date" id="horizonDate" value="${until}" min="${addDays(todayISO(), 1)}"${preset === 'custom' ? '' : ' hidden'} aria-label="Elegir fecha">
-  </div>
+  <label class="fc-controls">
+    <span>Ver previsión al</span>
+    <input type="date" id="horizonDate" value="${until}" min="${addDays(todayISO(), 1)}">
+  </label>
   <div class="fc-breakdown">
     <span>Hoy <b>${money(f.now)}</b></span>
     <span>Por cobrar <b>+${money(f.pending)}</b></span>
@@ -1368,18 +1359,6 @@ document.addEventListener('click', e => {
 document.addEventListener('input', onPlanInput);
 document.addEventListener('change', onPlanInput);
 document.addEventListener('change', e => {
-  if (e.target.id === 'horizonSel') {
-    if (e.target.value === 'custom') {
-      const input = $('horizonDate');
-      input.hidden = false;
-      input.focus();
-      input.showPicker?.();
-      return;
-    }
-    data.horizon = e.target.value;
-    persist();
-    render();
-  }
   if (e.target.id === 'horizonDate' && e.target.value > todayISO()) {
     data.horizon = e.target.value;
     persist();
