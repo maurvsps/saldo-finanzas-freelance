@@ -7,6 +7,8 @@ const OLD_KEY = 'saldo-freelance-v1';
 const GOOGLE_CLIENT_ID = '1057047663238-a3prjms222f111drrcse66qtrpu400sv.apps.googleusercontent.com';
 const DRIVE_FILE = 'saldo-datos.json';
 const DRIVE_CONNECTED = 'saldo-drive-connected';
+// Inicio de sesión con Google desactivado: los datos se guardan solo en este dispositivo.
+const GOOGLE_ENABLED = false;
 
 const CURRENCIES = { PEN: 'S/', USD: '$', EUR: '€', GBP: '£' };
 const CURRENCY_NAMES = { PEN: 'Soles (PEN)', USD: 'Dólares (USD)', EUR: 'Euros (EUR)', GBP: 'Libras (GBP)' };
@@ -658,11 +660,11 @@ function viewSettings() {
       </div>
     </form>
   </section>
-  <section class="card">
+  ${GOOGLE_ENABLED ? `<section class="card">
     <div class="card-head"><h2>Google Drive</h2></div>
     <p class="muted small">${googleText}</p>
     <div class="btn-row"><button class="btn ${signed ? 'ghost' : 'primary'}" data-act="toggleGoogle"${gTokenClient ? '' : ' disabled'}>${icon('cloud')}${signed ? 'Desconectar' : 'Entrar con Google'}</button></div>
-  </section>
+  </section>` : ''}
   <section class="card">
     <div class="card-head"><h2>Respaldo</h2></div>
     <div class="btn-row">
@@ -1168,6 +1170,7 @@ const SYNC_TEXT = { local: 'En este dispositivo', on: 'Sincronizado', saving: 'G
 function setSync(s) { syncState = s; renderSync(); }
 function renderSync() {
   const chip = $('syncChip');
+  chip.hidden = !GOOGLE_ENABLED;
   chip.className = `sync-chip ${syncState}`;
   chip.innerHTML = `${icon(syncState === 'local' ? 'phone' : 'cloud')}<span>${SYNC_TEXT[syncState]}</span>`;
 }
@@ -1236,6 +1239,7 @@ function onDriveToken(r) {
   else loadDrive();
 }
 function queueCloudSave() {
+  if (!GOOGLE_ENABLED) return;
   if (!driveAuthed()) {
     // El token dura ~1 h: si expiró, pedimos uno nuevo sin ventana y guardamos después
     if (gTokenClient && localStorage.getItem(DRIVE_CONNECTED)) { driveNeedsSave = true; gTokenClient.requestAccessToken({ prompt: '' }); }
@@ -1260,6 +1264,7 @@ function toggleGoogle() {
   gTokenClient.requestAccessToken({ prompt: '' });
 }
 function initDrive() {
+  if (!GOOGLE_ENABLED) { localStorage.removeItem(DRIVE_CONNECTED); return; }
   if (!window.google?.accounts?.oauth2) return;
   gTokenClient = google.accounts.oauth2.initTokenClient({ client_id: GOOGLE_CLIENT_ID, scope: 'https://www.googleapis.com/auth/drive.appdata', callback: onDriveToken });
   if (currentView() === 'ajustes') render();
