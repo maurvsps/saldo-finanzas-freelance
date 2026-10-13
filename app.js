@@ -15,13 +15,22 @@ const CURRENCY_NAMES = { PEN: 'Soles (PEN)', USD: 'Dólares (USD)', EUR: 'Euros 
 const COLORS = ['#2f7a59', '#7b3fa0', '#2563a8', '#b26a2c', '#3f7f88', '#a8445a'];
 const OTHERS = 'Otros trabajos';
 // Cada cuánto haces un producto: solo se usa para estimar lo que falta del mes.
-const FREQ = {
-  daily: 'Cada día',
-  weekdays: 'De lunes a viernes',
-  weekly: 'Cada semana',
-  monthly: 'Una vez al mes',
-  ondemand: 'A pedido',
-};
+// Para estimar: cuántas veces haces un producto por semana o al mes (0 = a pedido).
+const EST_PER = { week: 'por semana', month: 'al mes' };
+// Frecuencias de la versión anterior convertidas a "N por semana / al mes".
+const OLD_FREQ = { daily: [7, 'week'], weekdays: [5, 'week'], weekly: [1, 'week'], monthly: [1, 'month'], ondemand: [0, 'week'] };
+function normalizeProduct(p) {
+  const out = { active: true, notes: '', ...p };
+  if (out.estPer !== 'week' && out.estPer !== 'month') {
+    const [n, per] = OLD_FREQ[out.freq] || OLD_FREQ.ondemand;
+    out.estCount = n;
+    out.estPer = per;
+  }
+  out.estCount = Math.max(0, Number(out.estCount) || 0);
+  delete out.freq;
+  return out;
+}
+const estText = p => (p.estCount > 0 ? `${String(p.estCount).replace('.', ',')} ${p.estCount === 1 ? 'vez' : 'veces'} ${EST_PER[p.estPer]}` : 'A pedido');
 const STRATEGIES = {
   monthly: 'Cada mes',
   every2: 'Cada 2 meses',
@@ -111,7 +120,7 @@ function blank() {
       { id: 'yape', name: 'Yape', currency: 'PEN', balance: 0, color: 1, updated: '' },
       { id: 'paypal', name: 'PayPal', currency: 'USD', balance: 0, color: 2, updated: '' },
     ],
-    clients: [], // { id, name, note, wallet, products: [{ id, name, price, freq, active }] }
+    clients: [], // { id, name, note, wallet, products: [{ id, name, price, estCount, estPer, notes, active }] }
     entries: [], // trabajos anotados: { id, clientId, productId, name, price, qty, date }
     payments: [], // { id, clientId, month, amount, currency, wallet, date, balanceBefore, balanceAfter }
     withdrawals: [], // { id, date, from, to, amount, received, fromBefore, fromAfter, toBefore, toAfter, note }
@@ -229,7 +238,7 @@ function normalize(raw) {
     updatedAt: Number(raw.updatedAt) || 0,
     ratesDate: d.ratesDate,
     wallets: arr(raw.wallets).length ? raw.wallets.map(w => ({ color: 0, updated: '', ...w, balance: round2(w.balance) })) : d.wallets,
-    clients: arr(raw.clients).map(c => ({ note: '', ...c, products: arr(c.products).map(p => ({ freq: 'ondemand', active: true, ...p })) })),
+    clients: arr(raw.clients).map(c => ({ note: '', ...c, products: arr(c.products).map(normalizeProduct) })),
     entries: arr(raw.entries),
     payments: arr(raw.payments),
     withdrawals: arr(raw.withdrawals),
@@ -241,8 +250,8 @@ function normalize(raw) {
 function migrate(raw) {
   if (!raw || typeof raw !== 'object') return blank();
   if (raw.version === 4) return normalize(raw);
-  if (raw.version === 3) return fromV3(raw);
-  return fromV3(raw.version === 2 ? fromV2(raw) : fromV1(raw));
+  if (raw.version === 3) return normalize(fromV3(raw));
+  return normalize(fromV3(raw.version === 2 ? fromV2(raw) : fromV1(raw)));
 }
 
 function load() {
@@ -301,15 +310,7 @@ function monthLines(c, m) {
 }
 const linesText = lines => lines.map(x => `${x.qty > 1 ? `${x.qty} × ` : ''}${x.name}`).join(', ');
 
-function workDays(from, to, weekdaysOnly) {
-  let n = 0;
-  for (let d = from; d <= to; d = addDays(d, 1)) {
-    const wd = parse(d).getDay();
-    if (!weekdaysOnly || (wd > 0 && wd < 6)) n++;
-  }
-  return n;
-}
-// Lo que esperas facturarle a un cliente en un mes: lo anotado más lo que falta según la frecuencia de cada producto.
+// Lo que esperas facturarle a un cliente en un mes: lo anotado más lo que falta según cuántas veces haces cada producto.
 function monthExpected(c, m) {
   const now = thisMonth();
   const logged = monthLogged(c, m);
@@ -318,12 +319,10 @@ function monthExpected(c, m) {
   const to = lastDay(m);
   let est = 0;
   for (const p of c.products) {
-    if (!p.active) continue;
-    if (p.freq === 'monthly') { if (!productCount(c, p, m)) est += p.price; continue; }
-    if (from > to) continue;
-    if (p.freq === 'daily') est += p.price * workDays(from, to, false);
-    else if (p.freq === 'weekdays') est += p.price * workDays(from, to, true);
-    else if (p.freq === 'weekly') est += (p.price * (dayDiff(from, to) + 1)) / 7;
+    if (!p.active || !(p.estCount > 0)) continue;
+    // Al mes: faltan las que aún no anotas. Por semana: proporcional a los días que quedan.
+    if (p.estPer === 'month') est += p.price * Math.max(0, p.estCount - productCount(c, p, m));
+    else if (from <= to) est += (p.price * p.estCount * (dayDiff(from, to) + 1)) / 7;
   }
   return round2(logged + est);
 }
@@ -442,13 +441,14 @@ const monthSwitch = m => `<div class="month-switch">
 </div>`;
 
 // Fila de producto con contador: "+" anota uno, "−" quita el último.
-function productRow(c, p, m, showClient = false) {
+function productRow(c, p, m, showClient = false, detail = false) {
   const cur = clientCur(c), n = productCount(c, p, m);
   const ids = `data-client="${c.id}" data-id="${p.id}" data-month="${m}"`;
   return `<div class="prod-row${p.active ? '' : ' paused'}">
     <button class="prod-main" data-act="editProduct" data-client="${c.id}" data-id="${p.id}">
       <b>${esc(p.name)}${p.active ? '' : '<em class="tag">Pausado</em>'}</b>
-      <small>${showClient ? `${esc(c.name)} · ` : ''}${money(p.price, cur)}${n ? ` · ${money(n * p.price, cur)}` : ''}</small>
+      <small>${showClient ? `${esc(c.name)} · ` : ''}${money(p.price, cur)}${n ? ` · ${money(n * p.price, cur)}` : ''}${detail ? ` · ${estText(p)}` : ''}</small>
+      ${detail && p.notes ? `<small class="prod-notes">${esc(p.notes)}</small>` : ''}
     </button>
     <div class="counter">
       <button class="icon-btn" data-act="unlog" ${ids} aria-label="Quitar uno de ${esc(p.name)}"${n ? '' : ' disabled'}>${icon('minus')}</button>
@@ -550,7 +550,7 @@ function accountCard(c, m) {
       <span class="row-main"><b>${esc(c.name)}</b><small>Te paga en ${esc(w ? w.name : 'una billetera eliminada')}</small></span>
       <button class="btn-sm ghost" data-act="editClient" data-id="${c.id}">${icon('edit')}Editar</button>
     </div>
-    ${c.products.length ? `<div class="prod-list">${c.products.map(p => productRow(c, p, m)).join('')}</div>` : '<p class="muted small">Agrega lo que le haces a este cliente.</p>'}
+    ${c.products.length ? `<div class="prod-list">${c.products.map(p => productRow(c, p, m, false, true)).join('')}</div>` : '<p class="muted small">Agrega lo que le haces a este cliente.</p>'}
     <div class="btn-row tight">
       <button class="btn-sm ghost" data-act="newProduct" data-client="${c.id}">${icon('plus')}Producto</button>
       <button class="btn-sm ghost" data-act="entries" data-client="${c.id}" data-month="${m}">${icon('list')}Anotaciones${count ? ` (${count})` : ''}</button>
@@ -696,7 +696,6 @@ function closeSheet() {
 
 const walletOptions = sel => data.wallets.map(w => `<option value="${w.id}"${w.id === sel ? ' selected' : ''}>${esc(w.name)} · ${w.currency}</option>`).join('');
 const currencyOptions = sel => Object.keys(CURRENCIES).map(c => `<option value="${c}"${c === sel ? ' selected' : ''}>${CURRENCY_NAMES[c]}</option>`).join('');
-const freqOptions = sel => Object.entries(FREQ).map(([k, l]) => `<option value="${k}"${k === sel ? ' selected' : ''}>${l}</option>`).join('');
 const formActions = (label = 'Guardar') => `<div class="form-actions"><button type="button" class="btn ghost" data-act="closeSheet">Cancelar</button><button class="btn primary">${label}</button></div>`;
 const deleteButton = (act, id, label = 'Eliminar', extra = '') => `<button type="button" class="btn danger-ghost" data-act="${act}" data-id="${id}"${extra}>${icon('trash')}${label}</button>`;
 function moneyField(label, name, cur, value, attrs = 'min="0.01" required', hint = '') {
@@ -960,7 +959,15 @@ function productForm(c, p = null) {
   openSheet(p ? 'Editar producto' : `¿Qué le haces a ${c.name}?`, `<form class="form">
     <label class="field"><span>Producto</span><input name="title" required maxlength="60" value="${esc(p?.name || '')}" placeholder="Ej. Gráfico para redes"></label>
     ${moneyField('Precio por unidad', 'price', cur, p?.price)}
-    <label class="field"><span>¿Cada cuánto lo haces?</span><select name="freq">${freqOptions(p?.freq || 'daily')}</select><small class="field-hint">Solo para estimar lo que falta del mes.</small></label>
+    <div class="field">
+      <span>¿Cuántas veces lo haces?</span>
+      <div class="grid2">
+        <input name="estCount" type="number" min="0" step="0.5" inputmode="decimal" value="${p ? p.estCount : 1}" aria-label="Cuántas veces">
+        <select name="estPer" aria-label="Por semana o al mes">${Object.entries(EST_PER).map(([k, l]) => `<option value="${k}"${(p?.estPer || 'week') === k ? ' selected' : ''}>${l}</option>`).join('')}</select>
+      </div>
+      <small class="field-hint">Solo para estimar lo que falta del mes. Pon 0 si es a pedido.</small>
+    </div>
+    <label class="field"><span>Notas</span><textarea name="notes" rows="4" maxlength="4000" placeholder="Medidas, formato, lo que pide el cliente…">${esc(p?.notes || '')}</textarea></label>
     ${p ? `<label class="switch"><span>Activo</span><input type="checkbox" name="active"${p.active ? ' checked' : ''}></label>` : ''}
     ${p ? deleteButton('deleteProduct', p.id, 'Eliminar', ` data-client="${c.id}"`) : ''}
     ${formActions(p ? 'Guardar' : 'Agregar')}
@@ -968,7 +975,11 @@ function productForm(c, p = null) {
     if (!p) el('title').focus();
     form.onsubmit = e => {
       e.preventDefault();
-      const next = { name: el('title').value.trim(), price: round2(el('price').value), freq: el('freq').value, active: p ? el('active').checked : true };
+      const next = {
+        name: el('title').value.trim(), price: round2(el('price').value),
+        estCount: Math.max(0, Number(el('estCount').value) || 0), estPer: el('estPer').value,
+        notes: el('notes').value.trim(), active: p ? el('active').checked : true,
+      };
       if (!next.name) return toast('Escribe el nombre del producto');
       if (!(next.price > 0)) return toast('Escribe el precio');
       if (p) Object.assign(p, next);
