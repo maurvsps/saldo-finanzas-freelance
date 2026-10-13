@@ -12,6 +12,8 @@ const GOOGLE_ENABLED = false;
 
 const CURRENCIES = { PEN: 'S/', USD: '$', EUR: '€', GBP: '£' };
 const CURRENCY_NAMES = { PEN: 'Soles (PEN)', USD: 'Dólares (USD)', EUR: 'Euros (EUR)', GBP: 'Libras (GBP)' };
+// Monedas en las que te puede pagar un cliente.
+const CLIENT_CURRENCIES = ['USD', 'EUR', 'GBP', 'PEN'];
 const COLORS = ['#2f7a59', '#7b3fa0', '#2563a8', '#b26a2c', '#3f7f88', '#a8445a'];
 const OTHERS = 'Otros trabajos';
 // Cada cuánto haces un producto: solo se usa para estimar lo que falta del mes.
@@ -120,7 +122,7 @@ function blank() {
       { id: 'yape', name: 'Yape', currency: 'PEN', balance: 0, color: 1, updated: '' },
       { id: 'paypal', name: 'PayPal', currency: 'USD', balance: 0, color: 2, updated: '' },
     ],
-    clients: [], // { id, name, note, wallet, products: [{ id, name, price, estCount, estPer, notes, active }] }
+    clients: [], // { id, name, note, currency, wallet, products: [{ id, name, price, estCount, estPer, notes, active }] }
     entries: [], // trabajos anotados: { id, clientId, productId, name, price, qty, date }
     payments: [], // { id, clientId, month, amount, currency, wallet, date, balanceBefore, balanceAfter }
     withdrawals: [], // { id, date, from, to, amount, received, fromBefore, fromAfter, toBefore, toAfter, note }
@@ -233,12 +235,15 @@ function fromV3(raw) {
 function normalize(raw) {
   const d = blank();
   copyRates(d, raw);
+  const wallets = arr(raw.wallets).length ? raw.wallets.map(w => ({ color: 0, updated: '', ...w, balance: round2(w.balance) })) : d.wallets;
+  // Antes la moneda del cliente era la de su billetera.
+  const currencyOf = c => (CURRENCIES[c.currency] ? c.currency : wallets.find(w => w.id === c.wallet)?.currency || 'USD');
   return {
     ...d,
     updatedAt: Number(raw.updatedAt) || 0,
     ratesDate: d.ratesDate,
-    wallets: arr(raw.wallets).length ? raw.wallets.map(w => ({ color: 0, updated: '', ...w, balance: round2(w.balance) })) : d.wallets,
-    clients: arr(raw.clients).map(c => ({ note: '', ...c, products: arr(c.products).map(normalizeProduct) })),
+    wallets,
+    clients: arr(raw.clients).map(c => ({ note: '', ...c, currency: currencyOf(c), products: arr(c.products).map(normalizeProduct) })),
     entries: arr(raw.entries),
     payments: arr(raw.payments),
     withdrawals: arr(raw.withdrawals),
@@ -282,7 +287,7 @@ const toPEN = (n, cur) => (Number(n) || 0) * (cur === 'PEN' ? 1 : Number(data.ra
 const convert = (n, from, to) => (from === to ? Number(n) || 0 : toPEN(n, from) / (to === 'PEN' ? 1 : Number(data.rates[to]) || 1));
 const walletColor = w => COLORS[(w?.color ?? 0) % COLORS.length];
 const clientColor = c => COLORS[Math.max(0, data.clients.indexOf(c)) % COLORS.length];
-const clientCur = c => wallet(c.wallet)?.currency || 'USD';
+const clientCur = c => c.currency || wallet(c.wallet)?.currency || 'USD';
 const initial = s => esc(String(s || '?').trim().charAt(0).toUpperCase() || '?');
 function setBalance(w, value) {
   w.balance = round2(value);
@@ -376,9 +381,13 @@ function incomeInto(w, m, first) {
   let total = 0;
   for (const c of data.clients) {
     if (c.wallet !== w.id) continue;
-    if (!first) { total += monthExpected(c, m); continue; }
-    if (!paymentOf(c.id, m)) total += monthExpected(c, m);
-    total += pendingCharges().filter(x => x.c === c && x.m < m).reduce((t, x) => t + x.due, 0);
+    let due = 0;
+    if (!first) due = monthExpected(c, m);
+    else {
+      if (!paymentOf(c.id, m)) due += monthExpected(c, m);
+      due += pendingCharges().filter(x => x.c === c && x.m < m).reduce((t, x) => t + x.due, 0);
+    }
+    total += convert(due, clientCur(c), w.currency); // el cliente paga en su moneda; llega a la billetera en la suya
   }
   return total;
 }
@@ -547,7 +556,7 @@ function accountCard(c, m) {
   return `<section class="card account">
     <div class="card-head client-head">
       ${avatar(c.name, clientColor(c))}
-      <span class="row-main"><b>${esc(c.name)}</b><small>Te paga en ${esc(w ? w.name : 'una billetera eliminada')}</small></span>
+      <span class="row-main"><b>${esc(c.name)}</b><small>${clientCur(c)} · te paga en ${esc(w ? w.name : 'una billetera eliminada')}</small></span>
       <button class="btn-sm ghost" data-act="editClient" data-id="${c.id}">${icon('edit')}Editar</button>
     </div>
     ${c.products.length ? `<div class="prod-list">${c.products.map(p => productRow(c, p, m, false, true)).join('')}</div>` : '<p class="muted small">Agrega lo que le haces a este cliente.</p>'}
@@ -710,21 +719,24 @@ function chargeForm(c, m, pay = null) {
   const lines = monthLines(c, m);
   openSheet(pay ? `Cobro de ${monthName(m)}` : `Cobrar ${monthName(m)}`, `<form class="form">
     <p class="preview">${esc(c.name)}${lines.length ? ` · ${esc(linesText(lines))} · ${money(logged, clientCur(c))}` : ''}</p>
-    ${moneyField('Te pagó', 'amount', wallet(w0).currency, pay ? pay.amount : logged || '')}
+    ${moneyField('Te pagó', 'amount', clientCur(c), pay ? pay.amount : logged || '', 'min="0.01" required', ' ')}
     <label class="field"><span>Lo recibiste en</span><select name="wallet">${walletOptions(w0)}</select></label>
     ${moneyField('', 'balance', wallet(w0).currency, '', pay ? 'placeholder="Sin cambios"' : 'required', ' ')}
     <label class="field"><span>Fecha</span><input name="date" type="date" required value="${pay?.date || todayISO()}"></label>
     ${pay ? deleteButton('deletePayment', pay.id, 'Deshacer cobro') : ''}
     ${formActions(pay ? 'Guardar' : 'Cobrar')}
   </form>`, (form, el) => {
+    const cc = clientCur(c);
     const sync = () => {
       const w = wallet(el('wallet').value);
-      setText(form, '[data-cur="amount"]', CURRENCIES[w.currency]);
+      const amount = Number(el('amount').value) || 0;
+      setText(form, '[data-hint="amount"]', cc !== w.currency && amount > 0 ? `Unos ${money(convert(amount, cc, w.currency), w.currency)} en ${w.name}` : '');
       setText(form, '[data-cur="balance"]', CURRENCIES[w.currency]);
       setText(form, '[data-label="balance"]', `¿Cuánto tienes ahora en ${w.name}?`);
       setText(form, '[data-hint="balance"]', pay ? `Ahora: ${money(w.balance, w.currency)}. Déjalo vacío si no cambió.` : `Antes de este cobro: ${money(w.balance, w.currency)}`);
     };
     el('wallet').addEventListener('change', sync);
+    el('amount').addEventListener('input', sync);
     sync();
     if (!pay) el('balance').focus();
     form.onsubmit = e => {
@@ -736,10 +748,10 @@ function chargeForm(c, m, pay = null) {
       const before = w.balance;
       if (typed !== '') setBalance(w, typed);
       if (pay) {
-        Object.assign(pay, { amount, currency: w.currency, wallet: w.id, date: el('date').value });
+        Object.assign(pay, { amount, currency: cc, wallet: w.id, date: el('date').value });
         if (typed !== '') Object.assign(pay, { balanceBefore: before, balanceAfter: w.balance });
       } else {
-        data.payments.push({ id: uid(), clientId: c.id, month: m, amount, currency: w.currency, wallet: w.id, date: el('date').value, balanceBefore: before, balanceAfter: w.balance });
+        data.payments.push({ id: uid(), clientId: c.id, month: m, amount, currency: cc, wallet: w.id, date: el('date').value, balanceBefore: before, balanceAfter: w.balance });
       }
       closeSheet();
       commit(pay ? 'Cobro actualizado' : `${c.name}: ${monthName(m)} cobrado`);
@@ -927,9 +939,14 @@ function walletForm(w = null) {
 
 function clientForm(c = null) {
   const w0 = c?.wallet || (data.wallets.find(w => w.currency === 'USD') || data.wallets[0]).id;
+  const cur0 = c ? clientCur(c) : 'USD';
   openSheet(c ? 'Editar cliente' : 'Nuevo cliente', `<form class="form">
     <label class="field"><span>Nombre</span><input name="title" required maxlength="60" value="${esc(c?.name || '')}" placeholder="Ej. Estudio Norte"></label>
-    <label class="field"><span>Te paga en</span><select name="wallet">${walletOptions(w0)}</select></label>
+    <div class="grid2">
+      <label class="field"><span>Moneda</span><select name="currency">${CLIENT_CURRENCIES.map(k => `<option value="${k}"${k === cur0 ? ' selected' : ''}>${CURRENCY_NAMES[k]}</option>`).join('')}</select></label>
+      <label class="field"><span>Lo recibes en</span><select name="wallet">${walletOptions(w0)}</select></label>
+    </div>
+    ${c ? '<small class="field-hint">Si cambias la moneda, los precios y lo anotado mantienen sus números.</small>' : ''}
     <label class="field"><span>Nota</span><input name="note" maxlength="80" value="${esc(c?.note || '')}" placeholder="Opcional"></label>
     ${c ? deleteButton('deleteClient', c.id) : ''}
     ${formActions(c ? 'Guardar' : 'Siguiente')}
@@ -937,7 +954,7 @@ function clientForm(c = null) {
     if (!c) el('title').focus();
     form.onsubmit = e => {
       e.preventDefault();
-      const next = { name: el('title').value.trim(), wallet: el('wallet').value, note: el('note').value.trim() };
+      const next = { name: el('title').value.trim(), currency: el('currency').value, wallet: el('wallet').value, note: el('note').value.trim() };
       if (!next.name) return toast('Escribe el nombre del cliente');
       if (c) {
         Object.assign(c, next);
