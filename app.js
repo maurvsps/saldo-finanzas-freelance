@@ -326,19 +326,21 @@ function monthExpected(c, m) {
 }
 // Trabajo aún no anotado que esperas hacer entre dos fechas, según cuántas veces haces cada producto.
 function estimateRange(c, from, to) {
-  let est = 0;
+  return round2(c.products.reduce((t, p) => t + productEstimate(c, p, from, to).qty * p.price, 0));
+}
+// Cuántas unidades de un producto esperas hacer entre dos fechas (puede ser fraccionario).
+function productEstimate(c, p, from, to) {
+  let qty = 0;
+  if (!p.active || !(p.estCount > 0)) return { qty, amount: 0 };
   for (let m = monthKey(from); from <= to && m <= monthKey(to); m = shiftMonth(m, 1)) {
     const a = maxStr(from, m + '-01'), b = minStr(to, lastDay(m));
     if (a > b) continue;
     const days = dayDiff(a, b) + 1;
-    for (const p of c.products) {
-      if (!p.active || !(p.estCount > 0)) continue;
-      // Al mes: las que faltan anotar, repartidas en los días que quedan. Por semana: proporcional a los días.
-      if (p.estPer === 'month') est += (p.price * Math.max(0, p.estCount - productCount(c, p, m)) * days) / (dayDiff(a, lastDay(m)) + 1);
-      else est += (p.price * p.estCount * days) / 7;
-    }
+    // Al mes: las que faltan anotar, repartidas en los días que quedan. Por semana: proporcional a los días.
+    if (p.estPer === 'month') qty += (Math.max(0, p.estCount - productCount(c, p, m)) * days) / (dayDiff(a, lastDay(m)) + 1);
+    else qty += (p.estCount * days) / 7;
   }
-  return round2(est);
+  return { qty, amount: round2(qty * p.price) };
 }
 
 // ── Previsión ──
@@ -554,7 +556,7 @@ function forecastBlock() {
     </div>
     <div class="fc-box future">
       <label class="label fc-label" for="horizonDate">Al ${fmtDate(until, { day: 'numeric', month: 'short', year: until.slice(0, 4) === todayISO().slice(0, 4) ? undefined : 'numeric' })}</label>
-      <p class="hero-amount pos">${money(f.total)}</p>
+      <button class="hero-amount pos fc-detail" data-act="forecastDetail" aria-label="Ver qué incluye la previsión">${money(f.total)}${icon('chevronRight', 'fc-more')}</button>
     </div>
   </div>
   <label class="fc-controls">
@@ -949,6 +951,32 @@ function withdrawalForm() {
   });
 }
 
+// Qué incluye la previsión: billeteras, lo anotado sin cobrar y lo estimado por producto hasta la fecha.
+function forecastDetail() {
+  const until = horizonDate(data.horizon), f = forecast(until);
+  const tomorrow = addDays(todayISO(), 1);
+  const qtyText = q => (Math.abs(q - Math.round(q)) < 0.05 ? String(Math.round(q)) : q.toFixed(1).replace('.', ','));
+  const pen = (n, cur) => (cur === 'PEN' ? '' : `<small>${money(toPEN(n, cur))}</small>`);
+  const line = (title, sub, amount, extra = '') => `<div class="row compact"><span class="row-main"><b>${title}</b>${sub ? `<small>${sub}</small>` : ''}</span><span class="amount">${amount}${extra}</span></div>`;
+  const section = (title, total, rows) => `<div class="group"><h3 class="group-date">${title} · ${money(total)}</h3><div class="rows">${rows || '<p class="muted small">Nada.</p>'}</div></div>`;
+  const wallets = data.wallets.map(w => line(esc(w.name), '', money(w.balance, w.currency), pen(w.balance, w.currency))).join('');
+  const pending = pendingCharges().map(({ c, m, due }) => line(`${esc(c.name)} · ${monthName(m)}`, esc(linesText(monthLines(c, m))), money(due, clientCur(c)), pen(due, clientCur(c)))).join('');
+  const todo = data.clients.map(c => {
+    const cur = clientCur(c);
+    return c.products.map(p => ({ p, e: productEstimate(c, p, tomorrow, until) })).filter(x => x.e.qty > 0)
+      .map(({ p, e }) => line(`≈ ${qtyText(e.qty)} × ${esc(p.name)}`, `${esc(c.name)} · ${money(p.price, cur)} c/u · ${estText(p)}`, money(e.amount, cur), pen(e.amount, cur))).join('');
+  }).join('');
+  openSheet(`Al ${fmtDate(until, { day: 'numeric', month: 'long', year: 'numeric' })}`, `<div class="form">
+    <div class="account-total"><span>Tendrías</span><b class="pos">${money(f.total)}</b></div>
+    ${section('Hoy tienes', f.now, wallets)}
+    ${section('Por cobrar', f.pending, pending)}
+    ${section(`Por hacer hasta el ${fmtDate(until)}`, f.future, todo)}
+    ${f.costs.count ? section('Retiros', -f.costs.total, line(`${f.costs.count} × costo fijo`, `Según tu plan: ${STRATEGIES[data.plan.strategy].toLowerCase()}`, `−${money(f.costs.total)}`)) : ''}
+    <small class="field-hint">Todo convertido a soles con el tipo de cambio de Ajustes. "Por hacer" estima según cuántas veces haces cada producto.</small>
+    <div class="form-actions"><button type="button" class="btn ghost" data-act="closeSheet">Cerrar</button></div>
+  </div>`);
+}
+
 function withdrawalDetail(x) {
   const a = wallet(x.from), b = wallet(x.to);
   const aCur = a?.currency || 'USD', bCur = b?.currency || 'PEN';
@@ -1163,6 +1191,7 @@ const actions = {
   newClient: () => clientForm(),
   editClient: d => { const c = client(d.id); if (c) clientForm(c); },
   toggleClient: d => { toggleCollapsed(d.id); render(); },
+  forecastDetail: () => forecastDetail(),
   deleteClient: d => {
     const c = client(d.id);
     if (!c || !confirm(`¿Eliminar a ${c.name} junto con lo anotado y sus cobros?`)) return;
