@@ -124,7 +124,7 @@ function blank() {
       { id: 'paypal', name: 'PayPal', currency: 'USD', balance: 0, color: 2, updated: '' },
     ],
     clients: [], // { id, name, note, currency, wallet, products: [{ id, name, price, estCount, estPer, notes, active }] }
-    entries: [], // trabajos anotados: { id, clientId, productId, name, price, qty, date }
+    entries: [], // trabajos anotados: { id, clientId, productId, name, label, price, qty, date }
     payments: [], // { id, clientId, month, amount, currency, wallet, date, balanceBefore, balanceAfter }
     withdrawals: [], // { id, date, from, to, amount, received, fromBefore, fromAfter, toBefore, toAfter, note }
     plan: { strategy: 'monthly', threshold: 200, rate: 0, fee: 0, from: '', to: '' },
@@ -494,18 +494,26 @@ const monthSwitch = m => `<div class="month-switch">
 function productRow(c, p, m, showClient = false, detail = false) {
   const cur = clientCur(c), n = productCount(c, p, m);
   const ids = `data-client="${c.id}" data-id="${p.id}" data-month="${m}"`;
-  return `<div class="prod-row${p.active ? '' : ' paused'}">
+  // Cada entrega del mes, con su título; se toca para ponerle o cambiarle el título.
+  const units = detail ? monthEntries(c, m).filter(e => e.productId === p.id).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0)) : [];
+  const shown = units.slice(-6);
+  const unitList = units.length ? `<div class="units">
+    ${units.length > shown.length ? `<button class="unit more" data-act="entries" data-client="${c.id}" data-month="${m}">Ver las ${units.length} entregas</button>` : ''}
+    ${shown.map(e => `<button class="unit${e.label ? '' : ' empty'}" data-act="editEntry" data-id="${e.id}" data-from="card">
+      <span>${fmtDate(e.date)}</span><b>${e.label ? esc(e.label) : 'Agregar título'}</b>${e.qty > 1 ? `<small>× ${e.qty}</small>` : ''}
+    </button>`).join('')}
+  </div>` : '';
+  return `<div class="prod-item"><div class="prod-row${p.active ? '' : ' paused'}">
     <button class="prod-main" data-act="editProduct" data-client="${c.id}" data-id="${p.id}">
       <b>${esc(p.name)}${p.active ? '' : '<em class="tag">Pausado</em>'}</b>
       <small>${showClient ? `${esc(c.name)} · ` : ''}${money(p.price, cur)}${n ? ` · ${money(n * p.price, cur)}` : ''}${detail ? ` · ${estText(p)}` : ''}</small>
-      ${detail && p.notes ? `<small class="prod-notes">${esc(p.notes)}</small>` : ''}
     </button>
     <div class="counter">
       <button class="icon-btn" data-act="unlog" ${ids} aria-label="Quitar uno de ${esc(p.name)}"${n ? '' : ' disabled'}>${icon('minus')}</button>
       <span class="count" aria-label="${n} anotados">${n}</span>
       <button class="icon-btn add" data-act="log" ${ids} aria-label="Anotar uno de ${esc(p.name)}">${icon('plus')}</button>
     </div>
-  </div>`;
+  </div>${unitList}</div>`;
 }
 
 function viewHome() {
@@ -844,22 +852,52 @@ function entriesSheet(c, m) {
   openSheet(`${c.name} · ${monthName(m)}`, `<div class="form">
     ${list.length ? `<div class="rows">${list.map(e => `
       <button class="row compact" data-act="editEntry" data-id="${e.id}">
-        <span class="row-main"><b>${e.qty > 1 ? `${e.qty} × ` : ''}${esc(product(c, e.productId)?.name || e.name)}</b><small>${cap(fmtDate(e.date, { weekday: 'short', day: 'numeric', month: 'short' }))}</small></span>
+        <span class="row-main"><b>${e.qty > 1 ? `${e.qty} × ` : ''}${esc(e.label || entryName(c, e))}</b><small>${e.label ? `${esc(entryName(c, e))} · ` : ''}${cap(fmtDate(e.date, { weekday: 'short', day: 'numeric', month: 'short' }))}</small></span>
         <span class="amount">${money(e.qty * e.price, cur)}</span>
       </button>`).join('')}</div>
       <div class="account-total"><span>Total</span><b>${money(entryTotal(list), cur)}</b></div>` : emptyState(`Nada anotado en ${monthName(m)}.`)}
+    ${list.length ? `<button type="button" class="btn ghost" data-act="copySummary" data-client="${c.id}" data-month="${m}">${icon('upload')}${canShare() ? 'Compartir' : 'Copiar'} resumen del mes</button>` : ''}
     <button type="button" class="btn ghost" data-act="newEntry" data-client="${c.id}" data-month="${m}">${icon('plus')}Anotar con otra fecha o cantidad</button>
     <div class="form-actions"><button type="button" class="btn ghost" data-act="closeSheet">Cerrar</button></div>
   </div>`);
 }
+const entryName = (c, e) => product(c, e.productId)?.name || e.name;
+const canShare = () => Boolean(window.Capacitor?.isNativePlatform?.() && window.Capacitor.Plugins?.Share);
 
-function entryForm(c, m, e = null) {
+// Resumen del mes para enviar al cliente: cada entrega con su título y el total.
+function monthSummaryText(c, m) {
+  const cur = clientCur(c);
+  const list = monthEntries(c, m).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  const lines = list.map(e => `${fmtDate(e.date)} · ${entryName(c, e)}${e.label ? `: ${e.label}` : ''}${e.qty > 1 ? ` (×${e.qty})` : ''} — ${money(e.qty * e.price, cur)}`);
+  return `${c.name} · ${cap(monthName(m))} ${m.slice(0, 4)}\n\n${lines.join('\n')}\n\nTotal: ${money(entryTotal(list), cur)}`;
+}
+async function copySummary(c, m) {
+  const text = monthSummaryText(c, m);
+  if (canShare()) {
+    try { await window.Capacitor.Plugins.Share.share({ title: `${c.name} · ${monthName(m)}`, text }); } catch {}
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const ta = Object.assign(document.createElement('textarea'), { value: text });
+    ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+  }
+  toast('Resumen copiado');
+}
+
+function entryForm(c, m, e = null, fromCard = false) {
   const cur = clientCur(c);
   const first = c.products.find(p => p.active) || c.products[0];
   const pid = e ? (product(c, e.productId) ? e.productId : '__other') : first ? first.id : '__other';
   const price = e ? e.price : first?.price;
   openSheet(e ? 'Editar anotación' : 'Anotar trabajo', `<form class="form">
-    <label class="field"><span>Qué hiciste</span><select name="product">${c.products.map(p => `<option value="${p.id}"${p.id === pid ? ' selected' : ''}>${esc(p.name)}</option>`).join('')}<option value="__other"${pid === '__other' ? ' selected' : ''}>Otro trabajo</option></select></label>
+    <label class="field"><span>Título</span><input name="label" maxlength="80" value="${esc(e?.label || '')}" placeholder="Ej. Gráfico de Messi"></label>
+    <label class="field"><span>Producto</span><select name="product">${c.products.map(p => `<option value="${p.id}"${p.id === pid ? ' selected' : ''}>${esc(p.name)}</option>`).join('')}<option value="__other"${pid === '__other' ? ' selected' : ''}>Otro trabajo</option></select></label>
     <label class="field" data-other><span>Nombre</span><input name="title" maxlength="60" value="${esc(e && pid === '__other' ? e.name : '')}" placeholder="Ej. Gráfico especial"></label>
     <div class="grid2">
       <label class="field"><span>Cantidad</span><input name="qty" type="number" min="1" step="1" inputmode="numeric" required value="${e?.qty || 1}"></label>
@@ -876,12 +914,13 @@ function entryForm(c, m, e = null) {
     };
     el('product').addEventListener('change', () => sync(true));
     sync(false);
+    if (fromCard) el('label').focus();
     form.onsubmit = ev => {
       ev.preventDefault();
       const other = el('product').value === '__other';
       const p = other ? null : product(c, el('product').value);
       const next = {
-        productId: p ? p.id : '', name: p ? p.name : el('title').value.trim(),
+        productId: p ? p.id : '', name: p ? p.name : el('title').value.trim(), label: el('label').value.trim(),
         qty: Math.max(1, Math.round(Number(el('qty').value) || 1)), price: round2(el('price').value), date: el('date').value,
       };
       if (!next.name) return toast('Escribe qué hiciste');
@@ -891,7 +930,8 @@ function entryForm(c, m, e = null) {
       const month = monthKey(next.date);
       persist();
       render();
-      entriesSheet(c, month);
+      if (fromCard) closeSheet();
+      else entriesSheet(c, month);
       toast(e ? 'Anotación actualizada' : 'Anotado');
     };
   });
@@ -1088,7 +1128,7 @@ function productForm(c, p = null) {
       </div>
       <small class="field-hint">Solo para estimar lo que falta del mes. Pon 0 si es a pedido.</small>
     </div>
-    <label class="field"><span>Notas</span><textarea name="notes" rows="4" maxlength="4000" placeholder="Medidas, formato, lo que pide el cliente…">${esc(p?.notes || '')}</textarea></label>
+    <label class="field"><span>Notas generales</span><textarea name="notes" rows="3" maxlength="4000" placeholder="Medidas, formato, lo que pide el cliente…">${esc(p?.notes || '')}</textarea><small class="field-hint">No cambian cada mes. Para cada entrega, ponle título en la tarjeta del cliente.</small></label>
     ${p ? `<label class="switch"><span>Activo</span><input type="checkbox" name="active"${p.active ? ' checked' : ''}></label>` : ''}
     ${p ? deleteButton('deleteProduct', p.id, 'Eliminar', ` data-client="${c.id}"`) : ''}
     ${formActions(p ? 'Guardar' : 'Agregar')}
@@ -1132,10 +1172,11 @@ const actions = {
     commit(`${p.name}: ${productCount(c, p, d.month)} en ${monthName(d.month)}`);
   },
   entries: d => { const c = client(d.client); if (c) entriesSheet(c, d.month); },
+  copySummary: d => { const c = client(d.client); if (c) copySummary(c, d.month); },
   newEntry: d => { const c = client(d.client); if (c) entryForm(c, d.month); },
   editEntry: d => {
     const e = findEntry(d.id), c = e && client(e.clientId);
-    if (c) entryForm(c, monthKey(e.date), e);
+    if (c) entryForm(c, monthKey(e.date), e, d.from === 'card');
   },
   deleteEntry: d => {
     const e = findEntry(d.id), c = e && client(e.clientId);
