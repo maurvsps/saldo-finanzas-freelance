@@ -497,7 +497,12 @@ function productRow(c, p, m, showClient = false, detail = false) {
   // Cada entrega del mes, con su título; se toca para ponerle o cambiarle el título.
   const units = detail ? monthEntries(c, m).filter(e => e.productId === p.id).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0)) : [];
   const shown = units.slice(-6);
-  const unitList = units.length ? `<div class="units">
+  const open = !collapsed.has(`p:${p.id}`);
+  const untitled = units.filter(e => !e.label).length;
+  const unitToggle = units.length ? `<button class="units-toggle${open ? ' open' : ''}" data-act="toggleProduct" data-id="${p.id}" aria-expanded="${open}">
+    ${icon('chevronDown', 'toggle-ic')}<span>${units.length} ${units.length === 1 ? 'entrega' : 'entregas'}${untitled ? ` · ${untitled} sin título` : ''}</span>
+  </button>` : '';
+  const unitList = units.length && open ? `<div class="units">
     ${units.length > shown.length ? `<button class="unit more" data-act="entries" data-client="${c.id}" data-month="${m}">Ver las ${units.length} entregas</button>` : ''}
     ${shown.map(e => `<button class="unit${e.label ? '' : ' empty'}" data-act="editEntry" data-id="${e.id}" data-from="card">
       <span>${fmtDate(e.date)}</span><b>${e.label ? esc(e.label) : 'Agregar título'}</b>${e.qty > 1 ? `<small>× ${e.qty}</small>` : ''}
@@ -513,7 +518,7 @@ function productRow(c, p, m, showClient = false, detail = false) {
       <span class="count" aria-label="${n} anotados">${n}</span>
       <button class="icon-btn add" data-act="log" ${ids} aria-label="Anotar uno de ${esc(p.name)}">${icon('plus')}</button>
     </div>
-  </div>${unitList}</div>`;
+  </div>${unitToggle}${unitList}</div>`;
 }
 
 function viewHome() {
@@ -613,7 +618,7 @@ function viewClients() {
   <div class="page-actions end">${newClientButton()}</div>`;
 }
 
-// Clientes contraídos en la vista de Clientes (preferencia de este dispositivo).
+// Clientes y productos contraídos en la vista de Clientes (preferencia de este dispositivo; productos con prefijo "p:").
 const COLLAPSED_KEY = 'saldo-collapsed';
 let collapsed = new Set();
 try { collapsed = new Set(JSON.parse(localStorage.getItem(COLLAPSED_KEY)) || []); } catch {}
@@ -1232,6 +1237,7 @@ const actions = {
   newClient: () => clientForm(),
   editClient: d => { const c = client(d.id); if (c) clientForm(c); },
   toggleClient: d => { toggleCollapsed(d.id); render(); },
+  toggleProduct: d => { toggleCollapsed(`p:${d.id}`); render(); },
   forecastDetail: () => forecastDetail(),
   deleteClient: d => {
     const c = client(d.id);

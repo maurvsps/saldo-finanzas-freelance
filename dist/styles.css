@@ -235,7 +235,10 @@ a.btn { text-decoration: none; }
 .prod-item { padding: 10px 0; border-bottom: 1px solid var(--line); }
 .prod-item:last-child { border-bottom: 0; }
 .prod-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; }
-.units { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.units-toggle { display: flex; align-items: center; gap: 6px; margin-top: 8px; padding: 4px 0; border: 0; background: none; color: var(--muted); font-size: 14px; font-weight: 600; }
+.units-toggle .toggle-ic { width: 18px; height: 18px; transition: transform .15s; }
+.units-toggle.open .toggle-ic { transform: rotate(180deg); }
+.units { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
 .unit { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 40px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); text-align: left; font-size: 15px; }
 .unit span { color: var(--muted); font-size: 13px; font-weight: 600; white-space: nowrap; }
 .unit b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
