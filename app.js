@@ -353,7 +353,20 @@ function forecast(until) {
   const pending = pendingCharges().reduce((s, x) => s + toPEN(x.due, clientCur(x.c)), 0);
   const tomorrow = addDays(todayISO(), 1);
   const future = data.clients.reduce((s, c) => s + toPEN(estimateRange(c, tomorrow, until), clientCur(c)), 0);
-  return { now, pending, future, total: now + pending + future };
+  const costs = withdrawalCosts(until);
+  return { now, pending, future, costs, total: now + pending + future - costs };
+}
+// Lo que se pierde en los retiros que tu plan haría hasta la fecha (a fin de cada mes):
+// costo fijo y diferencia entre el tipo de cambio de Ajustes y lo que de verdad recibes.
+function withdrawalCosts(until) {
+  if (data.wallets.length < 2) return 0;
+  const st = planSetup();
+  if (st.from.id === st.to.id) return 0;
+  const now = thisMonth(), end = monthKey(until);
+  const months = (+end.slice(0, 4) - +now.slice(0, 4)) * 12 + (+end.slice(5, 7) - +now.slice(5, 7)) + 1;
+  return simulate(data.plan.strategy, st, months, false).rows
+    .filter(r => r.out > 0 && lastDay(r.m) <= until)
+    .reduce((s, r) => s + toPEN(r.out, st.from.currency) - toPEN(r.got, st.to.currency), 0);
 }
 // Meses con trabajo anotado que todavía no te pagan (incluye el mes en curso).
 function pendingCharges() {
@@ -415,15 +428,16 @@ function incomeInto(w, m, first) {
   }
   return total;
 }
-function simulate(strategy, st) {
+// forceLast: al final del periodo se retira lo que quede (para comparar estrategias en igualdad).
+function simulate(strategy, st, months = PLAN_MONTHS, forceLast = true) {
   const now = thisMonth();
   let bal = st.from.balance, received = 0, fees = 0, count = 0;
   const rows = [];
-  for (let i = 0; i < PLAN_MONTHS; i++) {
+  for (let i = 0; i < months; i++) {
     const m = shiftMonth(now, i);
     const inc = incomeInto(st.from, m, i === 0);
     bal += inc;
-    const go = i === PLAN_MONTHS - 1
+    const go = (forceLast && i === months - 1)
       || strategy === 'monthly'
       || (strategy === 'every2' && i % 2 === 1)
       || (strategy === 'every3' && i % 3 === 2)
@@ -551,6 +565,7 @@ function forecastBlock() {
     <span>Hoy <b>${money(f.now)}</b></span>
     <span>Por cobrar <b>+${money(f.pending)}</b></span>
     <span>Por hacer <b>+${money(f.future)}</b></span>
+    ${Math.abs(f.costs) >= 0.005 ? `<span>Costos de retiro <b>${f.costs > 0 ? '−' : '+'}${money(Math.abs(f.costs))}</b></span>` : ''}
   </div>`;
 }
 
