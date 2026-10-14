@@ -51,6 +51,7 @@ jobs:
       - name: Proyecto Android e íconos
         run: |
           npx cap add android
+          node scripts/android-theme.js
           npx @capacitor/assets generate --android
           npx cap sync android
 
