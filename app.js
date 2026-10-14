@@ -1,6 +1,8 @@
 'use strict';
 
 // ── Configuración ──
+// Versión publicada: debe coincidir con version.json y con el ?v= de index.html.
+const APP_VERSION = 20;
 const KEY = 'saldo-v2';
 const OLD_KEY = 'saldo-freelance-v1';
 // ID de cliente OAuth (público). Se usa para guardar tus datos en tu Google Drive (carpeta oculta de la app).
@@ -1499,3 +1501,19 @@ document.addEventListener('submit', e => {
 window.addEventListener('hashchange', () => { closeSheet(); render(); window.scrollTo(0, 0); });
 window.addEventListener('load', initDrive);
 render();
+
+// La app de Android se queda abierta en segundo plano y guarda la página en caché:
+// al abrir o volver a la app se revisa si hay una versión nueva y se recarga.
+async function checkForUpdate() {
+  try {
+    const r = await fetch(`version.json?t=${Date.now()}`, { cache: 'no-store' });
+    const v = Number((await r.json()).v);
+    if (!(v > APP_VERSION)) return;
+    const flag = `saldo-reload-${v}`;
+    if (sessionStorage.getItem(flag)) return; // evita recargar en bucle si algo sigue en caché
+    sessionStorage.setItem(flag, '1');
+    location.replace(`${location.pathname}?v=${v}${location.hash}`);
+  } catch {}
+}
+checkForUpdate();
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkForUpdate(); });

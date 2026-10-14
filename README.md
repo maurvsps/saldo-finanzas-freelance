@@ -28,3 +28,7 @@ El workflow **APK de Android** compila el APK cuando cambia `android-app/` (o a 
 La app guarda sus datos aparte del navegador: para pasar tus datos, usa **Descargar respaldo** en la web e **Importar respaldo** en la app.
 
 Para firmar con una clave propia (y poder actualizar el APK sin desinstalar), añade en el repo los secretos `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD` y `ANDROID_KEY_ALIAS`.
+
+## Publicar una versión
+
+Al cambiar la web, sube el mismo número en tres sitios: `APP_VERSION` en `app.js`, `version.json` y el `?v=` de `styles.css` y `app.js` en `index.html`. Luego copia `index.html`, `app.js`, `styles.css` y `version.json` a `dist/`. La app de Android revisa `version.json` al abrirse o al volver a ella y se recarga sola si hay una versión nueva.
