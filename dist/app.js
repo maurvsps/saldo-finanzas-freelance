@@ -354,19 +354,19 @@ function forecast(until) {
   const tomorrow = addDays(todayISO(), 1);
   const future = data.clients.reduce((s, c) => s + toPEN(estimateRange(c, tomorrow, until), clientCur(c)), 0);
   const costs = withdrawalCosts(until);
-  return { now, pending, future, costs, total: now + pending + future - costs };
+  return { now, pending, future, costs, total: now + pending + future - costs.total };
 }
-// Lo que se pierde en los retiros que tu plan haría hasta la fecha (a fin de cada mes):
-// costo fijo y diferencia entre el tipo de cambio de Ajustes y lo que de verdad recibes.
+// Costo fijo de los retiros que tu plan haría hasta la fecha (uno a fin de cada mes en que toque retirar).
 function withdrawalCosts(until) {
-  if (data.wallets.length < 2) return 0;
+  const none = { count: 0, fee: 0, total: 0 };
+  if (data.wallets.length < 2 || !(Number(data.plan.fee) > 0)) return none;
   const st = planSetup();
-  if (st.from.id === st.to.id) return 0;
+  if (st.from.id === st.to.id) return none;
   const now = thisMonth(), end = monthKey(until);
   const months = (+end.slice(0, 4) - +now.slice(0, 4)) * 12 + (+end.slice(5, 7) - +now.slice(5, 7)) + 1;
-  return simulate(data.plan.strategy, st, months, false).rows
-    .filter(r => r.out > 0 && lastDay(r.m) <= until)
-    .reduce((s, r) => s + toPEN(r.out, st.from.currency) - toPEN(r.got, st.to.currency), 0);
+  const count = simulate(data.plan.strategy, st, months, false).rows.filter(r => r.out > 0 && lastDay(r.m) <= until).length;
+  const fee = toPEN(st.fee, st.to.currency);
+  return { count, fee, total: count * fee };
 }
 // Meses con trabajo anotado que todavía no te pagan (incluye el mes en curso).
 function pendingCharges() {
@@ -565,7 +565,7 @@ function forecastBlock() {
     <span>Hoy <b>${money(f.now)}</b></span>
     <span>Por cobrar <b>+${money(f.pending)}</b></span>
     <span>Por hacer <b>+${money(f.future)}</b></span>
-    ${Math.abs(f.costs) >= 0.005 ? `<span>Costos de retiro <b>${f.costs > 0 ? '−' : '+'}${money(Math.abs(f.costs))}</b></span>` : ''}
+    ${f.costs.count ? `<span>Retiros (${f.costs.count} × ${money(f.costs.fee)}) <b>−${money(f.costs.total)}</b></span>` : ''}
   </div>`;
 }
 
