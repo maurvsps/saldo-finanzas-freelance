@@ -2,7 +2,7 @@
 
 // ── Configuración ──
 // Versión publicada: debe coincidir con version.json y con el ?v= de index.html.
-const APP_VERSION = 21;
+const APP_VERSION = 22;
 const KEY = 'saldo-v2';
 const OLD_KEY = 'saldo-freelance-v1';
 // ID de cliente OAuth (público). Se usa para guardar tus datos en tu Google Drive (carpeta oculta de la app).
@@ -375,7 +375,7 @@ function withdrawalCosts(until) {
   const fee = toPEN(st.fee, st.to.currency);
   const market = convert(1, st.from.currency, st.to.currency);
   const fx = toPEN(out * (market - st.rate), st.to.currency);
-  return { count: rows.length, fee, feeTotal: rows.length * fee, out, fx, market, rate: st.rate, from: st.from, to: st.to, total: rows.length * fee + fx };
+  return { count: rows.length, fee, feeTotal: rows.length * fee, out, fx, market, rate: st.rate, rateSource: st.rateSource, from: st.from, to: st.to, total: rows.length * fee + fx };
 }
 // Meses con trabajo anotado que todavía no te pagan (incluye el mes en curso).
 function pendingCharges() {
@@ -414,10 +414,17 @@ function planSetup() {
   const last = data.withdrawals
     .filter(w => w.from === from.id && w.to === to.id && w.amount > 0 && w.received > 0)
     .sort((a, b) => (a.date < b.date ? 1 : -1))[0];
-  const autoRate = last ? last.received / last.amount : convert(1, from.currency, to.currency);
+  const market = convert(1, from.currency, to.currency);
+  // El tipo de tu último retiro solo se usa si es razonable: si se aleja más de 15 % del de Ajustes,
+  // seguramente el saldo de destino no cuadró al registrarlo.
+  const lastRate = last ? last.received / last.amount : 0;
+  const lastOk = lastRate > 0 && Math.abs(lastRate - market) <= market * 0.15;
+  const autoRate = lastOk ? lastRate : market;
+  const manual = Number(p.rate) > 0;
   return {
-    from, to, autoRate, fromLast: Boolean(last),
-    rate: Number(p.rate) > 0 ? Number(p.rate) : autoRate,
+    from, to, autoRate, market, fromLast: lastOk,
+    rateSource: manual ? 'el que pusiste en Retiros' : lastOk ? `tu último retiro, del ${fmtDate(last.date)}` : 'Ajustes',
+    rate: manual ? Number(p.rate) : autoRate,
     fee: Number(p.fee) || 0,
     threshold: Number(p.threshold) || 0,
   };
@@ -711,7 +718,7 @@ function planCard() {
         <label class="field"><span>Recibes por ${CURRENCIES[st.from.currency]} 1 al retirar</span><input name="rate" type="number" step="0.001" min="0" inputmode="decimal" value="${Number(p.rate) > 0 ? p.rate : ''}" placeholder="${roundTo(st.autoRate, 3)}"></label>
         ${moneyField('Costo fijo por retiro', 'fee', st.to.currency, p.fee || '', 'min="0"')}
       </div>
-      <small class="field-hint">${Number(p.rate) > 0 ? 'Usando el valor que escribiste.' : st.fromLast ? 'Según tu último retiro real.' : 'Según el tipo de cambio de Ajustes.'}</small>
+      <small class="field-hint">Ajustes: ${money(st.market, st.to.currency)} por ${CURRENCIES[st.from.currency]}1. ${Number(p.rate) > 0 ? 'Al retirar usa el valor que escribiste.' : st.fromLast ? 'Al retirar usa el de tu último retiro real.' : 'Vacío: usa el de Ajustes.'}</small>
     </form>
     <div id="planResult">${planResult()}</div>
   </section>`;
@@ -1025,7 +1032,7 @@ function forecastDetail() {
     ${section(`Por hacer hasta el ${fmtDate(until)}`, f.future, todo)}
     ${f.costs.count && Math.abs(f.costs.total) >= 0.005 ? section('Costos de retiro', -f.costs.total, [
       f.costs.feeTotal ? line(`${f.costs.count} × comisión fija de ${money(f.costs.fee)}`, `Según tu plan: ${STRATEGIES[data.plan.strategy].toLowerCase()}`, `−${money(f.costs.feeTotal)}`) : '',
-      Math.abs(f.costs.fx) >= 0.005 ? line('Cambio al retirar', `${money(f.costs.out, f.costs.from.currency)} a ${money(f.costs.rate, f.costs.to.currency)} en vez de ${money(f.costs.market, f.costs.to.currency)}`, `${f.costs.fx > 0 ? '−' : '+'}${money(Math.abs(f.costs.fx))}`) : '',
+      Math.abs(f.costs.fx) >= 0.005 ? line('Cambio al retirar', `Retiras ${money(f.costs.out, f.costs.from.currency)}. Recibes ${money(f.costs.rate, f.costs.to.currency)} por ${CURRENCIES[f.costs.from.currency]}1 (${f.costs.rateSource}) en vez de ${money(f.costs.market, f.costs.to.currency)} (Ajustes).`, `${f.costs.fx > 0 ? '−' : '+'}${money(Math.abs(f.costs.fx))}`) : '',
     ].join('')) : ''}
     <small class="field-hint">Todo convertido a soles con el tipo de cambio de Ajustes. "Por hacer" estima según cuántas veces haces cada producto.</small>
     <div class="form-actions"><button type="button" class="btn ghost" data-act="closeSheet">Cerrar</button></div>
