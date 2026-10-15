@@ -2,7 +2,7 @@
 
 // ── Configuración ──
 // Versión publicada: debe coincidir con version.json y con el ?v= de index.html.
-const APP_VERSION = 22;
+const APP_VERSION = 23;
 const KEY = 'saldo-v2';
 const OLD_KEY = 'saldo-freelance-v1';
 // ID de cliente OAuth (público). Se usa para guardar tus datos en tu Google Drive (carpeta oculta de la app).
@@ -360,22 +360,17 @@ function forecast(until) {
   const costs = withdrawalCosts(until);
   return { now, pending, future, costs, total: now + pending + future - costs.total };
 }
-// Costos de los retiros que tu plan haría hasta la fecha (uno a fin de cada mes en que toque retirar):
-// la comisión fija y la diferencia entre lo que vale el dólar en Ajustes (p. ej. PayPal a 3.40)
-// y lo que de verdad recibes al retirar (p. ej. Ligo a 3.32).
+// Comisión fija de los retiros que tu plan haría hasta la fecha (uno a fin de cada mes en que toque retirar).
 function withdrawalCosts(until) {
-  const none = { count: 0, feeTotal: 0, fx: 0, total: 0 };
-  if (data.wallets.length < 2) return none;
+  const none = { count: 0, fee: 0, total: 0 };
+  if (data.wallets.length < 2 || !(Number(data.plan.fee) > 0)) return none;
   const st = planSetup();
   if (st.from.id === st.to.id) return none;
   const now = thisMonth(), end = monthKey(until);
   const months = (+end.slice(0, 4) - +now.slice(0, 4)) * 12 + (+end.slice(5, 7) - +now.slice(5, 7)) + 1;
-  const rows = simulate(data.plan.strategy, st, months, false).rows.filter(r => r.out > 0 && lastDay(r.m) <= until);
-  const out = rows.reduce((t, r) => t + r.out, 0);
+  const count = simulate(data.plan.strategy, st, months, false).rows.filter(r => r.out > 0 && lastDay(r.m) <= until).length;
   const fee = toPEN(st.fee, st.to.currency);
-  const market = convert(1, st.from.currency, st.to.currency);
-  const fx = toPEN(out * (market - st.rate), st.to.currency);
-  return { count: rows.length, fee, feeTotal: rows.length * fee, out, fx, market, rate: st.rate, rateSource: st.rateSource, from: st.from, to: st.to, total: rows.length * fee + fx };
+  return { count, fee, total: count * fee };
 }
 // Meses con trabajo anotado que todavía no te pagan (incluye el mes en curso).
 function pendingCharges() {
@@ -594,7 +589,7 @@ function forecastBlock() {
     <span>Hoy <b>${money(f.now)}</b></span>
     <span>Por cobrar <b>+${money(f.pending)}</b></span>
     <span>Por hacer <b>+${money(f.future)}</b></span>
-    ${f.costs.count && Math.abs(f.costs.total) >= 0.005 ? `<span>Costos de retiro <b>${f.costs.total > 0 ? '−' : '+'}${money(Math.abs(f.costs.total))}</b></span>` : ''}
+    ${f.costs.count ? `<span>Comisión de retiro (${f.costs.count} × ${money(f.costs.fee)}) <b>−${money(f.costs.total)}</b></span>` : ''}
   </div>`;
 }
 
@@ -1030,10 +1025,7 @@ function forecastDetail() {
     ${section('Hoy tienes', f.now, wallets)}
     ${section('Por cobrar', f.pending, pending)}
     ${section(`Por hacer hasta el ${fmtDate(until)}`, f.future, todo)}
-    ${f.costs.count && Math.abs(f.costs.total) >= 0.005 ? section('Costos de retiro', -f.costs.total, [
-      f.costs.feeTotal ? line(`${f.costs.count} × comisión fija de ${money(f.costs.fee)}`, `Según tu plan: ${STRATEGIES[data.plan.strategy].toLowerCase()}`, `−${money(f.costs.feeTotal)}`) : '',
-      Math.abs(f.costs.fx) >= 0.005 ? line('Cambio al retirar', `Retiras ${money(f.costs.out, f.costs.from.currency)}. Recibes ${money(f.costs.rate, f.costs.to.currency)} por ${CURRENCIES[f.costs.from.currency]}1 (${f.costs.rateSource}) en vez de ${money(f.costs.market, f.costs.to.currency)} (Ajustes).`, `${f.costs.fx > 0 ? '−' : '+'}${money(Math.abs(f.costs.fx))}`) : '',
-    ].join('')) : ''}
+    ${f.costs.count ? section('Comisión de retiro', -f.costs.total, line(`${f.costs.count} × comisión fija de ${money(f.costs.fee)}`, `Según tu plan: ${STRATEGIES[data.plan.strategy].toLowerCase()}`, `−${money(f.costs.total)}`)) : ''}
     <small class="field-hint">Todo convertido a soles con el tipo de cambio de Ajustes. "Por hacer" estima según cuántas veces haces cada producto.</small>
     <div class="form-actions"><button type="button" class="btn ghost" data-act="closeSheet">Cerrar</button></div>
   </div>`);
