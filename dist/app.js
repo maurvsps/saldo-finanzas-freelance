@@ -2,7 +2,7 @@
 
 // ── Configuración ──
 // Versión publicada: debe coincidir con version.json y con el ?v= de index.html.
-const APP_VERSION = 23;
+const APP_VERSION = 24;
 const KEY = 'saldo-v2';
 const OLD_KEY = 'saldo-freelance-v1';
 // ID de cliente OAuth (público). Se usa para guardar tus datos en tu Google Drive (carpeta oculta de la app).
@@ -43,6 +43,8 @@ const STRATEGIES = {
   end: 'Todo al final',
 };
 const PLAN_MONTHS = 12;
+// Categorías de gastos (puedes añadir las tuyas al anotar un gasto).
+const EXPENSE_CATEGORIES = ['Comida', 'Transporte', 'Vivienda', 'Servicios', 'Salud', 'Ocio', 'Compras', 'Trabajo', 'Impuestos', 'Otros'];
 
 // ── Iconos (SVG, nunca caracteres) ──
 const PATHS = {
@@ -64,6 +66,7 @@ const PATHS = {
   phone: '<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>',
   upload: '<path d="M12 3v12M7 8l5-5 5 5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>',
   download: '<path d="M12 15V3M7 10l5 5 5-5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>',
+  receipt: '<path d="M4 2v20l3-2 2.5 2 2.5-2 2.5 2 2.5-2 3 2V2l-3 2-2.5-2-2.5 2-2.5-2L7 4Z"/><path d="M8 9h8M8 13h8"/>',
   refresh: '<path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/>',
 };
 const icon = (name, cls = '') => `<svg class="ic ${cls}" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${PATHS[name]}</svg>`;
@@ -130,6 +133,8 @@ function blank() {
     payments: [], // { id, clientId, month, amount, currency, wallet, date, balanceBefore, balanceAfter }
     withdrawals: [], // { id, date, from, to, amount, received, fromBefore, fromAfter, toBefore, toAfter, note }
     plan: { strategy: 'monthly', threshold: 200, rate: 0, fee: 0, from: '', to: '' },
+    expenses: [], // gastos: { id, date, amount, currency, category, note }
+    customCategories: [], // categorías de gasto creadas por ti
     horizon: '', // fecha de la previsión en Inicio (AAAA-MM-DD); vacía = fin de este mes
   };
 }
@@ -251,6 +256,8 @@ function normalize(raw) {
     entries: arr(raw.entries),
     payments: arr(raw.payments),
     withdrawals: arr(raw.withdrawals),
+    expenses: arr(raw.expenses),
+    customCategories: arr(raw.customCategories).map(String),
     plan: { ...d.plan, ...(raw.plan || {}) },
     horizon: raw.horizon || d.horizon,
   };
@@ -393,6 +400,15 @@ function monthTotals(m) {
   const collected = data.payments.filter(p => p.month === m).reduce((t, p) => t + toPEN(p.amount, p.currency), 0);
   return { logged, expected, collected };
 }
+const expenseCategories = () => [...new Set([...EXPENSE_CATEGORIES, ...data.customCategories, ...data.expenses.map(x => x.category)])];
+const monthExpenses = m => data.expenses.filter(x => monthKey(x.date) === m);
+const expenseTotal = list => list.reduce((t, x) => t + toPEN(x.amount, x.currency), 0);
+// Gastos del mes por categoría (en soles), de mayor a menor.
+function expenseByCategory(m) {
+  const map = new Map();
+  for (const x of monthExpenses(m)) map.set(x.category, (map.get(x.category) || 0) + toPEN(x.amount, x.currency));
+  return [...map].map(([category, total]) => ({ category, total })).sort((a, b) => b.total - a.total);
+}
 // Fecha para anotar con "+" en el mes que estás viendo.
 function logDate(m) {
   const now = thisMonth();
@@ -472,6 +488,7 @@ function simulate(strategy, st, months = PLAN_MONTHS, forceLast = true) {
 const VIEWS = {
   inicio: { label: 'Inicio', icon: 'home', render: viewHome },
   clientes: { label: 'Clientes', icon: 'users', render: viewClients },
+  gastos: { label: 'Gastos', icon: 'receipt', render: viewExpenses },
   retiros: { label: 'Retiros', icon: 'banknote', render: viewWithdrawals },
   ajustes: { label: 'Ajustes', icon: 'settings', render: viewSettings },
 };
@@ -560,10 +577,11 @@ function viewHome() {
   </section>` : ''}
   <section class="card">
     <div class="card-head"><h2>${monthLabel(now)}</h2></div>
-    <div class="stats">
+    <div class="stats four">
       <div class="stat"><span>Anotado</span><b>${money(t.logged)}</b></div>
       <div class="stat"><span>Cobrado</span><b class="pos">${money(t.collected)}</b></div>
       <div class="stat"><span>Estimado a fin de mes</span><b>${money(t.expected)}</b></div>
+      <div class="stat"><span>Gastos</span><b class="neg">${money(expenseTotal(monthExpenses(now)))}</b></div>
     </div>
   </section>
   ${nextWithdrawalCard()}`;
@@ -783,7 +801,7 @@ function viewSettings() {
   </section>
   <section class="card danger">
     <div class="card-head"><h2>Borrar datos</h2></div>
-    <p class="muted small">Elimina billeteras, clientes, trabajos anotados, cobros y retiros de este dispositivo.</p>
+    <p class="muted small">Elimina billeteras, clientes, trabajos anotados, cobros, gastos y retiros de este dispositivo.</p>
     <div class="btn-row"><button class="btn danger" data-act="resetData">${icon('trash')}Borrar todo</button></div>
   </section>`;
 }
@@ -947,6 +965,83 @@ function entryForm(c, m, e = null, fromCard = false) {
       if (fromCard) closeSheet();
       else entriesSheet(c, month);
       toast(e ? 'Anotación actualizada' : 'Anotado');
+    };
+  });
+}
+
+// Gastos: cada gasto lleva fecha, monto, moneda y categoría. No cambia los saldos de las billeteras.
+function viewExpenses() {
+  const m = viewMonth;
+  const list = monthExpenses(m).sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+  const total = expenseTotal(list), cats = expenseByCategory(m);
+  const t = monthTotals(m);
+  const left = t.collected - total;
+  return `
+  <button class="btn primary block big" data-act="newExpense">${icon('plus')}Anotar un gasto</button>
+  ${monthSwitch(m)}
+  <div class="stats two">
+    <div class="stat"><span>Gastado en ${monthName(m)}</span><b class="neg">${money(total)}</b></div>
+    <div class="stat"><span>Cobrado − gastado</span><b class="${left < 0 ? 'neg' : 'pos'}">${money(left)}</b></div>
+  </div>
+  <section class="card">
+    <div class="card-head"><h2>Por categoría</h2></div>
+    ${cats.length ? `<div class="cat-list">${cats.map(c => `<div class="cat">
+      <span class="cat-name"><b>${esc(c.category)}</b><small>${Math.round(c.total / total * 100)}%</small></span>
+      <span class="cat-amount">${money(c.total)}</span>
+      <span class="cat-bar"><i style="width:${Math.max(3, c.total / cats[0].total * 100)}%"></i></span>
+    </div>`).join('')}</div>` : emptyState(`Sin gastos en ${monthName(m)}.`)}
+  </section>
+  <section class="card">
+    <div class="card-head"><h2>Gastos</h2></div>
+    ${list.length ? `<div class="rows">${list.map(x => `<button class="row" data-act="editExpense" data-id="${x.id}">
+      <span class="move-ic">${icon('receipt')}</span>
+      <span class="row-main"><b>${esc(x.note || x.category)}</b><small>${esc(x.category)} · ${fmtDate(x.date)}</small></span>
+      <span class="amount neg">${money(x.amount, x.currency)}${x.currency !== 'PEN' ? `<small>${money(toPEN(x.amount, x.currency))}</small>` : ''}</span>
+    </button>`).join('')}</div>` : emptyState('Aún no anotas gastos este mes.')}
+  </section>`;
+}
+
+function expenseForm(x = null) {
+  const cur0 = x?.currency || 'PEN';
+  const cat0 = x?.category || EXPENSE_CATEGORIES[0];
+  const date0 = x?.date || logDate(viewMonth);
+  openSheet(x ? 'Editar gasto' : 'Anotar gasto', `<form class="form">
+    <div class="grid2">
+      ${moneyField('Monto', 'amount', cur0, x?.amount)}
+      <label class="field"><span>Moneda</span><select name="currency">${currencyOptions(cur0)}</select></label>
+    </div>
+    <label class="field"><span>Categoría</span><select name="category">${expenseCategories().map(c => `<option value="${esc(c)}"${c === cat0 ? ' selected' : ''}>${esc(c)}</option>`).join('')}<option value="__new">+ Nueva categoría…</option></select></label>
+    <label class="field" data-newcat hidden><span>Nombre de la categoría</span><input name="newcat" maxlength="30" placeholder="Ej. Mascotas"></label>
+    <label class="field"><span>Detalle</span><input name="note" maxlength="80" value="${esc(x?.note || '')}" placeholder="Opcional. Ej. Almuerzo"></label>
+    <label class="field"><span>Fecha</span><input name="date" type="date" required value="${date0}"></label>
+    ${x ? deleteButton('deleteExpense', x.id) : ''}
+    ${formActions(x ? 'Guardar' : 'Anotar')}
+  </form>`, (form, el) => {
+    el('currency').addEventListener('change', () => setText(form, '[data-cur="amount"]', CURRENCIES[el('currency').value]));
+    el('category').addEventListener('change', () => {
+      const isNew = el('category').value === '__new';
+      form.querySelector('[data-newcat]').hidden = !isNew;
+      if (isNew) el('newcat').focus();
+    });
+    if (!x) el('amount').focus();
+    form.onsubmit = e => {
+      e.preventDefault();
+      const amount = round2(el('amount').value);
+      if (!(amount > 0)) return toast('Escribe el monto');
+      let category = el('category').value;
+      if (category === '__new') {
+        category = el('newcat').value.trim();
+        if (!category) return toast('Escribe el nombre de la categoría');
+        const known = expenseCategories().find(c => c.toLowerCase() === category.toLowerCase());
+        if (known) category = known;
+        else data.customCategories.push(category);
+      }
+      const next = { amount, currency: el('currency').value, category, note: el('note').value.trim(), date: el('date').value };
+      if (x) Object.assign(x, next);
+      else data.expenses.push({ id: uid(), ...next });
+      viewMonth = monthKey(next.date);
+      closeSheet();
+      commit(x ? 'Gasto actualizado' : 'Gasto anotado');
     };
   });
 }
@@ -1216,6 +1311,15 @@ const actions = {
     data.payments = data.payments.filter(x => x !== p);
     closeSheet();
     commit('Cobro deshecho');
+  },
+  newExpense: () => expenseForm(),
+  editExpense: d => { const x = data.expenses.find(y => y.id === d.id); if (x) expenseForm(x); },
+  deleteExpense: d => {
+    const x = data.expenses.find(y => y.id === d.id);
+    if (!x || !confirm('¿Eliminar este gasto?')) return;
+    data.expenses = data.expenses.filter(y => y !== x);
+    closeSheet();
+    commit('Gasto eliminado');
   },
   newWithdrawal: () => withdrawalForm(),
   viewWithdrawal: d => { const x = data.withdrawals.find(y => y.id === d.id); if (x) withdrawalDetail(x); },

@@ -85,6 +85,7 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 /* ── Resúmenes ── */
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .stats.two { grid-template-columns: 1fr 1fr; }
+.stats.four { grid-template-columns: 1fr 1fr; }
 .stat { min-width: 0; padding: 12px 14px; border-radius: var(--radius-sm); background: var(--surface-2); }
 #view > .stats .stat { background: var(--surface); border: 1px solid var(--line); }
 .stat span { display: block; color: var(--muted); font-size: 13px; font-weight: 600; }
@@ -309,3 +310,13 @@ a.btn { text-decoration: none; }
   .stat b { font-size: 16px; }
   .quick-btn { font-size: 14px; }
 }
+
+/* Gastos */
+.neg { color: var(--amber, #b26a2c); }
+.cat-list { display: flex; flex-direction: column; gap: 14px; }
+.cat { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: baseline; }
+.cat-name b { font-weight: 600; margin-right: 8px; }
+.cat-name small { color: var(--muted); font-size: 14px; }
+.cat-amount { font: 700 15px var(--display, inherit); }
+.cat-bar { grid-column: 1 / -1; height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.cat-bar i { display: block; height: 100%; border-radius: 999px; background: var(--green, #2f7a59); }
