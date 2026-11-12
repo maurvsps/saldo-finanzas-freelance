@@ -2,7 +2,7 @@
 
 // ── Configuración ──
 // Versión publicada: debe coincidir con version.json y con el ?v= de index.html.
-const APP_VERSION = 27;
+const APP_VERSION = 28;
 const KEY = 'saldo-v2';
 const OLD_KEY = 'saldo-freelance-v1';
 // ID de cliente OAuth (público). Se usa para guardar tus datos en tu Google Drive (carpeta oculta de la app).
@@ -77,6 +77,7 @@ const PATHS = {
   upload: '<path d="M12 3v12M7 8l5-5 5 5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>',
   download: '<path d="M12 15V3M7 10l5 5 5-5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>',
   receipt: '<path d="M4 2v20l3-2 2.5 2 2.5-2 2.5 2 2.5-2 3 2V2l-3 2-2.5-2-2.5 2-2.5-2L7 4Z"/><path d="M8 9h8M8 13h8"/>',
+  chevronUp: '<path d="m18 15-6-6-6 6"/>',
   utensils: '<path d="M3 2v7c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2V2"/><path d="M6 2v20"/><path d="M19 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>',
   coffee: '<path d="M10 2v2M14 2v2M6 2v2"/><path d="M6 8h11v7a4 4 0 0 1-4 4h-3a4 4 0 0 1-4-4Z"/><path d="M17 10h1a3 3 0 0 1 0 6h-1"/>',
   bus: '<rect x="4" y="3" width="16" height="14" rx="2"/><path d="M4 11h16"/><path d="M8 21v-4M16 21v-4"/><path d="M8 14h.01M16 14h.01"/>',
@@ -162,7 +163,7 @@ function blank() {
     withdrawals: [], // { id, date, from, to, amount, received, fromBefore, fromAfter, toBefore, toAfter, note }
     plan: { strategy: 'monthly', threshold: 200, rate: 0, fee: 0, from: '', to: '' },
     // Sección Gastos: va aparte del resto (solo soles, su propio saldo de Yape).
-    expenses: [], // movimientos: { id, kind: 'in' | 'out', date, amount, currency: 'PEN', category, note }
+    expenses: [], // movimientos: { id, kind: 'in' | 'out' | 'adj', date, amount, currency: 'PEN', category, note }
     customCategories: [], // categorías de gasto creadas por ti
     incomeCategories: [], // categorías de ingreso creadas por ti
     yape: { opening: 0 }, // saldo de Yape antes de los movimientos anotados
@@ -292,7 +293,7 @@ function normalize(raw) {
     // Los gastos de antes en otra moneda pasan a soles (la sección ya no usa tipo de cambio).
     expenses: arr(raw.expenses).map(x => {
       const rate = x.currency && x.currency !== 'PEN' ? Number(d.rates[x.currency]) || 0 : 1;
-      return { ...x, kind: x.kind === 'in' ? 'in' : 'out', currency: 'PEN', amount: round2((Number(x.amount) || 0) * rate) };
+      return { ...x, kind: x.kind === 'in' ? 'in' : x.kind === 'adj' ? 'adj' : 'out', currency: 'PEN', amount: round2((Number(x.amount) || 0) * rate) };
     }),
     customCategories: arr(raw.customCategories).map(String),
     incomeCategories: arr(raw.incomeCategories).map(String),
@@ -321,7 +322,6 @@ function load() {
 
 let data = load();
 let viewMonth = thisMonth();
-let moveMonth = thisMonth(); // mes que ves en Gastos (independiente del resto)
 
 function persist() {
   data.updatedAt = Date.now();
@@ -444,13 +444,14 @@ function monthTotals(m) {
 }
 // ── Gastos e ingresos (todo en soles, aparte de billeteras y clientes) ──
 const isIncome = x => x.kind === 'in';
+const isAdj = x => x.kind === 'adj'; // ajuste de saldo: cambia el saldo, nunca cuenta en estadísticas
+const isOut = x => !isIncome(x) && !isAdj(x);
 const sumAmount = list => list.reduce((t, x) => t + (Number(x.amount) || 0), 0);
 const kindCategories = kind => [...new Set(kind === 'in'
   ? [...INCOME_CATEGORIES, ...data.incomeCategories, ...data.expenses.filter(isIncome).map(x => x.category)]
-  : [...EXPENSE_CATEGORIES, ...data.customCategories, ...data.expenses.filter(x => !isIncome(x)).map(x => x.category)])];
-const monthMoves = (m, kind) => data.expenses.filter(x => monthKey(x.date) === m && (!kind || isIncome(x) === (kind === 'in')));
-// Saldo de Yape: el saldo inicial que pusiste, más ingresos, menos gastos.
-const netMoves = () => sumAmount(data.expenses.filter(isIncome)) - sumAmount(data.expenses.filter(x => !isIncome(x)));
+  : [...EXPENSE_CATEGORIES, ...data.customCategories, ...data.expenses.filter(isOut).map(x => x.category)])];
+// Saldo de Yape: ingresos, menos gastos, más los ajustes que hayas hecho.
+const netMoves = () => sumAmount(data.expenses.filter(isIncome)) - sumAmount(data.expenses.filter(isOut)) + sumAmount(data.expenses.filter(isAdj));
 const yapeBalance = () => round2(data.yape.opening + netMoves());
 const catMeta = name => {
   const s = data.catStyles[name];
@@ -465,12 +466,6 @@ const catBadge = (name, small = false) => { const m = catMeta(name); return `<sp
 const contactKey = s => String(s || '').trim().replace(/\s+/g, ' ').toLowerCase();
 const frequentContacts = () => [...data.contacts].sort((a, b) => b.uses - a.uses || a.name.localeCompare(b.name));
 const contactMoves = c => data.expenses.filter(x => contactKey(x.contact) === contactKey(c.name));
-// Total del mes por categoría, de mayor a menor.
-function moveByCategory(m, kind) {
-  const map = new Map();
-  for (const x of monthMoves(m, kind)) map.set(x.category, (map.get(x.category) || 0) + (Number(x.amount) || 0));
-  return [...map].map(([category, total]) => ({ category, total })).sort((a, b) => b.total - a.total);
-}
 // Fecha para anotar con "+" en el mes que estás viendo.
 function logDate(m) {
   const now = thisMonth();
@@ -1075,21 +1070,267 @@ function entryForm(c, m, e = null, fromCard = false) {
   });
 }
 
-// Gastos: tu saldo de Yape con ingresos y gastos anotados. Todo en soles y aparte de billeteras, clientes y cobros.
-function catCard(title, cats, total, empty) {
-  return `<section class="card">
-    <div class="card-head"><h2>${title}</h2></div>
-    ${cats.length ? `<div class="cat-list">${cats.map(c => `<div class="cat" style="--c:${catMeta(c.category).color}">
-      <span class="cat-name">${catBadge(c.category, true)}<b>${esc(c.category)}</b><small>${Math.round(c.total / total * 100)}%</small></span>
-      <span class="cat-amount">${money(c.total)}</span>
-      <span class="cat-bar"><i style="width:${Math.max(3, c.total / cats[0].total * 100)}%"></i></span>
-    </div>`).join('')}</div>` : emptyState(empty)}
+// ── Gastos: resumen, estadísticas y movimientos ──
+// Los ajustes de saldo (kind 'adj') cambian el saldo pero nunca cuentan en gráficas, totales ni estadísticas.
+const G_PREF_KEY = 'saldo-gastos-prefs';
+const G_COLS = { date: 'Fecha', contact: 'Contacto', note: 'Detalle', category: 'Categoría', kind: 'Tipo', amount: 'Monto' };
+const G_RANGES = { month: 'Un mes', d7: 'Últimos 7 días', d30: 'Últimos 30 días', d90: 'Últimos 90 días', year: 'Este año', all: 'Todo', custom: 'Personalizado' };
+const G_TABS = { resumen: 'Resumen', stats: 'Estadísticas', movs: 'Movimientos' };
+let gTab = 'resumen';
+let gQTimer = 0;
+const gf = {
+  range: 'month', month: thisMonth(), from: '', to: '', type: 'out', category: '', q: '', adj: true, limit: 100,
+  cols: ['date', 'contact', 'category', 'amount'], sort: { key: 'date', dir: 'desc' }, catSort: { key: 'total', dir: 'desc' },
+};
+try {
+  const p = JSON.parse(localStorage.getItem(G_PREF_KEY));
+  if (p) {
+    if (Array.isArray(p.cols) && p.cols.length && p.cols.every(c => G_COLS[c])) gf.cols = p.cols;
+    if (p.sort && G_COLS[p.sort.key]) gf.sort = { key: p.sort.key, dir: p.sort.dir === 'asc' ? 'asc' : 'desc' };
+    if (p.catSort && ['name', 'n', 'total', 'avg'].includes(p.catSort.key)) gf.catSort = { key: p.catSort.key, dir: p.catSort.dir === 'asc' ? 'asc' : 'desc' };
+    if (p.adj === false) gf.adj = false;
+  }
+} catch {}
+const saveGPrefs = () => { try { localStorage.setItem(G_PREF_KEY, JSON.stringify({ cols: gf.cols, sort: gf.sort, catSort: gf.catSort, adj: gf.adj })); } catch {} };
+
+function gRange() {
+  const t = todayISO();
+  switch (gf.range) {
+    case 'month': return { from: gf.month + '-01', to: lastDay(gf.month) };
+    case 'd7': return { from: addDays(t, -6), to: t };
+    case 'd30': return { from: addDays(t, -29), to: t };
+    case 'd90': return { from: addDays(t, -89), to: t };
+    case 'year': return { from: t.slice(0, 4) + '-01-01', to: t.slice(0, 4) + '-12-31' };
+    case 'custom': return { from: gf.from || '0000-01-01', to: gf.to || '9999-12-31' };
+    default: return { from: '0000-01-01', to: '9999-12-31' };
+  }
+}
+function gFiltered(stats) {
+  const { from, to } = gRange(), q = gf.q.trim().toLowerCase();
+  return data.expenses.filter(x => {
+    if (x.date < from || x.date > to) return false;
+    if (isAdj(x)) return !stats && gf.adj && !gf.category && !q;
+    if (gf.type === 'out' && !isOut(x)) return false;
+    if (gf.type === 'in' && !isIncome(x)) return false;
+    if (gf.category && x.category !== gf.category) return false;
+    if (q && !`${x.contact || ''} ${x.note || ''} ${x.category}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+const gSign = x => (isIncome(x) ? 1 : isAdj(x) ? Math.sign(x.amount) : -1);
+const gSigned = x => (isAdj(x) ? Number(x.amount) || 0 : gSign(x) * (Number(x.amount) || 0));
+const gMoney = x => `${gSigned(x) < 0 ? '−' : '+'}${money(Math.abs(Number(x.amount) || 0))}`;
+const gSelect = (field, opts, val) => `<select data-gf="${field}">${opts.map(([v, l, ic, col]) => `<option value="${esc(v)}"${ic ? ` data-icon="${ic}" data-color="${col}"` : ''}${v === val ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
+
+function gFilterBar() {
+  const cats = [...new Set([...kindCategories('out'), ...kindCategories('in')])].map(c => { const m = catMeta(c); return [c, c, m.icon, m.color]; });
+  return `<section class="card filters">
+    <div class="grid2">
+      <label class="field"><span>Periodo</span>${gSelect('range', Object.entries(G_RANGES), gf.range)}</label>
+      <label class="field"><span>Tipo</span>${gSelect('type', [['out', 'Gastos'], ['in', 'Ingresos'], ['both', 'Gastos e ingresos']], gf.type)}</label>
+    </div>
+    ${gf.range === 'month' ? monthSwitch(gf.month, 'gPrevMonth', 'gNextMonth') : ''}
+    ${gf.range === 'custom' ? `<div class="grid2"><label class="field"><span>Desde</span><input type="date" data-gf="from" value="${gf.from}"></label><label class="field"><span>Hasta</span><input type="date" data-gf="to" value="${gf.to}"></label></div>` : ''}
+    <div class="grid2">
+      <label class="field"><span>Categoría</span>${gSelect('category', [['', 'Todas'], ...cats], gf.category)}</label>
+      <label class="field"><span>Buscar</span><input type="search" data-gf="q" value="${esc(gf.q)}" placeholder="Contacto o detalle" autocomplete="off"></label>
+    </div>
   </section>`;
 }
-function viewExpenses() {
-  const m = moveMonth;
-  const list = monthMoves(m).sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
-  const inTotal = sumAmount(monthMoves(m, 'in')), outTotal = sumAmount(monthMoves(m, 'out'));
+
+// Resumen del periodo, sin ajustes de saldo.
+function gStats(list) {
+  const out = list.filter(isOut), inn = list.filter(isIncome);
+  const outT = sumAmount(out), inT = sumAmount(inn);
+  const { from, to } = gRange(), dates = list.map(x => x.date).sort();
+  const start = from === '0000-01-01' ? dates[0] || todayISO() : from;
+  const end = minStr(to === '9999-12-31' ? todayISO() : to, todayISO());
+  const days = Math.max(1, dayDiff(start, end) + 1);
+  const main = gf.type === 'in' ? inn : out;
+  const top = main.reduce((a, x) => (!a || x.amount > a.amount ? x : a), null);
+  return { outT, inT, net: inT - outT, days, perDay: (gf.type === 'in' ? inT : outT) / days, count: list.length, top };
+}
+
+// ── Gráficas ──
+const weekStart = d => addDays(d, -((parse(d).getDay() + 6) % 7));
+function gBuckets(list) {
+  const { from, to } = gRange(), dates = list.map(x => x.date).sort();
+  const a = from === '0000-01-01' ? dates[0] || todayISO() : from;
+  const b = to === '9999-12-31' ? dates[dates.length - 1] || todayISO() : to;
+  const span = Math.max(1, dayDiff(a, b) + 1);
+  const mode = span <= 45 ? 'day' : span <= 190 ? 'week' : 'month';
+  const keyOf = d => (mode === 'day' ? d : mode === 'week' ? weekStart(d) : d.slice(0, 7));
+  const keys = [];
+  if (mode === 'day') for (let x = a; x <= b; x = addDays(x, 1)) keys.push(x);
+  else if (mode === 'week') for (let x = weekStart(a); x <= b; x = addDays(x, 7)) keys.push(x);
+  else for (let m = a.slice(0, 7); m <= b.slice(0, 7); m = shiftMonth(m, 1)) keys.push(m);
+  const map = new Map(keys.map(k => [k, { key: k, in: 0, out: 0 }]));
+  for (const x of list) { const bk = map.get(keyOf(x.date)); if (bk) bk[isIncome(x) ? 'in' : 'out'] += Number(x.amount) || 0; }
+  const label = k => (mode === 'day' ? String(+k.slice(8)) : mode === 'week' ? fmtDate(k) : monthShort(k + '-01'));
+  const title = k => (mode === 'day' ? fmtDate(k) : mode === 'week' ? `Semana del ${fmtDate(k)}` : monthLabel(k));
+  return { mode, items: [...map.values()], label, title };
+}
+function gTimeChart(list) {
+  const { mode, items, label, title } = gBuckets(list);
+  const series = gf.type === 'out' ? ['out'] : gf.type === 'in' ? ['in'] : ['in', 'out'];
+  const max = Math.max(1, ...items.flatMap(b => series.map(s => b[s])));
+  const W = 640, H = 210, padB = 24, padT = 16, n = items.length, slot = W / n;
+  const bw = Math.max(2, Math.min(26, (slot * 0.72) / series.length));
+  const step = Math.ceil(n / 9);
+  const col = { in: 'var(--green)', out: 'var(--red)' };
+  const bars = items.map((b, i) => series.map((s, j) => {
+    const h = (b[s] / max) * (H - padB - padT);
+    const x = slot * i + (slot - bw * series.length) / 2 + j * bw;
+    return `<rect x="${x.toFixed(1)}" y="${(H - padB - h).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(h, b[s] > 0 ? 1.5 : 0).toFixed(1)}" rx="2" style="fill:${col[s]}"><title>${esc(title(b.key))}: ${money(b[s])}${series.length > 1 ? (s === 'in' ? ' (ingresos)' : ' (gastos)') : ''}</title></rect>`;
+  }).join('')).join('');
+  const labels = items.map((b, i) => (i % step ? '' : `<text x="${(slot * i + slot / 2).toFixed(1)}" y="${H - 7}" text-anchor="middle" class="chart-t">${esc(label(b.key))}</text>`)).join('');
+  const unit = mode === 'day' ? 'por día' : mode === 'week' ? 'por semana' : 'por mes';
+  return `<section class="card">
+    <div class="card-head"><h2>${gf.type === 'in' ? 'Ingresos' : gf.type === 'out' ? 'Gastos' : 'Ingresos y gastos'} ${unit}</h2>${series.length > 1 ? '<span class="legend"><i style="background:var(--green)"></i>Ingresos <i style="background:var(--red)"></i>Gastos</span>' : ''}</div>
+    <svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Gráfica ${unit}">
+      <line x1="0" y1="${H - padB}" x2="${W}" y2="${H - padB}" class="chart-ax"/>
+      <text x="0" y="10" class="chart-t">${esc(moneyShort(max))}</text>${bars}${labels}
+    </svg>
+  </section>`;
+}
+function gDonut(cats, total) {
+  const R = 62, C = 2 * Math.PI * R;
+  let off = 0;
+  const arcs = cats.map(c => {
+    const len = (c.total / total) * C;
+    const el = `<circle cx="80" cy="80" r="${R}" fill="none" stroke="${catMeta(c.category).color}" stroke-width="26" stroke-dasharray="${len.toFixed(2)} ${(C - len).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 80 80)"><title>${esc(c.category)}: ${money(c.total)}</title></circle>`;
+    off += len;
+    return el;
+  }).join('');
+  return `<svg class="donut" viewBox="0 0 160 160" role="img" aria-label="Por categoría"><circle cx="80" cy="80" r="${R}" fill="none" class="donut-bg" stroke-width="26"/>${arcs}<text x="80" y="76" text-anchor="middle" class="donut-k">Total</text><text x="80" y="96" text-anchor="middle" class="donut-v">${esc(moneyShort(total))}</text></svg>`;
+}
+const sortArrow = (s, key) => (s.key === key ? icon(s.dir === 'asc' ? 'chevronUp' : 'chevronDown', 'sort-ic') : '');
+
+function gCategories(list) {
+  const isIn = gf.type === 'in';
+  const main = list.filter(isIn ? isIncome : isOut);
+  const total = sumAmount(main);
+  if (!main.length) return `<section class="card"><div class="card-head"><h2>${isIn ? 'Ingresos' : 'Gastos'} por categoría</h2></div>${emptyState('Sin movimientos en este periodo.')}</section>`;
+  const map = new Map();
+  for (const x of main) { const r = map.get(x.category) || { category: x.category, total: 0, n: 0 }; r.total += Number(x.amount) || 0; r.n++; map.set(x.category, r); }
+  const rows = [...map.values()].map(r => ({ ...r, avg: r.total / r.n }));
+  const { key, dir } = gf.catSort, k = dir === 'asc' ? 1 : -1;
+  rows.sort((a, b) => k * (key === 'name' ? a.category.localeCompare(b.category) : a[key] - b[key]));
+  const th = (key2, text, cls = '') => `<th class="${cls}"><button data-act="gCatSort" data-key="${key2}">${text}${sortArrow(gf.catSort, key2)}</button></th>`;
+  const byTotal = [...rows].sort((a, b) => b.total - a.total);
+  return `<section class="card">
+    <div class="card-head"><h2>${isIn ? 'Ingresos' : 'Gastos'} por categoría</h2></div>
+    <div class="donut-wrap">${gDonut(byTotal, total)}</div>
+    <div class="tbl-wrap"><table class="tbl">
+      <thead><tr>${th('name', 'Categoría')}${th('n', 'Mov.', 'num')}${th('total', 'Total', 'num')}${th('avg', 'Promedio', 'num')}<th class="num">%</th></tr></thead>
+      <tbody>${rows.map(r => `<tr><td><span class="cell-cat">${catBadge(r.category, true)}${esc(r.category)}</span></td><td class="num">${r.n}</td><td class="num"><b>${money(r.total)}</b></td><td class="num">${money(r.avg)}</td><td class="num">${Math.round((r.total / total) * 100)}%</td></tr>`).join('')}</tbody>
+    </table></div>
+  </section>`;
+}
+function gTopContacts(list) {
+  const isIn = gf.type === 'in';
+  const map = new Map();
+  for (const x of list.filter(isIn ? isIncome : isOut)) {
+    if (!x.contact) continue;
+    const k = contactKey(x.contact), r = map.get(k) || { name: x.contact, total: 0, n: 0 };
+    r.total += Number(x.amount) || 0; r.n++; map.set(k, r);
+  }
+  const rows = [...map.values()].sort((a, b) => b.total - a.total).slice(0, 5);
+  if (!rows.length) return '';
+  return `<section class="card">
+    <div class="card-head"><h2>${isIn ? 'De quién recibes más' : 'A quién le envías más'}</h2></div>
+    <div class="cat-list">${rows.map((r, i) => `<div class="cat" style="--c:${COLORS[i % COLORS.length]}">
+      <span class="cat-name">${avatar(r.name, COLORS[i % COLORS.length])}<b>${esc(r.name)}</b><small>${r.n} ${r.n === 1 ? 'vez' : 'veces'}</small></span>
+      <span class="cat-amount">${money(r.total)}</span>
+      <span class="cat-bar"><i style="width:${Math.max(3, (r.total / rows[0].total) * 100)}%"></i></span>
+    </div>`).join('')}</div>
+  </section>`;
+}
+
+function gViewStats() {
+  const list = gFiltered(true), s = gStats(list);
+  const adjNet = sumAmount(gFiltered(false).filter(isAdj));
+  const both = gf.type === 'both';
+  return `${gFilterBar()}
+  <div class="stats">
+    <div class="stat"><span>${gf.type === 'in' ? 'Ingresos' : 'Gastos'}</span><b class="${gf.type === 'in' ? 'pos' : 'neg'}">${money(gf.type === 'in' ? s.inT : s.outT)}</b></div>
+    ${both ? `<div class="stat"><span>Ingresos</span><b class="pos">${money(s.inT)}</b></div><div class="stat"><span>Balance</span><b class="${s.net < 0 ? 'neg' : 'pos'}">${money(s.net)}</b></div>` : `<div class="stat"><span>Movimientos</span><b>${s.count}</b></div><div class="stat"><span>Promedio por día</span><b>${money(s.perDay)}</b></div>`}
+  </div>
+  ${both ? `<div class="stats two"><div class="stat"><span>Promedio de gasto por día</span><b>${money(s.outT / s.days)}</b></div><div class="stat"><span>Movimientos</span><b>${s.count}</b></div></div>` : s.top ? `<div class="stats two"><div class="stat"><span>Mayor ${gf.type === 'in' ? 'ingreso' : 'gasto'}</span><b>${money(s.top.amount)}</b></div><div class="stat"><span>${esc(s.top.contact || s.top.note || s.top.category)}</span><b>${fmtDate(s.top.date)}</b></div></div>` : ''}
+  ${list.length ? gTimeChart(list) : `<section class="card">${emptyState('Sin movimientos en este periodo.')}</section>`}
+  ${list.length ? gCategories(list) : ''}
+  ${gTopContacts(list)}
+  ${adjNet ? `<p class="muted small note">Los ajustes de saldo de este periodo (${adjNet > 0 ? '+' : '−'}${money(Math.abs(adjNet))}) no cuentan en las estadísticas.</p>` : ''}`;
+}
+
+// ── Tabla de movimientos: ordenable, con columnas a tu gusto ──
+function gCompare(a, b) {
+  const { key, dir } = gf.sort, k = dir === 'asc' ? 1 : -1;
+  let r;
+  if (key === 'date') r = a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
+  else if (key === 'amount') r = gSigned(a) - gSigned(b);
+  else if (key === 'kind') r = (isAdj(a) ? 2 : isIncome(a) ? 1 : 0) - (isAdj(b) ? 2 : isIncome(b) ? 1 : 0);
+  else r = String(a[key] || '').localeCompare(String(b[key] || ''));
+  return k * (r || (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+}
+const kindName = x => (isAdj(x) ? 'Ajuste' : isIncome(x) ? 'Ingreso' : 'Gasto');
+function gCell(c, x) {
+  switch (c) {
+    case 'date': return fmtDate(x.date, x.date.slice(0, 4) === todayISO().slice(0, 4) ? { day: 'numeric', month: 'short' } : { day: 'numeric', month: 'short', year: 'numeric' });
+    case 'contact': return esc(x.contact || '');
+    case 'note': return esc(x.note || '');
+    case 'category': return isAdj(x) ? `<span class="cell-cat"><span class="cat-ic sm" style="--c:#646c66">${icon('refresh')}</span>Ajuste de saldo</span>` : `<span class="cell-cat">${catBadge(x.category, true)}${esc(x.category)}</span>`;
+    case 'kind': return `<span class="tag-kind ${isAdj(x) ? 'adj' : isIncome(x) ? 'in' : 'out'}">${kindName(x)}</span>`;
+    default: return `<b class="${isAdj(x) ? 'muted' : gSigned(x) < 0 ? 'neg' : 'pos'}">${gMoney(x)}</b>`;
+  }
+}
+function gViewMovs() {
+  const list = gFiltered(false).sort(gCompare);
+  const real = list.filter(x => !isAdj(x)), out = sumAmount(real.filter(isOut)), inn = sumAmount(real.filter(isIncome));
+  const shown = list.slice(0, gf.limit);
+  return `${gFilterBar()}
+  <section class="card">
+    <div class="card-head"><h2>Movimientos</h2>
+      <div class="btn-row tight">
+        <button class="btn-sm${gf.adj ? ' primary' : ''}" data-act="gToggleAdj" aria-pressed="${gf.adj}">${icon('refresh')}Ajustes</button>
+        <button class="btn-sm" data-act="gCols">${icon('list')}Columnas</button>
+      </div>
+    </div>
+    ${list.length ? `<p class="muted small tbl-sum">${list.length} ${list.length === 1 ? 'movimiento' : 'movimientos'}${inn ? ` · ingresos <b class="pos">${money(inn)}</b>` : ''}${out ? ` · gastos <b class="neg">${money(out)}</b>` : ''}${inn && out ? ` · balance <b>${money(inn - out)}</b>` : ''}</p>
+    <div class="tbl-wrap"><table class="tbl moves">
+      <thead><tr>${gf.cols.map(c => `<th class="${c === 'amount' ? 'num' : ''}"><button data-act="gSort" data-key="${c}">${G_COLS[c]}${sortArrow(gf.sort, c)}</button></th>`).join('')}</tr></thead>
+      <tbody>${shown.map(x => `<tr class="${isAdj(x) ? 'adj' : ''}" data-act="editExpense" data-id="${x.id}">${gf.cols.map(c => `<td class="${c === 'amount' ? 'num' : ''}">${gCell(c, x)}</td>`).join('')}</tr>`).join('')}</tbody>
+    </table></div>
+    ${list.length > shown.length ? `<div class="btn-row"><button class="btn ghost block" data-act="gMore">Ver más (${list.length - shown.length})</button></div>` : ''}` : emptyState('Sin movimientos con estos filtros.')}
+  </section>`;
+}
+function gColsSheet() {
+  openSheet('Columnas de la tabla', `<div class="form">
+    <p class="muted">Elige qué columnas ver. Para ordenar, toca el título de una columna.</p>
+    <div class="chips">${Object.entries(G_COLS).map(([k, l]) => `<button type="button" class="chip${gf.cols.includes(k) ? ' on' : ''}" data-act="gToggleCol" data-key="${k}">${gf.cols.includes(k) ? icon('check', 'chip-ic') : ''}${l}</button>`).join('')}</div>
+    <div class="form-actions"><button type="button" class="btn ghost" data-act="gColsReset">Restablecer</button><button type="button" class="btn primary" data-act="closeSheet">Listo</button></div>
+  </div>`);
+}
+
+// ── Resumen ──
+function moveRow(x) {
+  if (isAdj(x)) {
+    return `<button class="row" data-act="editExpense" data-id="${x.id}">
+      <span class="cat-ic" style="--c:#646c66">${icon('refresh')}</span>
+      <span class="row-main"><b>Ajuste de saldo</b><small>${esc(x.note || 'No cuenta en estadísticas')} · ${fmtDate(x.date)}</small></span>
+      <span class="amount muted">${gMoney(x)}</span>
+    </button>`;
+  }
+  return `<button class="row" data-act="editExpense" data-id="${x.id}">
+    ${catBadge(x.category)}
+    <span class="row-main"><b>${esc(x.note || x.contact || x.category)}</b><small>${esc((x.note && x.contact ? x.contact + ' · ' : '') + x.category)} · ${fmtDate(x.date)}</small></span>
+    <span class="amount ${isIncome(x) ? 'pos' : 'neg'}">${gMoney(x)}</span>
+  </button>`;
+}
+function gViewHome() {
+  const m = thisMonth(), mv = data.expenses.filter(x => monthKey(x.date) === m && !isAdj(x));
+  const inT = sumAmount(mv.filter(isIncome)), outT = sumAmount(mv.filter(isOut));
+  const recent = [...data.expenses].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0)).slice(0, 6);
   return `
   <section class="card">
     <div class="forecast"><div class="fc-box">
@@ -1102,22 +1343,31 @@ function viewExpenses() {
     <button class="btn primary big" data-act="newExpense">${icon('plus')}Gasto</button>
     <button class="btn primary big" data-act="newIncome">${icon('plus')}Ingreso</button>
   </div>
-  ${monthSwitch(m, 'prevMoveMonth', 'nextMoveMonth')}
   <div class="stats two">
-    <div class="stat"><span>Ingresos de ${monthName(m)}</span><b class="pos">${money(inTotal)}</b></div>
-    <div class="stat"><span>Gastos de ${monthName(m)}</span><b class="neg">${money(outTotal)}</b></div>
+    <div class="stat"><span>Gastos de ${monthName(m)}</span><b class="neg">${money(outT)}</b></div>
+    <div class="stat"><span>Ingresos de ${monthName(m)}</span><b class="pos">${money(inT)}</b></div>
   </div>
-  ${catCard('Gastos por categoría', moveByCategory(m, 'out'), outTotal, `Sin gastos en ${monthName(m)}.`)}
-  ${catCard('Ingresos por categoría', moveByCategory(m, 'in'), inTotal, `Sin ingresos en ${monthName(m)}.`)}
-  ${contactsCard()}
   <section class="card">
-    <div class="card-head"><h2>Movimientos</h2></div>
-    ${list.length ? `<div class="rows">${list.map(x => `<button class="row" data-act="editExpense" data-id="${x.id}">
-      ${catBadge(x.category)}
-      <span class="row-main"><b>${esc(x.note || x.contact || x.category)}</b><small>${esc((x.note && x.contact ? x.contact + ' · ' : '') + x.category)} · ${fmtDate(x.date)}</small></span>
-      <span class="amount ${isIncome(x) ? 'pos' : 'neg'}">${isIncome(x) ? '+' : '−'}${money(x.amount)}</span>
-    </button>`).join('')}</div>` : emptyState('Aún no anotas movimientos este mes.')}
-  </section>`;
+    <div class="card-head"><h2>Últimos movimientos</h2>${data.expenses.length > 6 ? '<button class="link" data-act="gTab" data-tab="movs">Ver todos</button>' : ''}</div>
+    ${recent.length ? `<div class="rows">${recent.map(moveRow).join('')}</div>` : emptyState('Aún no anotas movimientos. Empieza ajustando tu saldo de Yape.')}
+  </section>
+  ${contactsCard()}`;
+}
+
+function viewExpenses() {
+  return `<div class="seg" role="tablist">${Object.entries(G_TABS).map(([k, l]) => `<button role="tab" aria-selected="${k === gTab}" class="${k === gTab ? 'on' : ''}" data-act="gTab" data-tab="${k}">${l}</button>`).join('')}</div>
+  ${gTab === 'stats' ? gViewStats() : gTab === 'movs' ? gViewMovs() : gViewHome()}`;
+}
+
+// Ajustar el saldo no es un gasto ni un ingreso: queda anotado como ajuste y no cuenta en las estadísticas.
+function adjSheet(x) {
+  openSheet('Ajuste de saldo', `<div class="form">
+    <p class="preview">${gMoney(x)} · ${fmtDate(x.date)}</p>
+    ${x.prev != null ? `<p class="muted">El saldo pasó de ${money(x.prev)} a ${money(x.after)}.</p>` : ''}
+    ${x.note ? `<p class="muted">${esc(x.note)}</p>` : ''}
+    <p class="muted small">No cuenta en gráficas ni estadísticas. Si lo eliminas, tu saldo cambia en ese monto.</p>
+    ${deleteButton('deleteExpense', x.id, 'Eliminar ajuste')}
+  </div>`);
 }
 
 function contactsCard() {
@@ -1126,7 +1376,7 @@ function contactsCard() {
   return `<section class="card">
     <div class="card-head"><h2>Contactos frecuentes</h2></div>
     <div class="rows">${list.map((c, i) => {
-      const mv = contactMoves(c), out = sumAmount(mv.filter(x => !isIncome(x))), inn = sumAmount(mv.filter(isIncome));
+      const mv = contactMoves(c), out = sumAmount(mv.filter(isOut)), inn = sumAmount(mv.filter(isIncome));
       return `<button class="row" data-act="contact" data-id="${c.id}">
         ${avatar(c.name, COLORS[i % COLORS.length])}
         <span class="row-main"><b>${esc(c.name)}</b><small>${c.uses} ${c.uses === 1 ? 'vez' : 'veces'}${out ? ` · enviaste ${money(out)}` : ''}${inn ? ` · recibiste ${money(inn)}` : ''}</small></span>
@@ -1146,20 +1396,24 @@ function contactSheet(c) {
   </div>`);
 }
 
-// Escribes cuánto tienes ahora en Yape; los movimientos que anotes desde aquí lo suben o bajan.
+// Escribes cuánto tienes ahora en Yape: la diferencia queda como un ajuste de saldo (no cuenta en estadísticas).
 function yapeForm() {
-  openSheet('Saldo de Yape', `<form class="form">
+  openSheet('Ajustar saldo de Yape', `<form class="form">
     ${moneyField('Cuánto tienes ahora en Yape', 'balance', 'PEN', yapeBalance(), 'required')}
+    <label class="field"><span>Motivo</span><input name="note" maxlength="80" placeholder="Opcional. Ej. Cuadré con la app de Yape"></label>
+    <p class="muted small">Se anota como ajuste de saldo: cambia tu saldo pero no cuenta como gasto ni ingreso.</p>
     ${formActions()}
   </form>`, (form, el) => {
     el('balance').focus();
     form.onsubmit = e => {
       e.preventDefault();
-      const v = Number(el('balance').value);
-      if (!Number.isFinite(v) || el('balance').value === '') return toast('Escribe tu saldo');
-      data.yape.opening = round2(v - netMoves());
+      if (el('balance').value === '' || !Number.isFinite(Number(el('balance').value))) return toast('Escribe tu saldo');
+      const prev = yapeBalance(), after = round2(el('balance').value), diff = round2(after - prev);
+      if (!diff) return toast('Ya tienes ese saldo');
+      const note = el('note').value.trim() || (data.expenses.length ? '' : 'Saldo inicial');
+      data.expenses.push({ id: uid(), kind: 'adj', date: todayISO(), amount: diff, currency: 'PEN', category: 'Ajuste', note, prev, after });
       closeSheet();
-      commit('Saldo actualizado');
+      commit('Saldo ajustado');
     };
   });
 }
@@ -1207,7 +1461,7 @@ async function readYape(file) {
 }
 
 function expenseForm(x = null, kind0 = 'out', pre = {}) {
-  const date0 = x?.date || logDate(moveMonth);
+  const date0 = x?.date || todayISO();
   const kind1 = x ? (isIncome(x) ? 'in' : 'out') : kind0;
   const catOptions = (kind, sel) => kindCategories(kind).map(c => { const m = catMeta(c); return `<option value="${esc(c)}" data-icon="${m.icon}" data-color="${m.color}"${c === sel ? ' selected' : ''}>${esc(c)}</option>`; }).join('') + '<option value="__new">+ Nueva categoría…</option>';
   const chips = x ? [] : frequentContacts().slice(0, 8);
@@ -1337,7 +1591,6 @@ function expenseForm(x = null, kind0 = 'out', pre = {}) {
         if (c) { if (!x) c.uses++; c.lastKind = kind; c.lastCategory = category; }
         else data.contacts.push({ id: uid(), name: contact, uses: 1, lastKind: kind, lastCategory: category });
       }
-      moveMonth = monthKey(next.date);
       closeSheet();
       commit(x ? 'Movimiento actualizado' : kind === 'in' ? 'Ingreso anotado' : 'Gasto anotado');
     };
@@ -1623,9 +1876,25 @@ const actions = {
     closeSheet();
     commit('Contacto quitado');
   },
-  prevMoveMonth: () => { moveMonth = shiftMonth(moveMonth, -1); render(); },
-  nextMoveMonth: () => { moveMonth = shiftMonth(moveMonth, 1); render(); },
-  editExpense: d => { const x = data.expenses.find(y => y.id === d.id); if (x) expenseForm(x); },
+  gTab: d => { gTab = d.tab in G_TABS ? d.tab : 'resumen'; gf.limit = 100; render(); window.scrollTo(0, 0); },
+  gPrevMonth: () => { gf.month = shiftMonth(gf.month, -1); render(); },
+  gNextMonth: () => { gf.month = shiftMonth(gf.month, 1); render(); },
+  gSort: d => { gf.sort = { key: d.key, dir: gf.sort.key === d.key && gf.sort.dir === 'desc' ? 'asc' : 'desc' }; saveGPrefs(); render(); },
+  gCatSort: d => { gf.catSort = { key: d.key, dir: gf.catSort.key === d.key && gf.catSort.dir === 'desc' ? 'asc' : 'desc' }; saveGPrefs(); render(); },
+  gMore: () => { gf.limit += 100; render(); },
+  gToggleAdj: () => { gf.adj = !gf.adj; saveGPrefs(); render(); },
+  gCols: () => gColsSheet(),
+  gToggleCol: d => {
+    const on = gf.cols.includes(d.key);
+    if (on && gf.cols.length === 1) return toast('Deja al menos una columna');
+    gf.cols = Object.keys(G_COLS).filter(k => (k === d.key ? !on : gf.cols.includes(k)));
+    if (!G_COLS[gf.sort.key] || !gf.cols.includes(gf.sort.key)) gf.sort = { key: gf.cols[0], dir: 'desc' };
+    saveGPrefs();
+    render();
+    gColsSheet();
+  },
+  gColsReset: () => { gf.cols = ['date', 'contact', 'category', 'amount']; gf.sort = { key: 'date', dir: 'desc' }; saveGPrefs(); render(); gColsSheet(); },
+  editExpense: d => { const x = data.expenses.find(y => y.id === d.id); if (x) (isAdj(x) ? adjSheet(x) : expenseForm(x)); },
   deleteExpense: d => {
     const x = data.expenses.find(y => y.id === d.id);
     if (!x || !confirm('¿Eliminar este movimiento?')) return;
@@ -1902,6 +2171,23 @@ document.addEventListener('click', e => {
   if (!el || el.disabled || !actions[el.dataset.act]) return;
   e.preventDefault();
   actions[el.dataset.act](el.dataset, el);
+});
+document.addEventListener('change', e => {
+  const f = e.target.dataset && e.target.dataset.gf;
+  if (!f || f === 'q') return;
+  gf[f] = e.target.value;
+  gf.limit = 100;
+  render();
+});
+document.addEventListener('input', e => {
+  if (!e.target.dataset || e.target.dataset.gf !== 'q') return;
+  gf.q = e.target.value;
+  clearTimeout(gQTimer);
+  gQTimer = setTimeout(() => {
+    render();
+    const i = document.querySelector('[data-gf="q"]');
+    if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
+  }, 250);
 });
 document.addEventListener('input', onPlanInput);
 document.addEventListener('change', onPlanInput);
