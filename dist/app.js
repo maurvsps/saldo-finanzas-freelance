@@ -2,7 +2,7 @@
 
 // ── Configuración ──
 // Versión publicada: debe coincidir con version.json y con el ?v= de index.html.
-const APP_VERSION = 28;
+const APP_VERSION = 29;
 const KEY = 'saldo-v2';
 const OLD_KEY = 'saldo-freelance-v1';
 // ID de cliente OAuth (público). Se usa para guardar tus datos en tu Google Drive (carpeta oculta de la app).
@@ -871,6 +871,25 @@ function closePickers(except) {
     p.querySelector('.picker-list').hidden = true;
   });
 }
+// El menú flota sobre la pantalla (no empuja el contenido): debajo del botón o, si no cabe, encima.
+function placePopover(btn, list) {
+  const r = btn.getBoundingClientRect();
+  const kb = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--kb')) || 0;
+  const avail = (window.visualViewport ? window.visualViewport.height : window.innerHeight) - kb;
+  const below = avail - r.bottom - 10, above = r.top - 10;
+  list.style.left = r.left + 'px';
+  list.style.width = r.width + 'px';
+  list.style.maxHeight = '';
+  const want = Math.min(280, list.scrollHeight + 12);
+  if (below >= want || below >= above) {
+    list.style.top = r.bottom + 6 + 'px';
+    list.style.maxHeight = Math.max(120, Math.min(280, below)) + 'px';
+  } else {
+    const h = Math.min(want, Math.max(120, above));
+    list.style.maxHeight = h + 'px';
+    list.style.top = Math.max(8, r.top - h - 6) + 'px';
+  }
+}
 function enhanceSelects(root) {
   for (const sel of root.querySelectorAll('select:not([data-enhanced])')) {
     sel.dataset.enhanced = '1';
@@ -889,6 +908,7 @@ function enhanceSelects(root) {
       box.classList.toggle('open', open);
       if (!open) return;
       list.innerHTML = [...sel.options].map((o, i) => `<button type="button" role="option" class="picker-opt${o.selected ? ' sel' : ''}" data-i="${i}">${badge(o)}<span>${esc(o.textContent)}</span>${o.selected ? icon('check', 'picker-check') : ''}</button>`).join('');
+      placePopover(btn, list);
       list.querySelector('.sel')?.scrollIntoView({ block: 'nearest' });
     };
     list.onclick = e => {
@@ -905,6 +925,32 @@ function enhanceSelects(root) {
   }
 }
 document.addEventListener('click', e => { if (!e.target.closest('.picker')) closePickers(); });
+// Al desplazar la pantalla o girarla, el menú abierto se cierra (flota en una posición fija).
+window.addEventListener('scroll', e => { if (!e.target.closest || !e.target.closest('.picker-list')) closePickers(); }, true);
+window.addEventListener('resize', () => closePickers());
+
+// Teclado en pantalla: si Android no encoge la ventana al abrirlo, la hoja sube sobre el teclado y el campo queda a la vista.
+const kbRoot = document.documentElement;
+const isTextField = el => el && /^(INPUT|TEXTAREA)$/.test(el.tagName) && !['checkbox', 'radio', 'button', 'submit', 'file', 'hidden', 'range', 'color'].includes(el.type);
+let baseHeight = window.innerHeight;
+let kbTimer = 0;
+const setKb = px => kbRoot.style.setProperty('--kb', px + 'px');
+document.addEventListener('focusin', e => {
+  if (!isTextField(e.target) || !window.matchMedia('(pointer: coarse)').matches) return;
+  const field = e.target;
+  clearTimeout(kbTimer);
+  kbTimer = setTimeout(() => {
+    const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    const shrunk = Math.min(window.innerHeight, vh) < baseHeight - 120; // Android ya encogió la ventana: no hace falta nada más
+    setKb(shrunk ? 0 : Math.round(baseHeight * 0.42));
+    field.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, 280);
+});
+document.addEventListener('focusout', () => {
+  clearTimeout(kbTimer);
+  kbTimer = setTimeout(() => { if (!isTextField(document.activeElement)) setKb(0); }, 120);
+});
+window.addEventListener('resize', () => { if (!isTextField(document.activeElement)) baseHeight = window.innerHeight; });
 
 // ── Hojas (formularios) ──
 function openSheet(title, html, mount) {
