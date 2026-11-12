@@ -2,7 +2,7 @@
 
 // ── Configuración ──
 // Versión publicada: debe coincidir con version.json y con el ?v= de index.html.
-const APP_VERSION = 24;
+const APP_VERSION = 25;
 const KEY = 'saldo-v2';
 const OLD_KEY = 'saldo-freelance-v1';
 // ID de cliente OAuth (público). Se usa para guardar tus datos en tu Google Drive (carpeta oculta de la app).
@@ -1001,11 +1001,54 @@ function viewExpenses() {
   </section>`;
 }
 
+// ── Leer capturas de Yape (OCR en el dispositivo con Tesseract.js, cargado solo al usarlo) ──
+const TESSERACT_URL = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+const MONTHS3 = { ene: 1, feb: 2, mar: 3, abr: 4, may: 5, jun: 6, jul: 7, ago: 8, set: 9, sep: 9, oct: 10, nov: 11, dic: 12 };
+let tesseractLoading = null;
+function loadTesseract() {
+  if (window.Tesseract) return Promise.resolve();
+  tesseractLoading ||= new Promise((ok, fail) => {
+    const s = Object.assign(document.createElement('script'), { src: TESSERACT_URL, onload: ok, onerror: () => { tesseractLoading = null; fail(new Error('load')); } });
+    document.head.appendChild(s);
+  });
+  return tesseractLoading;
+}
+// Saca monto, destinatario, fecha y número de operación del texto que leyó el OCR.
+function parseYape(d) {
+  const text = d.text || '';
+  const out = { sent: /yapeaste/i.test(text), received: /te\s+yape[óo]|yape\s+recibido|recibiste/i.test(text) };
+  // El "S/" suele leerse como un dígito más pequeño: se descartan los dígitos iniciales mucho más bajos que el resto.
+  const word = arr(d.words).find(w => /^\D{0,2}\d[\d.,]*[.,]\d{2}$/.test(w.text));
+  if (word) {
+    const syms = arr(word.symbols).filter(y => /\d/.test(y.text));
+    const h = y => y.bbox.y1 - y.bbox.y0, max = Math.max(...syms.map(h), 0);
+    const digits = syms.length ? syms.filter((y, i) => !(i === 0 && h(y) < max * 0.8)).map(y => y.text).join('') : word.text.replace(/\D/g, '');
+    const v = Number(digits) / 100; // siempre trae dos decimales
+    if (v > 0) out.amount = v;
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+    const i = lines.findIndex(l => l.includes(word.text));
+    if (i >= 0 && lines[i + 1]) out.name = lines[i + 1].replace(/^[^\p{L}]+/u, '');
+  }
+  if (out.amount == null) { const m = text.match(/S\/\s*(\d+[.,]\d{2})/); if (m) out.amount = parseFloat(m[1].replace(',', '.')); }
+  const dm = text.match(/(\d{1,2})\s+([a-záéíóú]{3,})\.?\s+(\d{4})/i);
+  const mon = dm && MONTHS3[dm[2].slice(0, 3).toLowerCase()];
+  if (mon) out.date = `${dm[3]}-${pad(mon)}-${pad(+dm[1])}`;
+  const op = text.match(/operaci[oó]n\s*:?\s*(\d{5,})/i);
+  if (op) out.op = op[1];
+  return out;
+}
+async function readYape(file) {
+  await loadTesseract();
+  const { data: d } = await window.Tesseract.recognize(file, 'spa');
+  return parseYape(d);
+}
+
 function expenseForm(x = null) {
   const cur0 = x?.currency || 'PEN';
   const cat0 = x?.category || EXPENSE_CATEGORIES[0];
   const date0 = x?.date || logDate(viewMonth);
   openSheet(x ? 'Editar gasto' : 'Anotar gasto', `<form class="form">
+    ${x ? '' : `<button type="button" class="btn ghost" data-scan>${icon('upload')}Leer captura de Yape</button><input type="file" accept="image/*" data-scan-file hidden>`}
     <div class="grid2">
       ${moneyField('Monto', 'amount', cur0, x?.amount)}
       <label class="field"><span>Moneda</span><select name="currency">${currencyOptions(cur0)}</select></label>
@@ -1024,6 +1067,34 @@ function expenseForm(x = null) {
       if (isNew) el('newcat').focus();
     });
     if (!x) el('amount').focus();
+    let op = x?.op || '';
+    const scan = form.querySelector('[data-scan]'), pick = form.querySelector('[data-scan-file]');
+    if (scan) {
+      scan.onclick = () => pick.click();
+      pick.onchange = async () => {
+        const file = pick.files[0];
+        if (!file) return;
+        scan.disabled = true;
+        scan.lastChild.textContent = 'Leyendo captura…';
+        try {
+          const r = await readYape(file);
+          if (!(r.amount > 0)) throw new Error('amount');
+          if (r.received && !r.sent) toast('Ojo: parece un Yape recibido, no un gasto');
+          else if (r.op && data.expenses.some(y => y.op === r.op)) toast('Ojo: ya anotaste este Yape');
+          el('amount').value = r.amount;
+          el('currency').value = 'PEN';
+          setText(form, '[data-cur="amount"]', CURRENCIES.PEN);
+          if (r.name && !el('note').value) el('note').value = `Yape a ${r.name}`;
+          if (r.date) el('date').value = r.date;
+          op = r.op || '';
+        } catch {
+          toast('No pude leer la captura. Escribe los datos a mano.');
+        }
+        scan.disabled = false;
+        scan.lastChild.textContent = 'Leer captura de Yape';
+        pick.value = '';
+      };
+    }
     form.onsubmit = e => {
       e.preventDefault();
       const amount = round2(el('amount').value);
@@ -1036,7 +1107,7 @@ function expenseForm(x = null) {
         if (known) category = known;
         else data.customCategories.push(category);
       }
-      const next = { amount, currency: el('currency').value, category, note: el('note').value.trim(), date: el('date').value };
+      const next = { amount, currency: el('currency').value, category, note: el('note').value.trim(), date: el('date').value, ...(op ? { op } : {}) };
       if (x) Object.assign(x, next);
       else data.expenses.push({ id: uid(), ...next });
       viewMonth = monthKey(next.date);
