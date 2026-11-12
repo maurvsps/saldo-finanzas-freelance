@@ -2,7 +2,7 @@
 
 // ── Configuración ──
 // Versión publicada: debe coincidir con version.json y con el ?v= de index.html.
-const APP_VERSION = 30;
+const APP_VERSION = 31;
 const KEY = 'saldo-v2';
 const OLD_KEY = 'saldo-freelance-v1';
 // ID de cliente OAuth (público). Se usa para guardar tus datos en tu Google Drive (carpeta oculta de la app).
@@ -929,39 +929,37 @@ document.addEventListener('click', e => { if (!e.target.closest('.picker')) clos
 window.addEventListener('scroll', e => { if (!e.target.closest || !e.target.closest('.picker-list')) closePickers(); }, true);
 window.addEventListener('resize', () => closePickers());
 
-// Teclado en pantalla. Si Android encoge la ventana, no hay nada que hacer. Si no la encoge, la hoja sube sobre el teclado (--kb).
-// Se espera a que el teclado termine de salir antes de decidir, para no sumar dos correcciones.
+// Teclado en pantalla. Android no avisa cuándo se abre o se cierra (sobre todo con el gesto de atrás), así que la hoja no se mueve:
+// al tocar un campo gana espacio al final (--kb) y se sube el campo a la parte alta, donde el teclado no llega.
 const kbRoot = document.documentElement;
 const isTextField = el => el && /^(INPUT|TEXTAREA)$/.test(el.tagName) && !['checkbox', 'radio', 'button', 'submit', 'file', 'hidden', 'range', 'color', 'date', 'time', 'month', 'week', 'datetime-local'].includes(el.type);
 let baseHeight = window.innerHeight;
-let kbTimer = 0, kbSettle = 0;
+const baseH = () => Math.max(baseHeight, window.innerHeight); // por si la página cargó con la ventana aún sin tamaño
+let kbTimer = 0;
 const setKb = px => kbRoot.style.setProperty('--kb', px + 'px');
-const viewHeight = () => Math.min(window.innerHeight, window.visualViewport ? window.visualViewport.height : window.innerHeight);
-const windowShrunk = () => viewHeight() < baseHeight - 120;
-const showField = () => { const f = document.activeElement; if (isTextField(f)) f.scrollIntoView({ block: 'center', behavior: 'smooth' }); };
+const windowShrunk = () => Math.min(window.innerHeight, window.visualViewport ? window.visualViewport.height : window.innerHeight) < baseH() - 120;
+function revealField(field) {
+  if (document.activeElement !== field) return;
+  const target = window.innerHeight * 0.2; // el campo queda en el quinto superior de la pantalla
+  const delta = field.getBoundingClientRect().top - target;
+  if (delta <= 0) return;
+  const box = field.closest('.sheet');
+  if (box) box.scrollBy({ top: delta });
+  else window.scrollBy({ top: delta });
+}
 document.addEventListener('focusin', e => {
   if (!isTextField(e.target) || !window.matchMedia('(pointer: coarse)').matches) return;
+  const field = e.target;
   clearTimeout(kbTimer);
-  clearTimeout(kbSettle);
-  setKb(0);
-  // Si pasado un momento la ventana no se encogió, el teclado la tapa: se sube la hoja.
-  kbSettle = setTimeout(() => {
-    if (!isTextField(document.activeElement)) return;
-    if (!windowShrunk()) setKb(Math.round(baseHeight * 0.42));
-    showField();
-  }, 900);
+  setKb(Math.round(baseH() * 0.45));
+  kbTimer = setTimeout(() => { if (windowShrunk()) setKb(0); revealField(field); }, 350);
 });
 document.addEventListener('focusout', () => {
   clearTimeout(kbTimer);
-  kbTimer = setTimeout(() => { if (!isTextField(document.activeElement)) { clearTimeout(kbSettle); setKb(0); } }, 150);
+  kbTimer = setTimeout(() => { if (!isTextField(document.activeElement)) setKb(0); }, 200);
 });
-const onViewResize = () => {
-  if (!isTextField(document.activeElement)) { baseHeight = Math.max(window.innerHeight, viewHeight()); return; }
-  // Android encogió la ventana al salir el teclado: se quita cualquier ajuste propio.
-  if (windowShrunk()) { setKb(0); clearTimeout(kbSettle); kbSettle = setTimeout(showField, 150); }
-};
-window.addEventListener('resize', onViewResize);
-if (window.visualViewport) window.visualViewport.addEventListener('resize', onViewResize);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState !== 'visible') setKb(0); });
+window.addEventListener('resize', () => { if (!isTextField(document.activeElement)) baseHeight = window.innerHeight; });
 
 // ── Hojas (formularios) ──
 function openSheet(title, html, mount) {
@@ -974,6 +972,7 @@ function openSheet(title, html, mount) {
   if (mount && form) mount(form, n => form.elements[n]);
 }
 function closeSheet() {
+  setKb(0);
   $('sheet').hidden = true;
   $('sheetBody').innerHTML = '';
   document.body.classList.remove('locked');
