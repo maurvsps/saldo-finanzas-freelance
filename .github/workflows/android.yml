@@ -52,6 +52,7 @@ jobs:
         run: |
           npx cap add android
           node scripts/android-theme.js
+          node scripts/android-share.js
           npx @capacitor/assets generate --android
           npx cap sync android
 

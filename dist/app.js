@@ -2,7 +2,7 @@
 
 // ── Configuración ──
 // Versión publicada: debe coincidir con version.json y con el ?v= de index.html.
-const APP_VERSION = 26;
+const APP_VERSION = 27;
 const KEY = 'saldo-v2';
 const OLD_KEY = 'saldo-freelance-v1';
 // ID de cliente OAuth (público). Se usa para guardar tus datos en tu Google Drive (carpeta oculta de la app).
@@ -44,6 +44,15 @@ const STRATEGIES = {
 };
 const PLAN_MONTHS = 12;
 // Categorías de gastos (puedes añadir las tuyas al anotar un gasto).
+// Icono y color de cada categoría; las que creas tú guardan el suyo en data.catStyles.
+const CAT_META = {
+  Comida: ['utensils', '#b26a2c'], Transporte: ['bus', '#2563a8'], Vivienda: ['home', '#7b3fa0'], Servicios: ['bolt', '#946013'],
+  Salud: ['heart', '#a8445a'], Ocio: ['gamepad', '#3f7f88'], Compras: ['bag', '#c2478a'], Trabajo: ['briefcase', '#2f7a59'],
+  Impuestos: ['percent', '#646c66'], Otros: ['dots', '#8b928c'],
+  Cobro: ['banknote', '#2f7a59'], 'Yape recibido': ['phone', '#7b3fa0'], Regalo: ['gift', '#c2478a'], Reembolso: ['refresh', '#2563a8'], Venta: ['tag', '#b26a2c'],
+};
+const CAT_ICONS = ['utensils', 'coffee', 'bus', 'car', 'home', 'bolt', 'wifi', 'heart', 'gamepad', 'bag', 'briefcase', 'percent', 'gift', 'book', 'plane', 'tag', 'star', 'user', 'banknote', 'dots'];
+const CAT_COLORS = ['#2f7a59', '#2563a8', '#7b3fa0', '#c2478a', '#a8445a', '#b26a2c', '#946013', '#3f7f88', '#646c66', '#1b211e'];
 const INCOME_CATEGORIES = ['Cobro', 'Yape recibido', 'Regalo', 'Reembolso', 'Venta', 'Otros'];
 const EXPENSE_CATEGORIES = ['Comida', 'Transporte', 'Vivienda', 'Servicios', 'Salud', 'Ocio', 'Compras', 'Trabajo', 'Impuestos', 'Otros'];
 
@@ -68,6 +77,24 @@ const PATHS = {
   upload: '<path d="M12 3v12M7 8l5-5 5 5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>',
   download: '<path d="M12 15V3M7 10l5 5 5-5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>',
   receipt: '<path d="M4 2v20l3-2 2.5 2 2.5-2 2.5 2 2.5-2 3 2V2l-3 2-2.5-2-2.5 2-2.5-2L7 4Z"/><path d="M8 9h8M8 13h8"/>',
+  utensils: '<path d="M3 2v7c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2V2"/><path d="M6 2v20"/><path d="M19 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>',
+  coffee: '<path d="M10 2v2M14 2v2M6 2v2"/><path d="M6 8h11v7a4 4 0 0 1-4 4h-3a4 4 0 0 1-4-4Z"/><path d="M17 10h1a3 3 0 0 1 0 6h-1"/>',
+  bus: '<rect x="4" y="3" width="16" height="14" rx="2"/><path d="M4 11h16"/><path d="M8 21v-4M16 21v-4"/><path d="M8 14h.01M16 14h.01"/>',
+  car: '<path d="M3 13l2-6h14l2 6v4H3Z"/><path d="M7 17v2M17 17v2"/><path d="M7 13h.01M17 13h.01"/>',
+  bolt: '<path d="M13 2 3 14h9l-1 8 10-12h-9Z"/>',
+  wifi: '<path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M2 9a15 15 0 0 1 20 0"/><path d="M12 20h.01"/>',
+  heart: '<path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7Z"/>',
+  gamepad: '<path d="M6 12h4M8 10v4"/><path d="M15 13h.01M18 11h.01"/><rect x="2" y="6" width="20" height="12" rx="4"/>',
+  bag: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+  briefcase: '<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+  percent: '<path d="M19 5 5 19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/>',
+  dots: '<path d="M5 12h.01M12 12h.01M19 12h.01"/>',
+  gift: '<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/>',
+  book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V2H6.5A2.5 2.5 0 0 0 4 4.5Z"/><path d="M20 17v5H6.5a2.5 2.5 0 0 1 0-5"/>',
+  plane: '<path d="M17.8 19.2 16 11l3.5-3.5a2.1 2.1 0 0 0-3-3L13 8 4.8 6.2l-1.4 1.4 6.4 3.5-3 3-3-.5-1 1 4 2 2 4 1-1-.5-3 3-3 3.5 6.4Z"/>',
+  tag: '<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8Z"/><path d="M7 7h.01"/>',
+  star: '<path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8-6.2-3.3-6.2 3.3L8 14.2l-5-4.9 6.9-1Z"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>',
   refresh: '<path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/>',
 };
 const icon = (name, cls = '') => `<svg class="ic ${cls}" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${PATHS[name]}</svg>`;
@@ -139,6 +166,8 @@ function blank() {
     customCategories: [], // categorías de gasto creadas por ti
     incomeCategories: [], // categorías de ingreso creadas por ti
     yape: { opening: 0 }, // saldo de Yape antes de los movimientos anotados
+    catStyles: {}, // icono y color de las categorías que creas: { nombre: { icon, color } }
+    contacts: [], // contactos frecuentes: { id, name, uses, lastKind, lastCategory }
     horizon: '', // fecha de la previsión en Inicio (AAAA-MM-DD); vacía = fin de este mes
   };
 }
@@ -268,6 +297,8 @@ function normalize(raw) {
     customCategories: arr(raw.customCategories).map(String),
     incomeCategories: arr(raw.incomeCategories).map(String),
     yape: { opening: round2(raw.yape?.opening) },
+    catStyles: raw.catStyles && typeof raw.catStyles === 'object' ? raw.catStyles : {},
+    contacts: arr(raw.contacts).filter(c => c && c.name).map(c => ({ id: c.id || uid(), name: String(c.name), uses: Number(c.uses) || 0, lastKind: c.lastKind === 'in' ? 'in' : 'out', lastCategory: String(c.lastCategory || '') })),
     plan: { ...d.plan, ...(raw.plan || {}) },
     horizon: raw.horizon || d.horizon,
   };
@@ -421,6 +452,19 @@ const monthMoves = (m, kind) => data.expenses.filter(x => monthKey(x.date) === m
 // Saldo de Yape: el saldo inicial que pusiste, más ingresos, menos gastos.
 const netMoves = () => sumAmount(data.expenses.filter(isIncome)) - sumAmount(data.expenses.filter(x => !isIncome(x)));
 const yapeBalance = () => round2(data.yape.opening + netMoves());
+const catMeta = name => {
+  const s = data.catStyles[name];
+  if (s && PATHS[s.icon]) return { icon: s.icon, color: s.color || CAT_COLORS[0] };
+  const m = CAT_META[name];
+  if (m) return { icon: m[0], color: m[1] };
+  let h = 0;
+  for (const ch of String(name)) h = (h * 31 + ch.charCodeAt(0)) % CAT_COLORS.length;
+  return { icon: 'tag', color: CAT_COLORS[h] };
+};
+const catBadge = (name, small = false) => { const m = catMeta(name); return `<span class="cat-ic${small ? ' sm' : ''}" style="--c:${m.color}">${icon(m.icon)}</span>`; };
+const contactKey = s => String(s || '').trim().replace(/\s+/g, ' ').toLowerCase();
+const frequentContacts = () => [...data.contacts].sort((a, b) => b.uses - a.uses || a.name.localeCompare(b.name));
+const contactMoves = c => data.expenses.filter(x => contactKey(x.contact) === contactKey(c.name));
 // Total del mes por categoría, de mayor a menor.
 function moveByCategory(m, kind) {
   const map = new Map();
@@ -522,6 +566,7 @@ function render() {
     `<a class="nav-item${k === name ? ' active' : ''}" href="#${k}"${k === name ? ' aria-current="page"' : ''}>${icon(v.icon)}<span>${v.label}</span></a>`).join('');
   $('pageTitle').textContent = VIEWS[name].label;
   $('view').innerHTML = VIEWS[name].render();
+  enhanceSelects($('view'));
   renderSync();
 }
 
@@ -823,10 +868,54 @@ function viewSettings() {
   </section>`;
 }
 
+// ── Menús de selección propios: cada <select> se queda oculto (sigue guardando el valor) y se muestra un menú de la app ──
+function closePickers(except) {
+  document.querySelectorAll('.picker.open').forEach(p => {
+    if (p === except) return;
+    p.classList.remove('open');
+    p.querySelector('.picker-list').hidden = true;
+  });
+}
+function enhanceSelects(root) {
+  for (const sel of root.querySelectorAll('select:not([data-enhanced])')) {
+    sel.dataset.enhanced = '1';
+    sel.classList.add('select-native');
+    const box = document.createElement('div');
+    box.className = 'picker';
+    box.innerHTML = `<button type="button" class="picker-btn" aria-haspopup="listbox"><span class="picker-label"></span>${icon('chevronDown')}</button><div class="picker-list" role="listbox" hidden></div>`;
+    sel.after(box);
+    const btn = box.querySelector('.picker-btn'), label = box.querySelector('.picker-label'), list = box.querySelector('.picker-list');
+    const badge = o => (o.dataset.icon ? `<span class="cat-ic sm" style="--c:${o.dataset.color}">${icon(o.dataset.icon)}</span>` : '');
+    const sync = () => { const o = sel.selectedOptions[0]; label.innerHTML = o ? badge(o) + esc(o.textContent) : ''; };
+    btn.onclick = () => {
+      const open = list.hidden;
+      closePickers(box);
+      list.hidden = !open;
+      box.classList.toggle('open', open);
+      if (!open) return;
+      list.innerHTML = [...sel.options].map((o, i) => `<button type="button" role="option" class="picker-opt${o.selected ? ' sel' : ''}" data-i="${i}">${badge(o)}<span>${esc(o.textContent)}</span>${o.selected ? icon('check', 'picker-check') : ''}</button>`).join('');
+      list.querySelector('.sel')?.scrollIntoView({ block: 'nearest' });
+    };
+    list.onclick = e => {
+      const b = e.target.closest('[data-i]');
+      if (!b) return;
+      sel.selectedIndex = +b.dataset.i;
+      list.hidden = true;
+      box.classList.remove('open');
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+      sync();
+    };
+    sel.addEventListener('change', sync);
+    sync();
+  }
+}
+document.addEventListener('click', e => { if (!e.target.closest('.picker')) closePickers(); });
+
 // ── Hojas (formularios) ──
 function openSheet(title, html, mount) {
   $('sheetTitle').textContent = title;
   $('sheetBody').innerHTML = html;
+  enhanceSelects($('sheetBody'));
   $('sheet').hidden = false;
   document.body.classList.add('locked');
   const form = $('sheetBody').querySelector('form');
@@ -990,8 +1079,8 @@ function entryForm(c, m, e = null, fromCard = false) {
 function catCard(title, cats, total, empty) {
   return `<section class="card">
     <div class="card-head"><h2>${title}</h2></div>
-    ${cats.length ? `<div class="cat-list">${cats.map(c => `<div class="cat">
-      <span class="cat-name"><b>${esc(c.category)}</b><small>${Math.round(c.total / total * 100)}%</small></span>
+    ${cats.length ? `<div class="cat-list">${cats.map(c => `<div class="cat" style="--c:${catMeta(c.category).color}">
+      <span class="cat-name">${catBadge(c.category, true)}<b>${esc(c.category)}</b><small>${Math.round(c.total / total * 100)}%</small></span>
       <span class="cat-amount">${money(c.total)}</span>
       <span class="cat-bar"><i style="width:${Math.max(3, c.total / cats[0].total * 100)}%"></i></span>
     </div>`).join('')}</div>` : emptyState(empty)}
@@ -1020,14 +1109,41 @@ function viewExpenses() {
   </div>
   ${catCard('Gastos por categoría', moveByCategory(m, 'out'), outTotal, `Sin gastos en ${monthName(m)}.`)}
   ${catCard('Ingresos por categoría', moveByCategory(m, 'in'), inTotal, `Sin ingresos en ${monthName(m)}.`)}
+  ${contactsCard()}
   <section class="card">
     <div class="card-head"><h2>Movimientos</h2></div>
     ${list.length ? `<div class="rows">${list.map(x => `<button class="row" data-act="editExpense" data-id="${x.id}">
-      <span class="move-ic">${icon('receipt')}</span>
-      <span class="row-main"><b>${esc(x.note || x.category)}</b><small>${esc(x.category)} · ${fmtDate(x.date)}</small></span>
+      ${catBadge(x.category)}
+      <span class="row-main"><b>${esc(x.note || x.contact || x.category)}</b><small>${esc((x.note && x.contact ? x.contact + ' · ' : '') + x.category)} · ${fmtDate(x.date)}</small></span>
       <span class="amount ${isIncome(x) ? 'pos' : 'neg'}">${isIncome(x) ? '+' : '−'}${money(x.amount)}</span>
     </button>`).join('')}</div>` : emptyState('Aún no anotas movimientos este mes.')}
   </section>`;
+}
+
+function contactsCard() {
+  const list = frequentContacts().slice(0, 8);
+  if (!list.length) return '';
+  return `<section class="card">
+    <div class="card-head"><h2>Contactos frecuentes</h2></div>
+    <div class="rows">${list.map((c, i) => {
+      const mv = contactMoves(c), out = sumAmount(mv.filter(x => !isIncome(x))), inn = sumAmount(mv.filter(isIncome));
+      return `<button class="row" data-act="contact" data-id="${c.id}">
+        ${avatar(c.name, COLORS[i % COLORS.length])}
+        <span class="row-main"><b>${esc(c.name)}</b><small>${c.uses} ${c.uses === 1 ? 'vez' : 'veces'}${out ? ` · enviaste ${money(out)}` : ''}${inn ? ` · recibiste ${money(inn)}` : ''}</small></span>
+        ${icon('chevronRight', 'row-more')}
+      </button>`;
+    }).join('')}</div>
+  </section>`;
+}
+function contactSheet(c) {
+  openSheet(c.name, `<div class="form">
+    <p class="muted">${c.uses} ${c.uses === 1 ? 'vez' : 'veces'} en tus movimientos.</p>
+    <div class="btn-row">
+      <button class="btn primary" data-act="contactOut" data-id="${c.id}">${icon('plus')}Gasto</button>
+      <button class="btn primary" data-act="contactIn" data-id="${c.id}">${icon('plus')}Ingreso</button>
+    </div>
+    ${deleteButton('deleteContact', c.id, 'Quitar de frecuentes')}
+  </div>`);
 }
 
 // Escribes cuánto tienes ahora en Yape; los movimientos que anotes desde aquí lo suben o bajan.
@@ -1090,59 +1206,111 @@ async function readYape(file) {
   return parseYape(d);
 }
 
-function expenseForm(x = null, kind0 = 'out') {
+function expenseForm(x = null, kind0 = 'out', pre = {}) {
   const date0 = x?.date || logDate(moveMonth);
   const kind1 = x ? (isIncome(x) ? 'in' : 'out') : kind0;
-  const catOptions = (kind, sel) => kindCategories(kind).map(c => `<option value="${esc(c)}"${c === sel ? ' selected' : ''}>${esc(c)}</option>`).join('') + '<option value="__new">+ Nueva categoría…</option>';
+  const catOptions = (kind, sel) => kindCategories(kind).map(c => { const m = catMeta(c); return `<option value="${esc(c)}" data-icon="${m.icon}" data-color="${m.color}"${c === sel ? ' selected' : ''}>${esc(c)}</option>`; }).join('') + '<option value="__new">+ Nueva categoría…</option>';
+  const chips = x ? [] : frequentContacts().slice(0, 8);
   openSheet(x ? 'Editar movimiento' : kind1 === 'in' ? 'Anotar ingreso' : 'Anotar gasto', `<form class="form">
     ${x ? '' : `<button type="button" class="btn ghost" data-scan>${icon('upload')}Leer captura de Yape</button><input type="file" accept="image/*" data-scan-file hidden>`}
     <label class="field"><span>Tipo</span><select name="kind"><option value="out"${kind1 === 'out' ? ' selected' : ''}>Gasto</option><option value="in"${kind1 === 'in' ? ' selected' : ''}>Ingreso</option></select></label>
     ${moneyField('Monto', 'amount', 'PEN', x?.amount)}
-    <label class="field"><span>Categoría</span><select name="category">${catOptions(kind1, x?.category)}</select></label>
-    <label class="field" data-newcat hidden><span>Nombre de la categoría</span><input name="newcat" maxlength="30" placeholder="Ej. Mascotas"></label>
+    <label class="field"><span>Categoría</span><select name="category">${catOptions(kind1, x?.category ?? pre.category)}</select></label>
+    <div class="newcat" data-newcat hidden>
+      <label class="field"><span>Nombre de la categoría</span><input name="newcat" maxlength="30" placeholder="Ej. Mascotas"></label>
+      <div class="field"><span>Icono</span><div class="swatches">${CAT_ICONS.map(i => `<button type="button" class="swatch-ic" data-icon="${i}" aria-label="${i}">${icon(i)}</button>`).join('')}</div></div>
+      <div class="field"><span>Color</span><div class="swatches">${CAT_COLORS.map(c => `<button type="button" class="swatch" data-color="${c}" style="--c:${c}" aria-label="Color"></button>`).join('')}</div></div>
+    </div>
+    <label class="field"><span>Contacto</span><input name="contact" maxlength="40" autocomplete="off" value="${esc(x?.contact ?? pre.contact ?? '')}" placeholder="Opcional. A quién o de quién">
+      ${chips.length ? `<span class="chips">${chips.map(c => `<button type="button" class="chip" data-contact="${c.id}">${esc(c.name.split(' ')[0])}</button>`).join('')}</span>` : ''}
+    </label>
     <label class="field"><span>Detalle</span><input name="note" maxlength="80" value="${esc(x?.note || '')}" placeholder="Opcional. Ej. Almuerzo"></label>
     <label class="field"><span>Fecha</span><input name="date" type="date" required value="${date0}"></label>
     ${x ? deleteButton('deleteExpense', x.id) : ''}
     ${formActions(x ? 'Guardar' : 'Anotar')}
   </form>`, (form, el) => {
+    const fire = n => el(n).dispatchEvent(new Event('change', { bubbles: true }));
+    const setCat = v => { if ([...el('category').options].some(o => o.value === v)) { el('category').value = v; fire('category'); } };
+    // Al cambiar el tipo, la lista de categorías es otra.
+    let listKind = kind1;
     const setKind = k => {
-      el('kind').value = k;
-      el('category').innerHTML = catOptions(k);
-      form.querySelector('[data-newcat]').hidden = true;
+      if (el('kind').value !== k) { el('kind').value = k; fire('kind'); }
     };
-    el('kind').addEventListener('change', () => setKind(el('kind').value));
+    el('kind').addEventListener('change', () => {
+      if (listKind === el('kind').value) return;
+      listKind = el('kind').value;
+      el('category').innerHTML = catOptions(listKind);
+      fire('category');
+    });
+    // Categoría nueva: nombre, icono y color.
+    let newIcon = 'tag', newColor = CAT_COLORS[0];
+    const mark = () => {
+      form.querySelectorAll('.swatch-ic').forEach(b => b.classList.toggle('on', b.dataset.icon === newIcon));
+      form.querySelectorAll('.swatch').forEach(b => b.classList.toggle('on', b.dataset.color === newColor));
+    };
+    form.querySelector('[data-newcat]').addEventListener('click', e => {
+      const b = e.target.closest('button');
+      if (!b) return;
+      if (b.dataset.icon) newIcon = b.dataset.icon;
+      if (b.dataset.color) newColor = b.dataset.color;
+      mark();
+    });
+    mark();
     el('category').addEventListener('change', () => {
       const isNew = el('category').value === '__new';
       form.querySelector('[data-newcat]').hidden = !isNew;
       if (isNew) el('newcat').focus();
     });
+    // Contactos frecuentes: un toque rellena el contacto y su última categoría.
+    form.querySelectorAll('[data-contact]').forEach(b => {
+      b.onclick = e => {
+        e.preventDefault();
+        const c = data.contacts.find(y => y.id === b.dataset.contact);
+        if (!c) return;
+        el('contact').value = c.name;
+        if (c.lastCategory && c.lastKind === el('kind').value) setCat(c.lastCategory);
+        el('amount').focus();
+      };
+    });
+    if (pre.contact && !x) {
+      const c = data.contacts.find(y => contactKey(y.name) === contactKey(pre.contact));
+      if (c && !pre.category && c.lastKind === kind1 && c.lastCategory) setCat(c.lastCategory);
+    }
     if (!x) el('amount').focus();
     let op = x?.op || '';
     const scan = form.querySelector('[data-scan]'), pick = form.querySelector('[data-scan-file]');
+    const readFile = async file => {
+      scan.disabled = true;
+      scan.lastChild.textContent = 'Leyendo captura…';
+      try {
+        const r = await readYape(file);
+        if (!(r.amount > 0)) throw new Error('amount');
+        const received = r.received && !r.sent;
+        if (r.op && data.expenses.some(y => y.op === r.op)) toast('Ojo: ya anotaste este Yape');
+        if (received) { setKind('in'); setCat('Yape recibido'); }
+        el('amount').value = r.amount;
+        if (r.name && !el('contact').value) {
+          el('contact').value = r.name.replace(/\*+$/, '').trim();
+          const c = data.contacts.find(y => contactKey(y.name) === contactKey(el('contact').value));
+          if (c && !received && c.lastKind === 'out' && c.lastCategory) setCat(c.lastCategory);
+        }
+        if (r.date) el('date').value = r.date;
+        op = r.op || '';
+      } catch {
+        toast('No pude leer la captura. Escribe los datos a mano.');
+      }
+      scan.disabled = false;
+      scan.lastChild.textContent = 'Leer captura de Yape';
+    };
     if (scan) {
       scan.onclick = () => pick.click();
       pick.onchange = async () => {
         const file = pick.files[0];
         if (!file) return;
-        scan.disabled = true;
-        scan.lastChild.textContent = 'Leyendo captura…';
-        try {
-          const r = await readYape(file);
-          if (!(r.amount > 0)) throw new Error('amount');
-          const received = r.received && !r.sent;
-          if (r.op && data.expenses.some(y => y.op === r.op)) toast('Ojo: ya anotaste este Yape');
-          if (received) { setKind('in'); el('category').value = 'Yape recibido'; }
-          el('amount').value = r.amount;
-          if (r.name && !el('note').value) el('note').value = received ? `Yape de ${r.name}` : `Yape a ${r.name}`;
-          if (r.date) el('date').value = r.date;
-          op = r.op || '';
-        } catch {
-          toast('No pude leer la captura. Escribe los datos a mano.');
-        }
-        scan.disabled = false;
-        scan.lastChild.textContent = 'Leer captura de Yape';
+        await readFile(file);
         pick.value = '';
       };
+      if (pre.file) readFile(pre.file);
     }
     form.onsubmit = e => {
       e.preventDefault();
@@ -1155,11 +1323,20 @@ function expenseForm(x = null, kind0 = 'out') {
         if (!category) return toast('Escribe el nombre de la categoría');
         const known = kindCategories(kind).find(c => c.toLowerCase() === category.toLowerCase());
         if (known) category = known;
-        else (kind === 'in' ? data.incomeCategories : data.customCategories).push(category);
+        else {
+          (kind === 'in' ? data.incomeCategories : data.customCategories).push(category);
+          data.catStyles[category] = { icon: newIcon, color: newColor };
+        }
       }
-      const next = { kind, amount, currency: 'PEN', category, note: el('note').value.trim(), date: el('date').value, ...(op ? { op } : {}) };
-      if (x) Object.assign(x, next);
+      const contact = el('contact').value.trim().replace(/\s+/g, ' ');
+      const next = { kind, amount, currency: 'PEN', category, note: el('note').value.trim(), date: el('date').value, ...(contact ? { contact } : {}), ...(op ? { op } : {}) };
+      if (x) { delete x.contact; Object.assign(x, next); }
       else data.expenses.push({ id: uid(), ...next });
+      if (contact) {
+        const c = data.contacts.find(y => contactKey(y.name) === contactKey(contact));
+        if (c) { if (!x) c.uses++; c.lastKind = kind; c.lastCategory = category; }
+        else data.contacts.push({ id: uid(), name: contact, uses: 1, lastKind: kind, lastCategory: category });
+      }
       moveMonth = monthKey(next.date);
       closeSheet();
       commit(x ? 'Movimiento actualizado' : kind === 'in' ? 'Ingreso anotado' : 'Gasto anotado');
@@ -1436,6 +1613,16 @@ const actions = {
   newExpense: () => expenseForm(null, 'out'),
   newIncome: () => expenseForm(null, 'in'),
   adjustYape: () => yapeForm(),
+  contact: d => { const c = data.contacts.find(y => y.id === d.id); if (c) contactSheet(c); },
+  contactOut: d => { const c = data.contacts.find(y => y.id === d.id); if (c) expenseForm(null, 'out', { contact: c.name }); },
+  contactIn: d => { const c = data.contacts.find(y => y.id === d.id); if (c) expenseForm(null, 'in', { contact: c.name }); },
+  deleteContact: d => {
+    const c = data.contacts.find(y => y.id === d.id);
+    if (!c || !confirm(`¿Quitar a ${c.name} de tus contactos frecuentes? Sus movimientos se quedan.`)) return;
+    data.contacts = data.contacts.filter(y => y !== c);
+    closeSheet();
+    commit('Contacto quitado');
+  },
   prevMoveMonth: () => { moveMonth = shiftMonth(moveMonth, -1); render(); },
   nextMoveMonth: () => { moveMonth = shiftMonth(moveMonth, 1); render(); },
   editExpense: d => { const x = data.expenses.find(y => y.id === d.id); if (x) expenseForm(x); },
@@ -1736,6 +1923,27 @@ document.addEventListener('submit', e => {
 });
 window.addEventListener('hashchange', () => { closeSheet(); render(); window.scrollTo(0, 0); });
 window.addEventListener('load', initDrive);
+
+// Imagen compartida desde otra app (por ejemplo el botón Compartir de Yape). Solo la app de Android la entrega.
+async function checkShared() {
+  let dataUrl = '';
+  try { dataUrl = (window.SaldoShare && window.SaldoShare.take()) || ''; } catch {}
+  if (!dataUrl) return;
+  try {
+    const blob = await (await fetch(dataUrl)).blob();
+    const file = new File([blob], 'captura', { type: blob.type || 'image/png' });
+    if (currentView() !== 'gastos') {
+      location.hash = '#gastos';
+      await new Promise(r => setTimeout(r, 120)); // el cambio de pantalla cierra las hojas abiertas
+    }
+    expenseForm(null, 'out', { file });
+  } catch {
+    toast('No pude abrir la captura compartida');
+  }
+}
+window.saldoCheckShare = checkShared;
+window.addEventListener('load', checkShared);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkShared(); });
 render();
 
 // La app de Android se queda abierta en segundo plano y guarda la página en caché:

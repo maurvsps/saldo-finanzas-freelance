@@ -315,8 +315,41 @@ a.btn { text-decoration: none; }
 .neg { color: var(--amber, #b26a2c); }
 .cat-list { display: flex; flex-direction: column; gap: 14px; }
 .cat { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: baseline; }
-.cat-name b { font-weight: 600; margin-right: 8px; }
+.cat-name { display: flex; align-items: center; gap: 8px; }
+.cat-name b { font-weight: 600; }
 .cat-name small { color: var(--muted); font-size: 14px; }
 .cat-amount { font: 700 15px var(--display, inherit); }
 .cat-bar { grid-column: 1 / -1; height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
-.cat-bar i { display: block; height: 100%; border-radius: 999px; background: var(--green, #2f7a59); }
+.cat-bar i { display: block; height: 100%; border-radius: 999px; background: var(--c, var(--green, #2f7a59)); }
+
+/* Icono y color de categoría */
+.cat-ic { width: 42px; height: 42px; flex: none; display: grid; place-items: center; border-radius: 12px; color: var(--c, var(--muted)); background: color-mix(in srgb, var(--c, #8b928c) 14%, white); }
+.cat-ic.sm { width: 30px; height: 30px; border-radius: 9px; }
+.cat-ic.sm .ic { width: 18px; height: 18px; }
+
+/* Menús de selección propios */
+.select-native { display: none !important; }
+.picker { position: relative; }
+.picker-btn { width: 100%; min-height: 50px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); font-size: 16px; text-align: left; }
+.picker-label { min-width: 0; display: flex; align-items: center; gap: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.picker-btn > .ic { width: 18px; height: 18px; flex: none; color: var(--faint); transition: transform .15s; }
+.picker.open .picker-btn { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-soft); }
+.picker.open .picker-btn > .ic { transform: rotate(180deg); }
+.picker-list { margin-top: 6px; max-height: 260px; overflow: auto; padding: 6px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow); }
+.picker-opt { width: 100%; min-height: 46px; display: flex; align-items: center; gap: 10px; padding: 0 10px; border: 0; border-radius: 10px; background: none; font-size: 16px; text-align: left; }
+.picker-opt span:not(.cat-ic) { flex: 1; min-width: 0; }
+.picker-opt:hover, .picker-opt.sel { background: var(--green-soft); }
+.picker-check { width: 18px; height: 18px; color: var(--green); }
+
+/* Categoría nueva y contactos frecuentes */
+.newcat { display: flex; flex-direction: column; gap: 14px; padding: 14px; border-radius: var(--radius-sm); background: var(--surface-2); }
+.swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+.swatch-ic { width: 40px; height: 40px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--muted); }
+.swatch-ic .ic { width: 20px; height: 20px; }
+.swatch-ic.on { border-color: var(--green); background: var(--green-soft); color: var(--green-ink); }
+.swatch { width: 32px; height: 32px; border: 3px solid var(--surface); border-radius: 50%; background: var(--c); box-shadow: 0 0 0 1px var(--line); }
+.swatch.on { box-shadow: 0 0 0 2px var(--ink); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.chip { min-height: 36px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 14px; font-weight: 600; }
+.chip:hover { background: var(--green-soft); border-color: transparent; color: var(--green-ink); }
+.row .row-more { width: 18px; height: 18px; color: var(--faint); }
