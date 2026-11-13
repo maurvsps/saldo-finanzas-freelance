@@ -2,7 +2,7 @@
 
 // ── Configuración ──
 // Versión publicada: debe coincidir con version.json y con el ?v= de index.html.
-const APP_VERSION = 31;
+const APP_VERSION = 32;
 const KEY = 'saldo-v2';
 const OLD_KEY = 'saldo-freelance-v1';
 // ID de cliente OAuth (público). Se usa para guardar tus datos en tu Google Drive (carpeta oculta de la app).
@@ -929,13 +929,15 @@ document.addEventListener('click', e => { if (!e.target.closest('.picker')) clos
 window.addEventListener('scroll', e => { if (!e.target.closest || !e.target.closest('.picker-list')) closePickers(); }, true);
 window.addEventListener('resize', () => closePickers());
 
-// Teclado en pantalla. Android no avisa cuándo se abre o se cierra (sobre todo con el gesto de atrás), así que la hoja no se mueve:
-// al tocar un campo gana espacio al final (--kb) y se sube el campo a la parte alta, donde el teclado no llega.
+// Teclado en pantalla. La hoja no se mueve: al abrirse el teclado gana espacio al final (--kb) y se sube el campo a la parte alta;
+// al cerrarse, la pantalla vuelve a donde estaba. Si el sistema da la altura real del teclado (VirtualKeyboard API), se usa y avisa
+// también al cerrarlo con el gesto de atrás; si no, se estima y se vuelve al soltar el campo.
 const kbRoot = document.documentElement;
 const isTextField = el => el && /^(INPUT|TEXTAREA)$/.test(el.tagName) && !['checkbox', 'radio', 'button', 'submit', 'file', 'hidden', 'range', 'color', 'date', 'time', 'month', 'week', 'datetime-local'].includes(el.type);
 let baseHeight = window.innerHeight;
 const baseH = () => Math.max(baseHeight, window.innerHeight); // por si la página cargó con la ventana aún sin tamaño
 let kbTimer = 0;
+let savedScroll = null; // dónde estaba la pantalla antes de subir el campo
 const setKb = px => kbRoot.style.setProperty('--kb', px + 'px');
 const windowShrunk = () => Math.min(window.innerHeight, window.visualViewport ? window.visualViewport.height : window.innerHeight) < baseH() - 120;
 function revealField(field) {
@@ -947,19 +949,44 @@ function revealField(field) {
   if (box) box.scrollBy({ top: delta });
   else window.scrollBy({ top: delta });
 }
+// Teclado cerrado: se quita el espacio extra y la pantalla vuelve a donde estaba.
+function closeKeyboard() {
+  setKb(0);
+  const sv = savedScroll;
+  savedScroll = null;
+  if (!sv) return;
+  if (sv.box && sv.box.isConnected) sv.box.scrollTop = sv.top;
+  else if (!sv.box) window.scrollTo(0, sv.top);
+}
 document.addEventListener('focusin', e => {
   if (!isTextField(e.target) || !window.matchMedia('(pointer: coarse)').matches) return;
   const field = e.target;
   clearTimeout(kbTimer);
-  setKb(Math.round(baseH() * 0.45));
+  if (!savedScroll) { const box = field.closest('.sheet'); savedScroll = { box, top: box ? box.scrollTop : window.scrollY }; }
+  if (!kbRoot.style.getPropertyValue('--kb') || kbRoot.style.getPropertyValue('--kb') === '0px') setKb(Math.round(baseH() * 0.45));
   kbTimer = setTimeout(() => { if (windowShrunk()) setKb(0); revealField(field); }, 350);
 });
 document.addEventListener('focusout', () => {
   clearTimeout(kbTimer);
-  kbTimer = setTimeout(() => { if (!isTextField(document.activeElement)) setKb(0); }, 200);
+  kbTimer = setTimeout(() => { if (!isTextField(document.activeElement)) closeKeyboard(); }, 200);
 });
-document.addEventListener('visibilitychange', () => { if (document.visibilityState !== 'visible') setKb(0); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState !== 'visible') closeKeyboard(); });
 window.addEventListener('resize', () => { if (!isTextField(document.activeElement)) baseHeight = window.innerHeight; });
+if (navigator.virtualKeyboard) {
+  const vk = navigator.virtualKeyboard;
+  try { vk.overlaysContent = true; } catch {}
+  vk.addEventListener('geometrychange', () => {
+    const h = Math.round(vk.boundingRect.height);
+    if (h > 0) {
+      clearTimeout(kbTimer);
+      setKb(h);
+      kbTimer = setTimeout(() => revealField(document.activeElement), 120);
+    } else if (savedScroll) {
+      clearTimeout(kbTimer);
+      closeKeyboard();
+    }
+  });
+}
 
 // ── Hojas (formularios) ──
 function openSheet(title, html, mount) {
@@ -973,6 +1000,7 @@ function openSheet(title, html, mount) {
 }
 function closeSheet() {
   setKb(0);
+  savedScroll = null;
   $('sheet').hidden = true;
   $('sheetBody').innerHTML = '';
   document.body.classList.remove('locked');
