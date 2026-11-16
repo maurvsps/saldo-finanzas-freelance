@@ -2,7 +2,7 @@
 
 // ── Configuración ──
 // Versión publicada: debe coincidir con version.json y con el ?v= de index.html.
-const APP_VERSION = 32;
+const APP_VERSION = 34;
 const KEY = 'saldo-v2';
 const OLD_KEY = 'saldo-freelance-v1';
 // ID de cliente OAuth (público). Se usa para guardar tus datos en tu Google Drive (carpeta oculta de la app).
@@ -796,7 +796,7 @@ function viewHome() {
       </button>`).join('')}
     </div>
     <div class="btn-row hero-actions">
-      <button class="btn ghost" data-act="newExpenseHome">${icon('receipt')}Anotar gasto</button>
+      <button class="btn ghost" data-act="newExpenseHome">${icon('receipt')}Gasto</button>
       <button class="btn primary" data-act="newWithdrawal">${icon('banknote')}Retiré</button>
     </div>
   </section>
@@ -874,7 +874,7 @@ function goalsCard(m) {
   return `<section class="card goals">
     <div class="card-head"><h2>Metas de ${monthName(m)}</h2><button class="btn-sm ghost" data-act="goals">${icon('edit')}Editar</button></div>
     ${g.income > 0 ? `<div class="goal-ring${reached ? ' reached' : ''}">
-      <svg viewBox="0 0 110 110" class="ring" aria-hidden="true">
+      <svg viewBox="0 0 110 110" class="ring" aria-hidden="true"><defs><linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c6f53b"/><stop offset="1" stop-color="#2fe3b4"/></linearGradient></defs>
         <circle cx="55" cy="55" r="${R}" class="ring-bg"/>
         <circle cx="55" cy="55" r="${R}" class="ring-fg" stroke-dasharray="${(pct * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 55 55)"/>
       </svg>
@@ -951,7 +951,7 @@ function forecastBlock() {
   const until = horizonDate(data.horizon), f = forecast(until);
   return `<div class="forecast">
     <div class="fc-box">
-      <p class="label">Hoy tienes</p>
+      <p class="label">Tu dinero hoy</p>
       <p class="hero-amount">${money(f.now)}</p>
     </div>
     <div class="fc-box future">
@@ -1135,6 +1135,14 @@ function viewSettings() {
         <span class="amount">${money(w.balance, w.currency)}</span>
       </button>`).join('')}
     </div>
+    <label class="field link-field"><span>${icon('link')}Billetera de gastos</span>
+      <select id="spendWalletSel">${data.wallets.filter(w => w.currency === 'PEN').map(w => `<option value="${w.id}"${isLinked(w) ? ' selected' : ''}>${esc(w.name)}</option>`).join('')}<option value=""${spendWallet() ? '' : ' selected'}>Ninguna (Gastos va aparte)</option></select>
+      <small class="field-hint">Su saldo lo calculan tus gastos e ingresos: no lo escribes dos veces. Solo billeteras en soles.</small>
+    </label>
+  </section>
+  <section class="card">
+    <div class="card-head"><h2>${icon('target')}Metas</h2><button class="btn-sm ghost" data-act="goals">${icon('edit')}Editar</button></div>
+    <p class="muted small">Ingresos al mes: <b class="ink">${data.goals.income ? money(data.goals.income) : 'sin meta'}</b> · Presupuesto de gastos: <b class="ink">${data.goals.budget ? money(data.goals.budget) : 'sin presupuesto'}</b></p>
   </section>
   <section class="card">
     <div class="card-head"><h2>Tipo de cambio</h2></div>
@@ -1476,6 +1484,7 @@ function entryForm(c, m, e = null, fromCard = false) {
       if (fromCard) closeSheet();
       else entriesSheet(c, month);
       toast(e ? 'Anotación actualizada' : 'Anotado');
+      if (!e) xpFloat(XP.entry * next.qty);
     };
   });
 }
@@ -1587,7 +1596,7 @@ function gTimeChart(list) {
   const W = 640, H = 210, padB = 24, padT = 16, n = items.length, slot = W / n;
   const bw = Math.max(2, Math.min(26, (slot * 0.72) / series.length));
   const step = Math.ceil(n / 9);
-  const col = { in: 'var(--green)', out: 'var(--red)' };
+  const col = { in: 'var(--lime)', out: 'var(--red)' };
   const bars = items.map((b, i) => series.map((s, j) => {
     const h = (b[s] / max) * (H - padB - padT);
     const x = slot * i + (slot - bw * series.length) / 2 + j * bw;
@@ -1727,7 +1736,7 @@ function moveRow(x) {
   if (isAdj(x)) {
     return `<button class="row" data-act="editExpense" data-id="${x.id}">
       <span class="cat-ic" style="--c:#646c66">${icon('refresh')}</span>
-      <span class="row-main"><b>Ajuste de saldo</b><small>${esc(x.note || 'No cuenta en estadísticas')} · ${fmtDate(x.date)}</small></span>
+      <span class="row-main"><b>${esc(x.note || 'Ajuste de saldo')}</b><small>Ajuste · no cuenta en estadísticas · ${fmtDate(x.date)}</small></span>
       <span class="amount muted">${gMoney(x)}</span>
     </button>`;
   }
@@ -2010,7 +2019,7 @@ function expenseForm(x = null, kind0 = 'out', pre = {}) {
         else data.contacts.push({ id: uid(), name: contact, uses: 1, lastKind: kind, lastCategory: category });
       }
       closeSheet();
-      commit(x ? 'Movimiento actualizado' : kind === 'in' ? 'Ingreso anotado' : 'Gasto anotado');
+      commit(x ? 'Movimiento actualizado' : kind === 'in' ? 'Ingreso anotado' : 'Gasto anotado', x ? 0 : XP.move);
     };
   });
 }
@@ -2113,7 +2122,7 @@ function withdrawalDetail(x) {
 
 function updateBalancesForm() {
   openSheet('Actualizar saldos', `<form class="form">
-    ${data.wallets.map(w => moneyField(esc(w.name), `w_${w.id}`, w.currency, w.balance, '', w.updated ? `Actualizado ${relDate(w.updated)}` : '')).join('')}
+    ${data.wallets.map(w => moneyField(esc(w.name), `w_${w.id}`, w.currency, w.balance, '', isLinked(w) ? 'Billetera de gastos: si lo cambias, la diferencia se anota como ajuste.' : w.updated ? `Actualizado ${relDate(w.updated)}` : '')).join('')}
     ${formActions()}
   </form>`, (form, el) => {
     const first = el(`w_${data.wallets[0].id}`);
@@ -2231,15 +2240,149 @@ function productForm(c, p = null) {
   });
 }
 
+// ── Metas ──
+function goalsForm() {
+  openSheet('Tus metas del mes', `<form class="form">
+    ${moneyField('Quiero ganar al mes', 'income', 'PEN', data.goals.income || '', 'min="0"', 'Lo anotado de todos tus clientes, en soles. Déjalo vacío si no quieres esta meta.')}
+    ${moneyField('Quiero gastar como máximo', 'budget', 'PEN', data.goals.budget || '', 'min="0"', 'Tus gastos del mes en la sección Gastos. Vacío: sin presupuesto.')}
+    ${formActions()}
+  </form>`, (form, el) => {
+    el('income').focus();
+    form.onsubmit = e => {
+      e.preventDefault();
+      data.goals = { income: Math.max(0, round2(el('income').value)), budget: Math.max(0, round2(el('budget').value)) };
+      closeSheet();
+      commit('Metas guardadas');
+    };
+  });
+}
+
+// ── Recompensas: XP flotante, logros y subidas de nivel ──
+let lastTap = { x: innerWidth / 2, y: innerHeight / 2 };
+document.addEventListener('pointerdown', e => { lastTap = { x: e.clientX, y: e.clientY }; }, true);
+const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function xpFloat(n) {
+  const el = document.createElement('div');
+  el.className = 'xp-float';
+  el.innerHTML = `${icon('zap')}+${n} XP`;
+  el.style.left = Math.min(innerWidth - 60, Math.max(60, lastTap.x)) + 'px';
+  el.style.top = Math.max(70, lastTap.y - 10) + 'px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1200);
+  const chip = $('lvlChip');
+  chip.classList.remove('pulse');
+  void chip.offsetWidth;
+  chip.classList.add('pulse');
+}
+function confetti() {
+  if (reducedMotion()) return;
+  const cv = document.createElement('canvas');
+  cv.className = 'confetti';
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
+  document.body.appendChild(cv);
+  const ctx = cv.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const cols = ['#2f7a59', '#6d4aff', '#f2b705', '#e8590c', '#2563a8', '#c2478a'];
+  const ps = Array.from({ length: 140 }, () => ({
+    x: innerWidth / 2 + (Math.random() - 0.5) * 120, y: innerHeight * 0.38,
+    vx: (Math.random() - 0.5) * 14, vy: -Math.random() * 14 - 4, r: Math.random() * 6 + 4,
+    rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.4, c: cols[Math.floor(Math.random() * cols.length)],
+  }));
+  const t0 = performance.now();
+  const frame = t => {
+    const k = (t - t0) / 1000;
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    for (const p of ps) {
+      p.vy += 0.42; p.vx *= 0.99; p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.globalAlpha = Math.max(0, 1 - Math.max(0, k - 1.4));
+      ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2);
+      ctx.restore();
+    }
+    if (k < 2.6) requestAnimationFrame(frame); else cv.remove();
+  };
+  requestAnimationFrame(frame);
+}
+// Ventana de celebración. Si llegan varias, se muestran una tras otra.
+const celebQueue = [];
+function celebrate(item) {
+  celebQueue.push(item);
+  if (celebQueue.length === 1) showCelebration();
+}
+function showCelebration() {
+  const it = celebQueue[0];
+  if (!it) return;
+  const box = $('celebrate');
+  box.innerHTML = `<div class="celeb-card" role="dialog" aria-modal="true" aria-labelledby="celebTitle">
+    <span class="celeb-kicker">${esc(it.kicker)}</span>
+    <span class="celeb-ic ${it.kind}">${it.badge || icon(it.icon)}</span>
+    <h2 id="celebTitle">${esc(it.title)}</h2>
+    <p>${esc(it.text)}</p>
+    ${it.xp ? `<span class="xp-pill big">+${it.xp} XP</span>` : ''}
+    <button class="btn primary block" data-act="closeCelebrate">${esc(it.button || '¡Genial!')}</button>
+  </div>`;
+  box.hidden = false;
+  confetti();
+  if (navigator.vibrate) try { navigator.vibrate([20, 40, 30]); } catch {}
+  box.querySelector('button').focus();
+}
+function closeCelebrate() {
+  celebQueue.shift();
+  $('celebrate').hidden = true;
+  if (celebQueue.length) setTimeout(showCelebration, 200);
+}
+// Compara lo desbloqueado con lo ya celebrado. La primera vez solo guarda el estado y presenta el sistema.
+function checkRewards() {
+  if (!G) return;
+  const g = data.game, ids = G.unlocked.map(a => a.id);
+  if (g.seen === null) {
+    g.seen = ids;
+    g.level = G.level;
+    save();
+  }
+  if (!g.intro) {
+    g.intro = true;
+    save();
+    celebrate({
+      kind: 'intro', icon: 'sparkles', kicker: 'Nuevo en Saldo', title: `Eres nivel ${G.level}: ${G.title}`,
+      text: `Cada entrega, cobro y gasto que anotas te da XP. Anota algo cada día para mantener tu racha, cumple las misiones y desbloquea logros. Ya tienes ${ids.length} de ${ACHIEVEMENTS.length}.`,
+      button: 'A jugar',
+    });
+    return;
+  }
+  const fresh = G.unlocked.filter(a => !g.seen.includes(a.id));
+  const up = G.level > g.level;
+  if (!fresh.length && !up) return;
+  g.seen = [...new Set([...g.seen, ...ids])];
+  g.level = Math.max(g.level, G.level); // si bajas de nivel (borraste cosas), no se celebra al volver a subir lo mismo
+  save();
+  for (const a of fresh) celebrate({ kind: 'ach', icon: a.icon, kicker: 'Logro desbloqueado', title: a.name, text: a.desc, xp: XP.achievement });
+  if (up) celebrate({ kind: 'level', badge: `<b>${G.level}</b>`, kicker: '¡Subiste de nivel!', title: `Nivel ${G.level} · ${G.title}`, text: nextTitle(G.level) ? `Siguiente rango: «${nextTitle(G.level)[1]}» en el nivel ${nextTitle(G.level)[0]}.` : 'Llegaste al rango más alto.' });
+}
+
 // ── Acciones ──
 function findEntry(id) { return data.entries.find(e => e.id === id); }
 const actions = {
   closeSheet,
+  closeCelebrate,
+  goals: () => goalsForm(),
+  goClients: () => { location.hash = '#clientes'; },
+  newExpenseHome: () => expenseForm(null, 'out'),
+  pickLink: d => {
+    const c = data.linkConflict;
+    if (!c) return;
+    data.linkConflict = null;
+    const w = spendWallet();
+    if (w && d.v === 'wallet') setBalance(w, c.wallet, 'Saldo unificado con Inicio');
+    commit(`Listo: un solo saldo de ${w ? w.name : 'Yape'}`);
+  },
   log: d => {
     const c = client(d.client), p = product(c, d.id);
     if (!p) return;
     data.entries.push({ id: uid(), clientId: c.id, productId: p.id, name: p.name, price: p.price, qty: 1, date: logDate(d.month) });
-    commit(`${p.name}: ${productCount(c, p, d.month)} en ${monthName(d.month)}`);
+    if (navigator.vibrate) try { navigator.vibrate(12); } catch {}
+    commit(`${p.name}: ${productCount(c, p, d.month)} en ${monthName(d.month)}`, XP.entry);
   },
   unlog: d => {
     const c = client(d.client), p = product(c, d.id);
@@ -2348,6 +2491,7 @@ const actions = {
     const w = wallet(d.id);
     if (!w || data.wallets.length < 2 || !confirm(`¿Eliminar la billetera ${w.name}?`)) return;
     data.wallets = data.wallets.filter(x => x !== w);
+    if (data.spendWallet === w.id) data.spendWallet = '';
     for (const c of data.clients) if (c.wallet === w.id) c.wallet = data.wallets[0].id;
     closeSheet();
     commit('Billetera eliminada');
@@ -2586,10 +2730,16 @@ function initDrive() {
 // ── Inicio ──
 $('sheetClose').innerHTML = icon('x');
 $('sheetClose').onclick = closeSheet;
+$('gearBtn').innerHTML = icon('settings');
+$('celebrate').addEventListener('click', e => { if (e.target.id === 'celebrate') closeCelebrate(); });
 $('syncChip').onclick = () => { location.hash = '#ajustes'; };
 $('sheet').addEventListener('click', e => { if (e.target.id === 'sheet') closeSheet(); });
 $('importFile').onchange = e => { importFile(e.target.files?.[0]); e.target.value = ''; };
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('sheet').hidden) closeSheet(); });
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (!$('celebrate').hidden) closeCelebrate();
+  else if (!$('sheet').hidden) closeSheet();
+});
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
   if (!el || el.disabled || !actions[el.dataset.act]) return;
@@ -2615,6 +2765,18 @@ document.addEventListener('input', e => {
 });
 document.addEventListener('input', onPlanInput);
 document.addEventListener('change', onPlanInput);
+// Elegir la billetera unida a Gastos: su saldo actual se conserva (la diferencia queda como ajuste).
+document.addEventListener('change', e => {
+  if (e.target.id !== 'spendWalletSel') return;
+  const w = wallet(e.target.value);
+  if (w) {
+    const diff = round2(w.balance - yapeBalance());
+    if (diff) data.expenses.push({ id: uid(), kind: 'adj', date: todayISO(), amount: diff, currency: 'PEN', category: 'Ajuste', note: `${w.name} unida a Gastos`, prev: yapeBalance(), after: round2(w.balance) });
+  }
+  data.spendWallet = w ? w.id : '';
+  data.linkConflict = null;
+  commit(w ? `${w.name} ahora es tu billetera de gastos` : 'Gastos ya no está unido a una billetera');
+});
 document.addEventListener('change', e => {
   if (e.target.id === 'horizonDate' && e.target.value > todayISO()) {
     data.horizon = e.target.value;

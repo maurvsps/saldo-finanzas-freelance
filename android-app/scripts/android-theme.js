@@ -1,9 +1,9 @@
 // Ajusta el tema de Android que genera Capacitor: barras del sistema del color
-// de la app con íconos oscuros, también cuando el teléfono está en modo oscuro.
+// de la app con íconos claros (la app es oscura).
 const fs = require('fs');
 const path = require('path');
 
-const BG = '#f5f5f0';
+const BG = '#06110b';
 const file = path.join(__dirname, '..', 'android', 'app', 'src', 'main', 'res', 'values', 'styles.xml');
 
 let xml = fs.readFileSync(file, 'utf8');
@@ -13,13 +13,13 @@ const items = `
         <item name="android:windowBackground">@color/saldoBackground</item>
         <item name="android:statusBarColor">@color/saldoBackground</item>
         <item name="android:navigationBarColor">@color/saldoBackground</item>
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>`;
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>`;
 
 const before = xml;
 xml = xml.replace(
   /<style name="AppTheme\.NoActionBar" parent="[^"]*">([\s\S]*?)<\/style>/,
-  (_, body) => `<style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">${body.trimEnd()}${items}\n    </style>`
+  (_, body) => `<style name="AppTheme.NoActionBar" parent="Theme.AppCompat.NoActionBar">${body.trimEnd()}${items}\n    </style>`
 );
 if (xml === before) throw new Error('No se encontró el estilo AppTheme.NoActionBar en ' + file);
 fs.writeFileSync(file, xml);
