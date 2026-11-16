@@ -2,7 +2,7 @@
 
 // ── Configuración ──
 // Versión publicada: debe coincidir con version.json y con el ?v= de index.html.
-const APP_VERSION = 34;
+const APP_VERSION = 35;
 const KEY = 'saldo-v2';
 const OLD_KEY = 'saldo-freelance-v1';
 // ID de cliente OAuth (público). Se usa para guardar tus datos en tu Google Drive (carpeta oculta de la app).
@@ -715,8 +715,11 @@ function render() {
   syncLinked();
   G = gameState();
   const name = currentView();
-  $('nav').innerHTML = Object.entries(VIEWS).map(([k, v]) =>
-    `<a class="nav-item${k === name ? ' active' : ''}${v.desk ? ' desk' : ''}" href="#${k}"${k === name ? ' aria-current="page"' : ''}>${icon(v.icon)}<span>${v.label}</span></a>`).join('');
+  if ($('nav').dataset.view !== name) {
+    $('nav').dataset.view = name;
+    $('nav').innerHTML = Object.entries(VIEWS).map(([k, v]) =>
+      `<a class="nav-item${k === name ? ' active' : ''}${v.desk ? ' desk' : ''}" href="#${k}"${k === name ? ' aria-current="page"' : ''}>${icon(v.icon)}<span>${v.label}</span></a>`).join('');
+  }
   $('pageTitle').textContent = VIEWS[name].label;
   $('view').innerHTML = VIEWS[name].render();
   $('view').classList.forEach(c => { if (c.startsWith('view-')) $('view').classList.remove(c); });
