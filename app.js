@@ -751,11 +751,13 @@ function animateCounts(root) {
     el.classList.add('counting');
     const step = t => {
       const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 4);
-      el.innerHTML = moneyParts(from + (to - from) * e);
+      el.innerHTML = moneyParts(k < 1 ? from + (to - from) * e : to);
       if (k < 1 && el.isConnected) requestAnimationFrame(step);
       else el.classList.remove('counting');
     };
     requestAnimationFrame(step);
+    // Si el navegador pausa la animación (pestaña en segundo plano), el número final queda igual de exacto.
+    setTimeout(() => { if (el.isConnected) { el.innerHTML = moneyParts(to); el.classList.remove('counting'); } }, dur + 80);
   });
 }
 // Entrada escalonada solo al cambiar de pantalla (no en cada toque).
@@ -1652,7 +1654,8 @@ function gTimeChart(list) {
   const { mode, items, label, title } = gBuckets(list);
   const series = gf.type === 'out' ? ['out'] : gf.type === 'in' ? ['in'] : ['in', 'out'];
   const max = Math.max(1, ...items.flatMap(b => series.map(s => b[s])));
-  const W = 640, H = 220, padB = 26, padT = 34, padX = 8, n = items.length;
+  // Se dibuja al ancho real de la tarjeta: así el texto mide lo mismo en celular y en escritorio.
+  const W = Math.round(Math.max(280, Math.min(780, ($('view').clientWidth || 640) - 72))), H = 200, padB = 26, padT = 34, padX = 8, n = items.length;
   const x = i => padX + (n === 1 ? (W - 2 * padX) / 2 : (i * (W - 2 * padX)) / (n - 1));
   const y = v => H - padB - (v / max) * (H - padB - padT);
   const base = H - padB;
