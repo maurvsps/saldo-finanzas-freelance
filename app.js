@@ -16,7 +16,7 @@ const CURRENCIES = { PEN: 'S/', USD: '$', EUR: '€', GBP: '£' };
 const CURRENCY_NAMES = { PEN: 'Soles (PEN)', USD: 'Dólares (USD)', EUR: 'Euros (EUR)', GBP: 'Libras (GBP)' };
 // Monedas en las que te puede pagar un cliente.
 const CLIENT_CURRENCIES = ['USD', 'EUR', 'GBP', 'PEN'];
-const COLORS = ['#2f7a59', '#7b3fa0', '#2563a8', '#b26a2c', '#3f7f88', '#a8445a'];
+const COLORS = ['#6be38f', '#b48cff', '#5fa8ff', '#ffa24c', '#3fd6c6', '#ff7a95'];
 const OTHERS = 'Otros trabajos';
 // Cada cuánto haces un producto: solo se usa para estimar lo que falta del mes.
 // Para estimar: cuántas veces haces un producto por semana o al mes (0 = a pedido).
@@ -46,13 +46,16 @@ const PLAN_MONTHS = 12;
 // Categorías de gastos (puedes añadir las tuyas al anotar un gasto).
 // Icono y color de cada categoría; las que creas tú guardan el suyo en data.catStyles.
 const CAT_META = {
-  Comida: ['utensils', '#b26a2c'], Transporte: ['bus', '#2563a8'], Vivienda: ['home', '#7b3fa0'], Servicios: ['bolt', '#946013'],
-  Salud: ['heart', '#a8445a'], Ocio: ['gamepad', '#3f7f88'], Compras: ['bag', '#c2478a'], Trabajo: ['briefcase', '#2f7a59'],
-  Impuestos: ['percent', '#646c66'], Otros: ['dots', '#8b928c'],
-  Cobro: ['banknote', '#2f7a59'], 'Yape recibido': ['phone', '#7b3fa0'], Regalo: ['gift', '#c2478a'], Reembolso: ['refresh', '#2563a8'], Venta: ['tag', '#b26a2c'],
+  Comida: ['utensils', '#ffa24c'], Transporte: ['bus', '#5fa8ff'], Vivienda: ['home', '#b48cff'], Servicios: ['bolt', '#f4cb4f'],
+  Salud: ['heart', '#ff7a95'], Ocio: ['gamepad', '#3fd6c6'], Compras: ['bag', '#f472d0'], Trabajo: ['briefcase', '#6be38f'],
+  Impuestos: ['percent', '#9fb5a8'], Otros: ['dots', '#7d9486'],
+  Cobro: ['banknote', '#6be38f'], 'Yape recibido': ['phone', '#b48cff'], Regalo: ['gift', '#f472d0'], Reembolso: ['refresh', '#5fa8ff'], Venta: ['tag', '#ffa24c'],
 };
 const CAT_ICONS = ['utensils', 'coffee', 'bus', 'car', 'home', 'bolt', 'wifi', 'heart', 'gamepad', 'bag', 'briefcase', 'percent', 'gift', 'book', 'plane', 'tag', 'star', 'user', 'banknote', 'dots'];
-const CAT_COLORS = ['#2f7a59', '#2563a8', '#7b3fa0', '#c2478a', '#a8445a', '#b26a2c', '#946013', '#3f7f88', '#646c66', '#1b211e'];
+const CAT_COLORS = ['#6be38f', '#5fa8ff', '#b48cff', '#f472d0', '#ff7a95', '#ffa24c', '#f4cb4f', '#3fd6c6', '#9fb5a8', '#c6f53b'];
+// Colores de categorías creadas antes del tema oscuro → su versión clara (mismo tono).
+const OLD_CAT_COLORS = ['#2f7a59', '#2563a8', '#7b3fa0', '#c2478a', '#a8445a', '#b26a2c', '#946013', '#3f7f88', '#646c66', '#1b211e'];
+const liveColor = c => (OLD_CAT_COLORS.includes(c) ? CAT_COLORS[OLD_CAT_COLORS.indexOf(c)] : c);
 const INCOME_CATEGORIES = ['Cobro', 'Yape recibido', 'Regalo', 'Reembolso', 'Venta', 'Otros'];
 const EXPENSE_CATEGORIES = ['Comida', 'Transporte', 'Vivienda', 'Servicios', 'Salud', 'Ocio', 'Compras', 'Trabajo', 'Impuestos', 'Otros'];
 
@@ -522,7 +525,7 @@ const netMoves = () => sumAmount(data.expenses.filter(isIncome)) - sumAmount(dat
 const yapeBalance = () => round2(data.yape.opening + netMoves());
 const catMeta = name => {
   const s = data.catStyles[name];
-  if (s && PATHS[s.icon]) return { icon: s.icon, color: s.color || CAT_COLORS[0] };
+  if (s && PATHS[s.icon]) return { icon: s.icon, color: liveColor(s.color) || CAT_COLORS[0] };
   const m = CAT_META[name];
   if (m) return { icon: m[0], color: m[1] };
   let h = 0;
@@ -716,11 +719,59 @@ function render() {
     `<a class="nav-item${k === name ? ' active' : ''}${v.desk ? ' desk' : ''}" href="#${k}"${k === name ? ' aria-current="page"' : ''}>${icon(v.icon)}<span>${v.label}</span></a>`).join('');
   $('pageTitle').textContent = VIEWS[name].label;
   $('view').innerHTML = VIEWS[name].render();
-  $('view').className = `view-${name}`;
+  $('view').classList.forEach(c => { if (c.startsWith('view-')) $('view').classList.remove(c); });
+  $('view').classList.add(`view-${name}`);
+  enterScreen(name === 'gastos' ? `${name}:${gTab}` : name);
+  animateCounts($('view'));
   enhanceSelects($('view'));
   renderSync();
   renderLevelChip();
   setTimeout(checkRewards, 60);
+}
+
+// ── Animaciones ──
+// Montos grandes: los céntimos van más pequeños y el número cuenta desde su valor anterior.
+function moneyParts(n) {
+  const s = money(n), i = s.lastIndexOf('.');
+  return i > 0 ? `${s.slice(0, i)}<span class="dec">${s.slice(i)}</span>` : s;
+}
+const countNum = (key, value) => `<span class="num-anim" data-key="${key}" data-to="${round2(value)}">${moneyParts(value)}</span>`;
+const lastCounts = {};
+function animateCounts(root) {
+  if (reducedMotion()) return;
+  root.querySelectorAll('.num-anim').forEach(el => {
+    const key = el.dataset.key, to = Number(el.dataset.to);
+    const from = key in lastCounts ? lastCounts[key] : 0;
+    lastCounts[key] = to;
+    if (Math.abs(to - from) < 0.005) return;
+    const t0 = performance.now(), dur = 900;
+    el.classList.add('counting');
+    const step = t => {
+      const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 4);
+      el.innerHTML = moneyParts(from + (to - from) * e);
+      if (k < 1 && el.isConnected) requestAnimationFrame(step);
+      else el.classList.remove('counting');
+    };
+    requestAnimationFrame(step);
+  });
+}
+// Entrada escalonada solo al cambiar de pantalla (no en cada toque).
+let lastScreen = '';
+function enterScreen(key) {
+  const v = $('view');
+  if (key === lastScreen || reducedMotion()) { lastScreen = key; return; }
+  lastScreen = key;
+  v.classList.remove('enter');
+  void v.offsetWidth;
+  v.classList.add('enter');
+  clearTimeout(enterScreen.t);
+  enterScreen.t = setTimeout(() => v.classList.remove('enter'), 1400);
+}
+// El número del contador "salta" al anotar o quitar.
+function bumpCount(id, up = true) {
+  const el = document.querySelector(`.counter [data-id="${id}"]`)?.closest('.counter')?.querySelector('.count');
+  if (!el) return;
+  el.classList.add(up ? 'bump' : 'bump-down');
 }
 
 // Chip de nivel y racha en la barra superior: siempre a la vista.
@@ -786,13 +837,12 @@ function viewHome() {
   </section>
   <section class="card">
     <div class="card-head"><h2>Tus billeteras</h2><button class="btn-sm ghost" data-act="updateBalances">${icon('refresh')}Actualizar</button></div>
-    <p class="muted small">Tu dinero de hoy es la suma de todas. ${sw ? `<b class="ink">${esc(sw.name)}</b> es tu billetera de gastos: se mueve sola con lo que anotas en Gastos.` : ''}</p>
     <div class="wallet-list">${data.wallets.map(w => `
       <button class="wallet${isLinked(w) ? ' linked' : ''}" data-act="${isLinked(w) ? 'adjustYape' : 'editWallet'}" data-id="${w.id}" aria-label="Escribir saldo de ${esc(w.name)}">
         ${avatar(w.name, walletColor(w))}
-        <span class="wallet-name">${esc(w.name)}${isLinked(w) ? `<em class="tag link-tag">${icon('link')}Gastos</em>` : ''}<small>${isLinked(w) ? 'Calculado con tus movimientos' : w.updated ? `Actualizado ${relDate(w.updated)}` : w.currency}</small></span>
-        <span class="wallet-amount">${money(w.balance, w.currency)}</span>
-        ${icon('edit', 'wallet-edit')}
+        <span class="wallet-name">${esc(w.name)}${isLinked(w) ? `<em class="tag link-tag">${icon('link')}Gastos</em>` : ''}<small>${isLinked(w) ? 'Se mueve con tus gastos' : w.updated ? `Actualizado ${relDate(w.updated)}` : CURRENCY_NAMES[w.currency] || w.currency}</small></span>
+        <span class="wallet-amount">${money(w.balance, w.currency)}${w.currency !== 'PEN' ? `<small>≈ ${money(toPEN(w.balance, w.currency))}</small>` : ''}</span>
+        ${icon('chevronRight', 'wallet-edit')}
       </button>`).join('')}
     </div>
     <div class="btn-row hero-actions">
@@ -804,7 +854,7 @@ function viewHome() {
   ${data.clients.length ? '' : `<section class="card quest">${emptyState('Primera misión: agrega a tus clientes y lo que les haces para ir anotando cada entrega.', newClientButton())}</section>`}
   ${goalsCard(now)}
   ${pend.length ? `<section class="card">
-    <div class="card-head"><h2>Por cobrar</h2><span class="xp-pill">+${XP.payment} XP c/u</span></div>
+    <div class="card-head"><h2>Por cobrar</h2><span class="count-pill">${pend.length}</span></div>
     <div class="rows">${pend.map(chargeRow).join('')}</div>
   </section>` : ''}
   ${nextWithdrawalCard()}`;
@@ -847,7 +897,7 @@ function missionsCard() {
       <button class="mission${m.done ? ' done' : ''}" data-act="${m.act === 'clientes' ? 'goClients' : m.act}"${m.id ? ` data-id="${m.id}" data-month="${m.month}"` : ''}${m.done ? ' disabled' : ''}>
         <span class="mission-check">${icon(m.done ? 'check' : m.icon)}</span>
         <span class="mission-text">${esc(m.text)}</span>
-        ${m.xp ? `<span class="xp-pill">+${m.xp} XP</span>` : ''}
+        ${m.done ? icon('check', 'mission-ok') : m.xp ? `<span class="mission-xp">+${m.xp}</span>` : icon('chevronRight', 'row-more')}
       </button>`).join('')}
     </div>
     ${all ? `<p class="mission-done">${icon('sparkles')}¡Día completo! Vuelve mañana para seguir tu racha.</p>` : ''}
@@ -949,25 +999,19 @@ function heatmap() {
 
 function forecastBlock() {
   const until = horizonDate(data.horizon), f = forecast(until);
-  return `<div class="forecast">
-    <div class="fc-box">
-      <p class="label">Tu dinero hoy</p>
-      <p class="hero-amount">${money(f.now)}</p>
-    </div>
-    <div class="fc-box future">
-      <label class="label fc-label" for="horizonDate">Al ${fmtDate(until, { day: 'numeric', month: 'short', year: until.slice(0, 4) === todayISO().slice(0, 4) ? undefined : 'numeric' })}</label>
-      <button class="hero-amount pos fc-detail" data-act="forecastDetail" aria-label="Ver qué incluye la previsión">${money(f.total)}${icon('chevronRight', 'fc-more')}</button>
-    </div>
-  </div>
-  <label class="fc-controls">
-    <span>Ver previsión al</span>
-    <input type="date" id="horizonDate" value="${until}" min="${addDays(todayISO(), 1)}">
-  </label>
+  const day = fmtDate(until, { day: 'numeric', month: 'short', year: until.slice(0, 4) === todayISO().slice(0, 4) ? undefined : 'numeric' });
+  const gain = f.total - f.now;
+  return `<p class="label">Tu dinero hoy</p>
+  <p class="hero-amount">${countNum('hero', f.now)}</p>
+  <button class="fc-chip" data-act="forecastDetail" aria-label="Ver qué incluye la previsión">
+    <span class="fc-chip-ic">${icon('rocket')}</span>
+    <span>Al ${day} tendrías <b>${money(f.total)}</b>${gain > 0.005 ? ` <em>+${moneyShort(gain)}</em>` : ''}</span>
+    ${icon('chevronRight', 'fc-more')}
+  </button>
   <div class="fc-breakdown">
-    <span>Hoy <b>${money(f.now)}</b></span>
-    <span>Por cobrar <b>+${money(f.pending)}</b></span>
-    <span>Por hacer <b>+${money(f.future)}</b></span>
-    ${f.costs.count ? `<span>Comisión de retiro (${f.costs.count} × ${money(f.costs.fee)}) <b>−${money(f.costs.total)}</b></span>` : ''}
+    <span><small>Por cobrar</small><b>${money(f.pending)}</b></span>
+    <span><small>Por hacer</small><b>${money(f.future)}</b></span>
+    ${f.costs.count ? `<span><small>Comisiones</small><b>−${money(f.costs.total)}</b></span>` : ''}
   </div>`;
 }
 
@@ -1589,39 +1633,67 @@ function gBuckets(list) {
   const title = k => (mode === 'day' ? fmtDate(k) : mode === 'week' ? `Semana del ${fmtDate(k)}` : monthLabel(k));
   return { mode, items: [...map.values()], label, title };
 }
+// Curva suave entre puntos (Catmull-Rom → Bézier), sin pasar por debajo de la base.
+function smoothPath(pts, floor) {
+  if (pts.length < 2) return pts.length ? `M${pts[0][0]},${pts[0][1]}` : '';
+  let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, Math.min(floor, p1[1] + (p2[1] - p0[1]) / 6)];
+    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, Math.min(floor, p2[1] - (p3[1] - p1[1]) / 6)];
+    d += ` C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+  }
+  return d;
+}
 function gTimeChart(list) {
   const { mode, items, label, title } = gBuckets(list);
   const series = gf.type === 'out' ? ['out'] : gf.type === 'in' ? ['in'] : ['in', 'out'];
   const max = Math.max(1, ...items.flatMap(b => series.map(s => b[s])));
-  const W = 640, H = 210, padB = 24, padT = 16, n = items.length, slot = W / n;
-  const bw = Math.max(2, Math.min(26, (slot * 0.72) / series.length));
-  const step = Math.ceil(n / 9);
-  const col = { in: 'var(--lime)', out: 'var(--red)' };
-  const bars = items.map((b, i) => series.map((s, j) => {
-    const h = (b[s] / max) * (H - padB - padT);
-    const x = slot * i + (slot - bw * series.length) / 2 + j * bw;
-    return `<rect x="${x.toFixed(1)}" y="${(H - padB - h).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(h, b[s] > 0 ? 1.5 : 0).toFixed(1)}" rx="2" style="fill:${col[s]}"><title>${esc(title(b.key))}: ${money(b[s])}${series.length > 1 ? (s === 'in' ? ' (ingresos)' : ' (gastos)') : ''}</title></rect>`;
-  }).join('')).join('');
-  const labels = items.map((b, i) => (i % step ? '' : `<text x="${(slot * i + slot / 2).toFixed(1)}" y="${H - 7}" text-anchor="middle" class="chart-t">${esc(label(b.key))}</text>`)).join('');
+  const W = 640, H = 220, padB = 26, padT = 34, padX = 8, n = items.length;
+  const x = i => padX + (n === 1 ? (W - 2 * padX) / 2 : (i * (W - 2 * padX)) / (n - 1));
+  const y = v => H - padB - (v / max) * (H - padB - padT);
+  const base = H - padB;
+  const col = { in: ['#c6f53b', '#2fe3b4'], out: ['#ff8a6b', '#ff6f61'] };
+  const grid = [0.25, 0.5, 0.75, 1].map(f => `<line x1="0" x2="${W}" y1="${y(max * f).toFixed(1)}" y2="${y(max * f).toFixed(1)}" class="chart-grid"/>`).join('');
+  const defs = series.map(s => `<linearGradient id="ln-${s}" x1="0" x2="1"><stop offset="0" stop-color="${col[s][0]}"/><stop offset="1" stop-color="${col[s][1]}"/></linearGradient>
+    <linearGradient id="ar-${s}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${col[s][1]}" stop-opacity=".38"/><stop offset="1" stop-color="${col[s][1]}" stop-opacity="0"/></linearGradient>`).join('');
+  const paths = series.map(s => {
+    const pts = items.map((b, i) => [x(i), y(b[s])]);
+    const line = smoothPath(pts, base);
+    return `<path d="${line} L${x(n - 1).toFixed(1)},${base} L${x(0).toFixed(1)},${base} Z" fill="url(#ar-${s})" class="chart-area"/>
+      <path d="${line}" fill="none" stroke="url(#ln-${s})" stroke-width="3" stroke-linecap="round" pathLength="1" class="chart-line"/>`;
+  }).join('');
+  // El punto más alto de la serie principal, marcado como en una app de banco.
+  const main = series[series.length - 1];
+  const top = items.reduce((a, b, i) => (b[main] > items[a][main] ? i : a), 0);
+  const tx = x(top), ty = y(items[top][main]);
+  const tipW = 118, tipX = Math.max(0, Math.min(W - tipW, tx - tipW / 2));
+  const marker = items[top][main] > 0 ? `<line x1="${tx}" x2="${tx}" y1="${ty}" y2="${base}" class="chart-guide"/>
+    <circle cx="${tx}" cy="${ty}" r="6" class="chart-dot" style="--c:${col[main][1]}"/>
+    <g class="chart-tip"><rect x="${tipX}" y="${Math.max(0, ty - 40)}" width="${tipW}" height="28" rx="8"/>
+    <text x="${tipX + tipW / 2}" y="${Math.max(0, ty - 40) + 18}" text-anchor="middle">${esc(label(items[top].key))} · ${esc(moneyShort(items[top][main]))}</text></g>` : '';
+  const hits = items.map((b, i) => `<rect x="${(x(i) - (W / n) / 2).toFixed(1)}" y="0" width="${(W / n).toFixed(1)}" height="${H}" fill="transparent"><title>${esc(title(b.key))}: ${series.map(s => money(b[s])).join(' / ')}</title></rect>`).join('');
+  const step = Math.ceil(n / 7);
+  const labels = items.map((b, i) => (i % step && i !== n - 1 ? '' : `<text x="${x(i).toFixed(1)}" y="${H - 6}" text-anchor="${i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'}" class="chart-t">${esc(label(b.key))}</text>`)).join('');
   const unit = mode === 'day' ? 'por día' : mode === 'week' ? 'por semana' : 'por mes';
   return `<section class="card">
-    <div class="card-head"><h2>${gf.type === 'in' ? 'Ingresos' : gf.type === 'out' ? 'Gastos' : 'Ingresos y gastos'} ${unit}</h2>${series.length > 1 ? '<span class="legend"><i style="background:var(--green)"></i>Ingresos <i style="background:var(--red)"></i>Gastos</span>' : ''}</div>
+    <div class="card-head"><h2>${gf.type === 'in' ? 'Ingresos' : gf.type === 'out' ? 'Gastos' : 'Ingresos y gastos'} ${unit}</h2>${series.length > 1 ? '<span class="legend"><i style="background:#2fe3b4"></i>Ingresos <i style="background:#ff6f61"></i>Gastos</span>' : ''}</div>
     <svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Gráfica ${unit}">
-      <line x1="0" y1="${H - padB}" x2="${W}" y2="${H - padB}" class="chart-ax"/>
-      <text x="0" y="10" class="chart-t">${esc(moneyShort(max))}</text>${bars}${labels}
+      <defs>${defs}</defs>${grid}${paths}${marker}${labels}${hits}
     </svg>
   </section>`;
 }
+// Dona con segmentos redondeados y separados.
 function gDonut(cats, total) {
-  const R = 62, C = 2 * Math.PI * R;
+  const R = 60, C = 2 * Math.PI * R, gap = cats.length > 1 ? 7 : 0;
   let off = 0;
-  const arcs = cats.map(c => {
-    const len = (c.total / total) * C;
-    const el = `<circle cx="80" cy="80" r="${R}" fill="none" stroke="${catMeta(c.category).color}" stroke-width="26" stroke-dasharray="${len.toFixed(2)} ${(C - len).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 80 80)"><title>${esc(c.category)}: ${money(c.total)}</title></circle>`;
+  const arcs = cats.map((c, i) => {
+    const len = (c.total / total) * C, vis = Math.max(0.01, len - gap);
+    const el = `<circle cx="80" cy="80" r="${R}" fill="none" stroke="${catMeta(c.category).color}" stroke-width="16" stroke-linecap="round" stroke-dasharray="${vis.toFixed(2)} ${(C - vis).toFixed(2)}" stroke-dashoffset="${(-off - gap / 2).toFixed(2)}" transform="rotate(-90 80 80)" class="donut-seg" style="--i:${i}"><title>${esc(c.category)}: ${money(c.total)}</title></circle>`;
     off += len;
     return el;
   }).join('');
-  return `<svg class="donut" viewBox="0 0 160 160" role="img" aria-label="Por categoría"><circle cx="80" cy="80" r="${R}" fill="none" class="donut-bg" stroke-width="26"/>${arcs}<text x="80" y="76" text-anchor="middle" class="donut-k">Total</text><text x="80" y="96" text-anchor="middle" class="donut-v">${esc(moneyShort(total))}</text></svg>`;
+  return `<svg class="donut" viewBox="0 0 160 160" role="img" aria-label="Por categoría"><circle cx="80" cy="80" r="${R}" fill="none" class="donut-bg" stroke-width="16"/>${arcs}<text x="80" y="76" text-anchor="middle" class="donut-k">Total</text><text x="80" y="97" text-anchor="middle" class="donut-v">${esc(moneyShort(total))}</text></svg>`;
 }
 const sortArrow = (s, key) => (s.key === key ? icon(s.dir === 'asc' ? 'chevronUp' : 'chevronDown', 'sort-ic') : '');
 
@@ -1698,7 +1770,7 @@ function gCell(c, x) {
     case 'date': return fmtDate(x.date, x.date.slice(0, 4) === todayISO().slice(0, 4) ? { day: 'numeric', month: 'short' } : { day: 'numeric', month: 'short', year: 'numeric' });
     case 'contact': return esc(x.contact || '');
     case 'note': return esc(x.note || '');
-    case 'category': return isAdj(x) ? `<span class="cell-cat"><span class="cat-ic sm" style="--c:#646c66">${icon('refresh')}</span>Ajuste de saldo</span>` : `<span class="cell-cat">${catBadge(x.category, true)}${esc(x.category)}</span>`;
+    case 'category': return isAdj(x) ? `<span class="cell-cat"><span class="cat-ic sm" style="--c:#9fb5a8">${icon('refresh')}</span>Ajuste de saldo</span>` : `<span class="cell-cat">${catBadge(x.category, true)}${esc(x.category)}</span>`;
     case 'kind': return `<span class="tag-kind ${isAdj(x) ? 'adj' : isIncome(x) ? 'in' : 'out'}">${kindName(x)}</span>`;
     default: return `<b class="${isAdj(x) ? 'muted' : gSigned(x) < 0 ? 'neg' : 'pos'}">${gMoney(x)}</b>`;
   }
@@ -1735,7 +1807,7 @@ function gColsSheet() {
 function moveRow(x) {
   if (isAdj(x)) {
     return `<button class="row" data-act="editExpense" data-id="${x.id}">
-      <span class="cat-ic" style="--c:#646c66">${icon('refresh')}</span>
+      <span class="cat-ic" style="--c:#9fb5a8">${icon('refresh')}</span>
       <span class="row-main"><b>${esc(x.note || 'Ajuste de saldo')}</b><small>Ajuste · no cuenta en estadísticas · ${fmtDate(x.date)}</small></span>
       <span class="amount muted">${gMoney(x)}</span>
     </button>`;
@@ -1754,13 +1826,13 @@ function gViewHome() {
   return `
   <section class="card hero spend-hero">
     <p class="label">${sw ? `Saldo de ${esc(sw.name)}` : 'Saldo de gastos'}</p>
-    <p class="hero-amount ${yapeBalance() < 0 ? 'neg' : ''}">${money(yapeBalance())}</p>
-    <p class="hero-note">${sw ? `${icon('link')}Es la misma billetera ${esc(sw.name)} de Inicio: cada gasto o ingreso que anotas aquí cambia ese saldo.` : 'No está unida a ninguna billetera. Puedes unirla en Ajustes.'}</p>
+    <p class="hero-amount ${yapeBalance() < 0 ? 'neg' : ''}">${countNum('spend', yapeBalance())}</p>
+    <p class="hero-note">${sw ? `${icon('link')}Misma billetera que en Inicio` : 'No está unida a ninguna billetera (Ajustes)'}</p>
     <div class="btn-row"><button class="btn ghost on-dark" data-act="adjustYape">${icon('edit')}Ajustar saldo</button></div>
   </section>
   <div class="btn-row big-actions">
-    <button class="btn out big" data-act="newExpense">${icon('minus')}Gasto<span class="xp-pill">+${XP.move} XP</span></button>
-    <button class="btn in big" data-act="newIncome">${icon('plus')}Ingreso<span class="xp-pill">+${XP.move} XP</span></button>
+    <button class="btn out big" data-act="newExpense">${icon('minus')}Gasto</button>
+    <button class="btn in big" data-act="newIncome">${icon('plus')}Ingreso</button>
   </div>
   ${b > 0 ? `<section class="card hp">
     <div class="hp-head"><span class="label">${icon('shield')}Presupuesto de ${monthName(m)}</span><b class="${left < 0 ? 'neg' : ''}">${left < 0 ? `Te pasaste ${money(-left)}` : `Te quedan ${money(left)}`}</b></div>
@@ -2096,6 +2168,7 @@ function forecastDetail() {
       .map(({ p, e }) => line(`≈ ${qtyText(e.qty)} × ${esc(p.name)}`, `${esc(c.name)} · ${money(p.price, cur)} c/u · ${estText(p)}`, money(e.amount, cur), pen(e.amount, cur))).join('');
   }).join('');
   openSheet(`Al ${fmtDate(until, { day: 'numeric', month: 'long', year: 'numeric' })}`, `<div class="form">
+    <label class="field"><span>Ver previsión al</span><input type="date" id="horizonDate" value="${until}" min="${addDays(todayISO(), 1)}"></label>
     <div class="account-total"><span>Tendrías</span><b class="pos">${money(f.total)}</b></div>
     ${section('Hoy tienes', f.now, wallets)}
     ${section('Por cobrar', f.pending, pending)}
@@ -2383,6 +2456,7 @@ const actions = {
     data.entries.push({ id: uid(), clientId: c.id, productId: p.id, name: p.name, price: p.price, qty: 1, date: logDate(d.month) });
     if (navigator.vibrate) try { navigator.vibrate(12); } catch {}
     commit(`${p.name}: ${productCount(c, p, d.month)} en ${monthName(d.month)}`, XP.entry);
+    bumpCount(p.id);
   },
   unlog: d => {
     const c = client(d.client), p = product(c, d.id);
@@ -2393,6 +2467,7 @@ const actions = {
     if (last.qty > 1) last.qty -= 1;
     else data.entries = data.entries.filter(e => e !== last);
     commit(`${p.name}: ${productCount(c, p, d.month)} en ${monthName(d.month)}`);
+    bumpCount(p.id, false);
   },
   entries: d => { const c = client(d.client); if (c) entriesSheet(c, d.month); },
   copySummary: d => { const c = client(d.client); if (c) copySummary(c, d.month); },
@@ -2782,6 +2857,7 @@ document.addEventListener('change', e => {
     data.horizon = e.target.value;
     persist();
     render();
+    if (!$('sheet').hidden) forecastDetail();
   }
 });
 document.addEventListener('submit', e => {
