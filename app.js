@@ -97,6 +97,18 @@ const PATHS = {
   star: '<path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8-6.2-3.3-6.2 3.3L8 14.2l-5-4.9 6.9-1Z"/>',
   user: '<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>',
   refresh: '<path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/>',
+  flame: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+  trophy: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
+  target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+  zap: '<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>',
+  lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  crown: '<path d="M11.56 3.27a.5.5 0 0 1 .88 0l2.95 5.6a1 1 0 0 0 1.52.29l4.27-3.66a.5.5 0 0 1 .82.51l-2.83 10.25a1 1 0 0 1-.96.74H5.8a1 1 0 0 1-.96-.74L2.01 6.01a.5.5 0 0 1 .82-.51l4.27 3.66a1 1 0 0 0 1.52-.29z"/><path d="M5 21h14"/>',
+  shield: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
+  sparkles: '<path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5A2 2 0 0 0 15.5 9.94l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z"/><path d="M20 3v4M22 5h-4"/>',
+  rocket: '<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>',
+  medal: '<path d="M7.21 15 2.66 7.14a2 2 0 0 1 .13-2.2L4.4 2.8A2 2 0 0 1 6 2h12a2 2 0 0 1 1.6.8l1.6 2.14a2 2 0 0 1 .14 2.2L16.79 15"/><path d="M11 12 5.12 2.2M13 12l5.88-9.8M8 7h8"/><circle cx="12" cy="17" r="5"/><path d="M12 18v-2h-.5"/>',
+  link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  wallet: '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
 };
 const icon = (name, cls = '') => `<svg class="ic ${cls}" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${PATHS[name]}</svg>`;
 
@@ -170,8 +182,15 @@ function blank() {
     catStyles: {}, // icono y color de las categorías que creas: { nombre: { icon, color } }
     contacts: [], // contactos frecuentes: { id, name, uses, lastKind, lastCategory }
     horizon: '', // fecha de la previsión en Inicio (AAAA-MM-DD); vacía = fin de este mes
+    // Billetera unida a Gastos: su saldo es el que calculan tus movimientos (una sola fuente de verdad).
+    spendWallet: 'yape',
+    linkConflict: null, // { wallet, gastos }: saldos distintos encontrados al unir Yape (se elige uno una vez)
+    goals: { income: 0, budget: 0 }, // meta de ingresos y presupuesto de gastos del mes, en soles
+    game: { seen: null, level: 1, days: [], intro: false }, // logros ya celebrados, nivel celebrado, días con actividad
   };
 }
+// Saldo neto de una lista de movimientos de Gastos.
+const netOf = list => list.reduce((t, x) => t + (x.kind === 'in' ? 1 : x.kind === 'adj' ? 1 : -1) * (x.kind === 'adj' ? Number(x.amount) || 0 : Math.abs(Number(x.amount) || 0)), 0);
 
 function copyRates(d, raw) {
   if (raw.rates) for (const c of ['USD', 'EUR', 'GBP']) if (Number(raw.rates[c]) > 0) d.rates[c] = Number(raw.rates[c]);
@@ -302,15 +321,37 @@ function normalize(raw) {
     contacts: arr(raw.contacts).filter(c => c && c.name).map(c => ({ id: c.id || uid(), name: String(c.name), uses: Number(c.uses) || 0, lastKind: c.lastKind === 'in' ? 'in' : 'out', lastCategory: String(c.lastCategory || '') })),
     plan: { ...d.plan, ...(raw.plan || {}) },
     horizon: raw.horizon || d.horizon,
+    spendWallet: raw.spendWallet !== undefined ? String(raw.spendWallet || '') : (wallets.find(w => w.id === 'yape' && w.currency === 'PEN') || wallets.find(w => /yape/i.test(w.name) && w.currency === 'PEN'))?.id || '',
+    linkConflict: raw.linkConflict || null,
+    goals: { income: Math.max(0, Number(raw.goals?.income) || 0), budget: Math.max(0, Number(raw.goals?.budget) || 0) },
+    game: {
+      seen: Array.isArray(raw.game?.seen) ? raw.game.seen.map(String) : null,
+      level: Number(raw.game?.level) || 1,
+      days: arr(raw.game?.days).filter(s => /^\d{4}-\d{2}-\d{2}$/.test(s)),
+      intro: Boolean(raw.game?.intro),
+    },
   };
+}
+// Primera vez con la billetera unida: si Gastos no tiene movimientos, su saldo arranca con el de la billetera;
+// si ambos tienen saldos distintos, se le pregunta una vez cuál es el real.
+function linkFirstTime(raw, d) {
+  if (raw.spendWallet !== undefined) return d;
+  const w = d.wallets.find(x => x.id === d.spendWallet);
+  if (!w) return d;
+  if (!d.expenses.length) d.yape.opening = round2(w.balance);
+  else {
+    const g = round2(d.yape.opening + netOf(d.expenses));
+    if (Math.abs(g - w.balance) > 0.009 && w.balance) d.linkConflict = { wallet: round2(w.balance), gastos: g };
+  }
+  return d;
 }
 
 // Convierte cualquier versión guardada al formato actual.
 function migrate(raw) {
   if (!raw || typeof raw !== 'object') return blank();
-  if (raw.version === 4) return normalize(raw);
-  if (raw.version === 3) return normalize(fromV3(raw));
-  return normalize(fromV3(raw.version === 2 ? fromV2(raw) : fromV1(raw)));
+  if (raw.version === 4) return linkFirstTime(raw, normalize(raw));
+  if (raw.version === 3) return linkFirstTime(raw, normalize(fromV3(raw)));
+  return linkFirstTime(raw, normalize(fromV3(raw.version === 2 ? fromV2(raw) : fromV1(raw))));
 }
 
 function load() {
@@ -323,15 +364,24 @@ function load() {
 let data = load();
 let viewMonth = thisMonth();
 
-function persist() {
+function save() {
+  syncLinked();
   data.updatedAt = Date.now();
   try { localStorage.setItem(KEY, JSON.stringify(data)); } catch {}
   queueCloudSave();
 }
-function commit(msg) {
+// Guardar después de algo que hiciste: cuenta como día con actividad para tu racha.
+function persist() {
+  const t = todayISO();
+  if (!data.game.days.includes(t)) data.game.days = [...data.game.days, t].slice(-400);
+  save();
+}
+// xp: puntos ganados con la acción (se muestran flotando donde tocaste).
+function commit(msg, xp = 0) {
   persist();
   render();
   if (msg) toast(msg);
+  if (xp) xpFloat(xp);
 }
 
 const wallet = id => data.wallets.find(w => w.id === id);
@@ -343,9 +393,26 @@ const walletColor = w => COLORS[(w?.color ?? 0) % COLORS.length];
 const clientColor = c => COLORS[Math.max(0, data.clients.indexOf(c)) % COLORS.length];
 const clientCur = c => c.currency || wallet(c.wallet)?.currency || 'USD';
 const initial = s => esc(String(s || '?').trim().charAt(0).toUpperCase() || '?');
-function setBalance(w, value) {
-  w.balance = round2(value);
+// La billetera unida a Gastos no guarda un saldo propio: siempre muestra el que calculan tus movimientos.
+const spendWallet = () => { const w = wallet(data.spendWallet); return w && w.currency === 'PEN' ? w : null; };
+const isLinked = w => Boolean(w) && spendWallet() === w;
+function syncLinked() {
+  const w = spendWallet();
+  if (w) w.balance = yapeBalance();
+}
+// Escribir el saldo de una billetera. En la unida a Gastos, la diferencia queda como ajuste (devuelve su id).
+function setBalance(w, value, note = '') {
   w.updated = todayISO();
+  if (isLinked(w)) {
+    const prev = yapeBalance(), after = round2(value), diff = round2(after - prev);
+    if (!diff) return null;
+    const x = { id: uid(), kind: 'adj', date: todayISO(), amount: diff, currency: 'PEN', category: 'Ajuste', note: note || 'Saldo actualizado', prev, after };
+    data.expenses.push(x);
+    syncLinked();
+    return x.id;
+  }
+  w.balance = round2(value);
+  return null;
 }
 
 // ── Cuenta de cada cliente ──
@@ -472,6 +539,91 @@ function logDate(m) {
   return m === now ? todayISO() : m < now ? lastDay(m) : m + '-01';
 }
 
+// ── Juego: XP, niveles, rachas, logros y misiones ──
+// Todo se calcula a partir de tus datos: si borras algo, sus puntos también se van.
+const XP = { entry: 10, payment: 50, move: 5, withdrawal: 30, achievement: 100 };
+const LEVEL_TITLES = [[1, 'Aprendiz'], [3, 'Freelancer'], [5, 'Profesional'], [8, 'Experto'], [12, 'Maestro'], [16, 'Leyenda'], [20, 'Magnate']];
+const levelNeed = l => 50 * l * (l - 1); // XP total para llegar al nivel l
+const levelOf = xp => { let l = 1; while (levelNeed(l + 1) <= xp) l++; return l; };
+const levelTitle = l => LEVEL_TITLES.filter(([n]) => n <= l).pop()[1];
+const nextTitle = l => LEVEL_TITLES.find(([n]) => n > l);
+
+const realMoves = () => data.expenses.filter(x => !isAdj(x));
+const entryUnits = () => data.entries.reduce((t, e) => t + (Number(e.qty) || 1), 0);
+const collectedPEN = () => data.payments.reduce((t, p) => t + toPEN(p.amount, p.currency), 0);
+function activityDays() {
+  const s = new Set(data.game.days);
+  for (const e of data.entries) s.add(e.date);
+  for (const x of realMoves()) s.add(x.date);
+  for (const p of data.payments) s.add(p.date);
+  for (const w of data.withdrawals) s.add(w.date);
+  const t = todayISO();
+  return new Set([...s].filter(d => d && d <= t));
+}
+function streaks(days) {
+  const t = todayISO();
+  let cur = 0, d = days.has(t) ? t : addDays(t, -1);
+  while (days.has(d)) { cur++; d = addDays(d, -1); }
+  let best = 0, run = 0, prev = '';
+  for (const x of [...days].sort()) { run = prev && addDays(prev, 1) === x ? run + 1 : 1; best = Math.max(best, run); prev = x; }
+  return { cur, best: Math.max(best, cur), today: days.has(t) };
+}
+// Meses (con trabajo anotado) en los que llegaste a tu meta de ingresos.
+function goalMonths() {
+  const g = data.goals.income;
+  if (!(g > 0)) return 0;
+  const months = [...new Set(data.entries.map(e => monthKey(e.date)))];
+  return months.filter(m => monthTotals(m).logged >= g).length;
+}
+const monthSpent = m => sumAmount(data.expenses.filter(x => isOut(x) && monthKey(x.date) === m));
+// Meses ya terminados, con gastos anotados, en los que no pasaste tu presupuesto.
+function budgetMonths() {
+  const b = data.goals.budget, now = thisMonth();
+  if (!(b > 0)) return 0;
+  return [...new Set(realMoves().map(x => monthKey(x.date)))].filter(m => m < now && monthSpent(m) <= b).length;
+}
+const ACHIEVEMENTS = [
+  { id: 'client1', icon: 'users', name: 'Primer cliente', desc: 'Agrega a tu primer cliente', goal: 1, val: () => data.clients.length },
+  { id: 'e1', icon: 'check', name: 'Manos a la obra', desc: 'Anota tu primera entrega', goal: 1, val: entryUnits },
+  { id: 'e10', icon: 'zap', name: 'Calentando', desc: 'Anota 10 entregas', goal: 10, val: entryUnits },
+  { id: 'e50', icon: 'zap', name: 'Máquina', desc: 'Anota 50 entregas', goal: 50, val: entryUnits },
+  { id: 'e100', icon: 'rocket', name: 'Imparable', desc: 'Anota 100 entregas', goal: 100, val: entryUnits },
+  { id: 'e500', icon: 'crown', name: 'Fábrica', desc: 'Anota 500 entregas', goal: 500, val: entryUnits },
+  { id: 'pay1', icon: 'banknote', name: 'Primer cobro', desc: 'Cobra un mes a un cliente', goal: 1, val: () => data.payments.length },
+  { id: 'pay12', icon: 'medal', name: 'Cobrador serial', desc: 'Registra 12 cobros', goal: 12, val: () => data.payments.length },
+  { id: 'earn1k', icon: 'trophy', name: 'Primeros mil', desc: 'Cobra S/ 1 000 en total', goal: 1000, money: true, val: collectedPEN },
+  { id: 'earn10k', icon: 'crown', name: 'Cinco cifras', desc: 'Cobra S/ 10 000 en total', goal: 10000, money: true, val: collectedPEN },
+  { id: 'streak3', icon: 'flame', name: 'En racha', desc: '3 días seguidos anotando algo', goal: 3, val: s => s.best },
+  { id: 'streak7', icon: 'flame', name: 'Semana perfecta', desc: '7 días seguidos anotando algo', goal: 7, val: s => s.best },
+  { id: 'streak30', icon: 'flame', name: 'Hábito de acero', desc: '30 días seguidos anotando algo', goal: 30, val: s => s.best },
+  { id: 'goal', icon: 'target', name: 'Meta cumplida', desc: 'Llega a tu meta de ingresos en un mes', goal: 1, val: goalMonths },
+  { id: 'budget', icon: 'shield', name: 'Bajo control', desc: 'Termina un mes sin pasarte del presupuesto', goal: 1, val: budgetMonths },
+  { id: 'moves50', icon: 'receipt', name: 'Contador', desc: 'Anota 50 gastos o ingresos', goal: 50, val: () => realMoves().length },
+  { id: 'scan', icon: 'sparkles', name: 'Ojo de águila', desc: 'Lee una captura de Yape', goal: 1, val: () => data.expenses.filter(x => x.op).length },
+  { id: 'wd1', icon: 'wallet', name: 'A la cuenta', desc: 'Registra tu primer retiro', goal: 1, val: () => data.withdrawals.length },
+  { id: 'clean', icon: 'shield', name: 'Al día', desc: 'Sin cobros atrasados, con 3 cobros o más', goal: 1, val: () => (data.payments.length >= 3 && !pendingCharges().some(x => x.m < thisMonth()) ? 1 : 0) },
+];
+// Estado del juego, calculado una vez por pantalla.
+let G = null;
+function gameState() {
+  const days = activityDays(), st = streaks(days);
+  const achievements = ACHIEVEMENTS.map(a => { const v = Number(a.val(st)) || 0; return { ...a, v, done: v >= a.goal, pct: Math.min(1, v / a.goal) }; });
+  const unlocked = achievements.filter(a => a.done);
+  const xp = Math.round(entryUnits() * XP.entry + data.payments.length * XP.payment + realMoves().length * XP.move + data.withdrawals.length * XP.withdrawal + unlocked.length * XP.achievement);
+  const level = levelOf(xp), from = levelNeed(level), to = levelNeed(level + 1);
+  return { days, streak: st, achievements, unlocked, xp, level, from, to, pct: (xp - from) / (to - from), title: levelTitle(level) };
+}
+// Misiones de hoy: tres cosas pequeñas que mantienen tus cuentas al día.
+function missions() {
+  const t = todayISO(), late = pendingCharges().filter(x => x.m < thisMonth());
+  const list = [];
+  if (data.clients.length) list.push({ icon: 'zap', text: 'Anota una entrega', xp: XP.entry, done: data.entries.some(e => e.date === t), act: 'clientes' });
+  list.push({ icon: 'receipt', text: 'Anota un gasto o ingreso', xp: XP.move, done: realMoves().some(x => x.date === t), act: 'newExpense' });
+  if (late.length) list.push({ icon: 'banknote', text: `Cobra ${late[0].c.name} · ${monthName(late[0].m)}`, xp: XP.payment, done: data.payments.some(p => p.date === t), act: 'charge', id: late[0].c.id, month: late[0].m });
+  else list.push({ icon: 'refresh', text: 'Revisa tus saldos', xp: 0, done: data.wallets.some(w => w.updated === t) || data.expenses.some(x => isAdj(x) && x.date === t), act: 'updateBalances' });
+  return list;
+}
+
 // ── Plan de retiros ──
 function planSetup() {
   const p = data.plan;
@@ -547,7 +699,8 @@ const VIEWS = {
   clientes: { label: 'Clientes', icon: 'users', render: viewClients },
   gastos: { label: 'Gastos', icon: 'receipt', render: viewExpenses },
   retiros: { label: 'Retiros', icon: 'banknote', render: viewWithdrawals },
-  ajustes: { label: 'Ajustes', icon: 'settings', render: viewSettings },
+  logros: { label: 'Logros', icon: 'trophy', render: viewAchievements },
+  ajustes: { label: 'Ajustes', icon: 'settings', render: viewSettings, desk: true },
 };
 const ALIASES = { cobros: 'clientes' };
 function currentView() {
@@ -556,13 +709,26 @@ function currentView() {
 }
 
 function render() {
+  syncLinked();
+  G = gameState();
   const name = currentView();
   $('nav').innerHTML = Object.entries(VIEWS).map(([k, v]) =>
-    `<a class="nav-item${k === name ? ' active' : ''}" href="#${k}"${k === name ? ' aria-current="page"' : ''}>${icon(v.icon)}<span>${v.label}</span></a>`).join('');
+    `<a class="nav-item${k === name ? ' active' : ''}${v.desk ? ' desk' : ''}" href="#${k}"${k === name ? ' aria-current="page"' : ''}>${icon(v.icon)}<span>${v.label}</span></a>`).join('');
   $('pageTitle').textContent = VIEWS[name].label;
   $('view').innerHTML = VIEWS[name].render();
+  $('view').className = `view-${name}`;
   enhanceSelects($('view'));
   renderSync();
+  renderLevelChip();
+  setTimeout(checkRewards, 60);
+}
+
+// Chip de nivel y racha en la barra superior: siempre a la vista.
+function renderLevelChip() {
+  const s = G.streak;
+  $('lvlChip').innerHTML = `<span class="lvl-badge">${G.level}</span><span class="lvl-xp"><i style="width:${Math.round(G.pct * 100)}%"></i></span>
+    <span class="streak-mini${s.cur ? '' : ' off'}${s.cur && !s.today ? ' risk' : ''}">${icon('flame')}${s.cur}</span>`;
+  $('lvlChip').setAttribute('aria-label', `Nivel ${G.level}, racha de ${s.cur} días. Ver logros`);
 }
 
 const emptyState = (text, action = '') => `<div class="empty"><p>${text}</p>${action}</div>`;
@@ -610,38 +776,175 @@ function viewHome() {
   const foreign = [...new Set(data.wallets.map(w => w.currency))].filter(c => c !== 'PEN');
   const rateNote = foreign.length ? foreign.map(c => `1 ${c} = ${money(data.rates[c])}`).join(' · ') : 'Todo en soles';
   const pend = pendingCharges();
-  const t = monthTotals(now);
+  const sw = spendWallet();
   return `
-  <section class="card hero">
+  ${playerCard()}
+  ${linkConflictCard()}
+  <section class="card hero money-hero">
     ${forecastBlock()}
-    <p class="muted small">${esc(rateNote)}</p>
+    <p class="hero-note">${esc(rateNote)}</p>
+  </section>
+  <section class="card">
+    <div class="card-head"><h2>Tus billeteras</h2><button class="btn-sm ghost" data-act="updateBalances">${icon('refresh')}Actualizar</button></div>
+    <p class="muted small">Tu dinero de hoy es la suma de todas. ${sw ? `<b class="ink">${esc(sw.name)}</b> es tu billetera de gastos: se mueve sola con lo que anotas en Gastos.` : ''}</p>
     <div class="wallet-list">${data.wallets.map(w => `
-      <button class="wallet" data-act="editWallet" data-id="${w.id}" aria-label="Escribir saldo de ${esc(w.name)}">
+      <button class="wallet${isLinked(w) ? ' linked' : ''}" data-act="${isLinked(w) ? 'adjustYape' : 'editWallet'}" data-id="${w.id}" aria-label="Escribir saldo de ${esc(w.name)}">
         ${avatar(w.name, walletColor(w))}
-        <span class="wallet-name">${esc(w.name)}<small>${w.updated ? `Actualizado ${relDate(w.updated)}` : w.currency}</small></span>
+        <span class="wallet-name">${esc(w.name)}${isLinked(w) ? `<em class="tag link-tag">${icon('link')}Gastos</em>` : ''}<small>${isLinked(w) ? 'Calculado con tus movimientos' : w.updated ? `Actualizado ${relDate(w.updated)}` : w.currency}</small></span>
         <span class="wallet-amount">${money(w.balance, w.currency)}</span>
         ${icon('edit', 'wallet-edit')}
       </button>`).join('')}
     </div>
     <div class="btn-row hero-actions">
-      <button class="btn ghost" data-act="updateBalances">${icon('refresh')}Actualizar saldos</button>
+      <button class="btn ghost" data-act="newExpenseHome">${icon('receipt')}Anotar gasto</button>
       <button class="btn primary" data-act="newWithdrawal">${icon('banknote')}Retiré</button>
     </div>
   </section>
-  ${data.clients.length ? '' : `<section class="card">${emptyState('Agrega a tus clientes y lo que les haces para ir anotando cada entrega.', newClientButton())}</section>`}
+  ${missionsCard()}
+  ${data.clients.length ? '' : `<section class="card quest">${emptyState('Primera misión: agrega a tus clientes y lo que les haces para ir anotando cada entrega.', newClientButton())}</section>`}
+  ${goalsCard(now)}
   ${pend.length ? `<section class="card">
-    <div class="card-head"><h2>Por cobrar</h2></div>
+    <div class="card-head"><h2>Por cobrar</h2><span class="xp-pill">+${XP.payment} XP c/u</span></div>
     <div class="rows">${pend.map(chargeRow).join('')}</div>
   </section>` : ''}
-  <section class="card">
-    <div class="card-head"><h2>${monthLabel(now)}</h2></div>
-    <div class="stats">
-      <div class="stat"><span>Anotado</span><b>${money(t.logged)}</b></div>
+  ${nextWithdrawalCard()}`;
+}
+
+// Tarjeta del jugador: nivel, XP y racha.
+function playerCard(big = false) {
+  const s = G.streak, nt = nextTitle(G.level);
+  return `<a class="player${big ? ' big' : ''}" href="#logros" aria-label="Ver tus logros">
+    <span class="player-lvl"><small>Nivel</small><b>${G.level}</b></span>
+    <span class="player-main">
+      <b>${esc(G.title)}</b>
+      <span class="xp-bar"><i style="width:${Math.max(3, Math.round(G.pct * 100))}%"></i></span>
+      <small>${G.xp - G.from} / ${G.to - G.from} XP para el nivel ${G.level + 1}${nt && big ? ` · «${nt[1]}» en el nivel ${nt[0]}` : ''}</small>
+    </span>
+    <span class="player-streak${s.cur ? '' : ' off'}${s.cur && !s.today ? ' risk' : ''}">${icon('flame')}<b>${s.cur}</b><small>${s.cur === 1 ? 'día' : 'días'}</small></span>
+  </a>${s.cur && !s.today ? `<p class="streak-warn">${icon('flame')}Anota algo hoy para no perder tu racha de ${s.cur} ${s.cur === 1 ? 'día' : 'días'}.</p>` : ''}`;
+}
+
+// Una sola vez: al unir Yape con Gastos había dos saldos distintos. Eliges cuál es el real.
+function linkConflictCard() {
+  const c = data.linkConflict, w = spendWallet();
+  if (!c || !w) return '';
+  return `<section class="card notice">
+    <div class="card-head"><h2>${icon('link')}Un solo saldo de ${esc(w.name)}</h2></div>
+    <p class="muted">Antes tenías ${esc(w.name)} en dos sitios. Ahora es una sola billetera: lo que anotas en Gastos cambia su saldo. ¿Cuál es tu saldo real hoy?</p>
+    <div class="btn-row">
+      <button class="btn ghost" data-act="pickLink" data-v="gastos">${money(c.gastos)}<small>el de Gastos</small></button>
+      <button class="btn ghost" data-act="pickLink" data-v="wallet">${money(c.wallet)}<small>el de Inicio</small></button>
+      <button class="btn-sm ghost" data-act="adjustYape">Otro monto</button>
+    </div>
+  </section>`;
+}
+
+function missionsCard() {
+  const list = missions(), done = list.filter(m => m.done).length, all = done === list.length;
+  return `<section class="card missions${all ? ' complete' : ''}">
+    <div class="card-head"><h2>Misiones de hoy</h2><span class="mission-count">${done}/${list.length}</span></div>
+    <div class="mission-list">${list.map(m => `
+      <button class="mission${m.done ? ' done' : ''}" data-act="${m.act === 'clientes' ? 'goClients' : m.act}"${m.id ? ` data-id="${m.id}" data-month="${m.month}"` : ''}${m.done ? ' disabled' : ''}>
+        <span class="mission-check">${icon(m.done ? 'check' : m.icon)}</span>
+        <span class="mission-text">${esc(m.text)}</span>
+        ${m.xp ? `<span class="xp-pill">+${m.xp} XP</span>` : ''}
+      </button>`).join('')}
+    </div>
+    ${all ? `<p class="mission-done">${icon('sparkles')}¡Día completo! Vuelve mañana para seguir tu racha.</p>` : ''}
+  </section>`;
+}
+
+// Meta de ingresos del mes (anillo) y presupuesto de gastos (barra de vida).
+function goalsCard(m) {
+  const g = data.goals, t = monthTotals(m);
+  if (!(g.income > 0) && !(g.budget > 0)) {
+    return `<section class="card quest">
+      <div class="card-head"><h2>${icon('target')}Ponte metas</h2></div>
+      <p class="muted">Elige cuánto quieres ganar este mes y cuánto gastar como máximo. Verás tu avance y ganarás logros al cumplirlas.</p>
+      <div class="btn-row"><button class="btn primary" data-act="goals">${icon('target')}Elegir mis metas</button></div>
+    </section>`;
+  }
+  const R = 46, C = 2 * Math.PI * R;
+  const pct = g.income > 0 ? Math.min(1, t.logged / g.income) : 0;
+  const reached = g.income > 0 && t.logged >= g.income;
+  const spent = monthSpent(m), left = g.budget - spent;
+  const daysLeft = dayDiff(todayISO(), lastDay(m)) + 1;
+  const hp = g.budget > 0 ? Math.max(0, Math.min(1, left / g.budget)) : 0;
+  const hpCls = hp > 0.5 ? 'ok' : hp > 0.2 ? 'mid' : 'low';
+  return `<section class="card goals">
+    <div class="card-head"><h2>Metas de ${monthName(m)}</h2><button class="btn-sm ghost" data-act="goals">${icon('edit')}Editar</button></div>
+    ${g.income > 0 ? `<div class="goal-ring${reached ? ' reached' : ''}">
+      <svg viewBox="0 0 110 110" class="ring" aria-hidden="true">
+        <circle cx="55" cy="55" r="${R}" class="ring-bg"/>
+        <circle cx="55" cy="55" r="${R}" class="ring-fg" stroke-dasharray="${(pct * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 55 55)"/>
+      </svg>
+      <span class="ring-pct">${reached ? icon('trophy') : `${Math.round(pct * 100)}%`}</span>
+      <div class="goal-text">
+        <span class="label">Ingresos anotados</span>
+        <b>${money(t.logged)} <small>de ${money(g.income)}</small></b>
+        <small>${reached ? '¡Meta cumplida! Todo lo que sigue es extra.' : `Te faltan ${money(g.income - t.logged)}.${t.expected >= g.income ? ' Con tu ritmo, llegas.' : ` Con tu ritmo llegarías a ${money(t.expected)}.`}`}</small>
+      </div>
+    </div>` : ''}
+    ${g.budget > 0 ? `<div class="hp">
+      <div class="hp-head"><span class="label">${icon('shield')}Presupuesto de gastos</span><b class="${left < 0 ? 'neg' : ''}">${left < 0 ? `Te pasaste ${money(-left)}` : `Te quedan ${money(left)}`}</b></div>
+      <div class="hp-bar ${hpCls}"><i style="width:${Math.round(hp * 100)}%"></i></div>
+      <small class="muted">Gastaste ${money(spent)} de ${money(g.budget)}${left > 0 && daysLeft > 0 ? ` · ${money(left / daysLeft)} por día hasta fin de mes` : ''}</small>
+    </div>` : ''}
+    <div class="stats goal-stats">
       <div class="stat"><span>Cobrado</span><b class="pos">${money(t.collected)}</b></div>
       <div class="stat"><span>Estimado a fin de mes</span><b>${money(t.expected)}</b></div>
     </div>
+  </section>`;
+}
+
+// ── Logros ──
+function viewAchievements() {
+  const s = G.streak, list = [...G.achievements].sort((a, b) => (b.done - a.done) || (b.pct - a.pct));
+  const fmtV = a => (a.money ? `${moneyShort(Math.min(a.v, a.goal))} / ${moneyShort(a.goal)}` : `${Math.min(a.v, a.goal)} / ${a.goal}`);
+  return `
+  ${playerCard(true)}
+  <div class="stats">
+    <div class="stat"><span>Racha actual</span><b>${s.cur} ${s.cur === 1 ? 'día' : 'días'}</b></div>
+    <div class="stat"><span>Mejor racha</span><b>${s.best} ${s.best === 1 ? 'día' : 'días'}</b></div>
+    <div class="stat"><span>Logros</span><b>${G.unlocked.length} / ${G.achievements.length}</b></div>
+  </div>
+  <section class="card">
+    <div class="card-head"><h2>Tu actividad</h2><span class="muted small">Últimas 12 semanas</span></div>
+    ${heatmap()}
   </section>
-  ${nextWithdrawalCard()}`;
+  <section class="card">
+    <div class="card-head"><h2>Logros</h2></div>
+    <div class="ach-grid">${list.map(a => `<div class="ach${a.done ? ' done' : ''}">
+      <span class="ach-ic">${icon(a.done ? a.icon : 'lock')}</span>
+      <b>${esc(a.name)}</b>
+      <small>${esc(a.desc)}</small>
+      ${a.done ? `<span class="xp-pill">+${XP.achievement} XP</span>` : `<span class="ach-bar"><i style="width:${Math.round(a.pct * 100)}%"></i></span><small class="ach-v">${fmtV(a)}</small>`}
+    </div>`).join('')}</div>
+  </section>
+  <section class="card">
+    <div class="card-head"><h2>Cómo ganar XP</h2></div>
+    <div class="rows">
+      ${[['zap', 'Anotar una entrega', XP.entry], ['banknote', 'Cobrar un mes', XP.payment], ['receipt', 'Anotar un gasto o ingreso', XP.move], ['wallet', 'Registrar un retiro', XP.withdrawal], ['trophy', 'Desbloquear un logro', XP.achievement]]
+        .map(([ic, t, xp]) => `<div class="row"><span class="move-ic">${icon(ic)}</span><span class="row-main"><b>${t}</b></span><span class="xp-pill">+${xp} XP</span></div>`).join('')}
+    </div>
+    <small class="field-hint">Los puntos salen de lo que tienes anotado: si borras algo, sus puntos también se van. La racha cuenta los días seguidos en que anotas algo.</small>
+  </section>`;
+}
+function heatmap() {
+  const t = todayISO(), start = addDays(weekStart(t), -77), count = new Map();
+  const bump = d => count.set(d, (count.get(d) || 0) + 1);
+  data.entries.forEach(e => bump(e.date));
+  realMoves().forEach(x => bump(x.date));
+  data.payments.forEach(p => bump(p.date));
+  data.game.days.forEach(d => { if (!count.has(d)) count.set(d, 1); });
+  const cells = [];
+  for (let d = start; d <= addDays(weekStart(t), 6); d = addDays(d, 1)) {
+    const n = d > t ? -1 : count.get(d) || 0;
+    const lv = n < 0 ? 'fut' : n === 0 ? 'l0' : n < 2 ? 'l1' : n < 4 ? 'l2' : 'l3';
+    cells.push(`<i class="${lv}${d === t ? ' today' : ''}" title="${fmtDate(d)}${n > 0 ? ` · ${n}` : ''}"></i>`);
+  }
+  return `<div class="heat" role="img" aria-label="Días con actividad">${cells.join('')}</div>
+    <div class="heat-legend"><span>Menos</span><i class="l0"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i><span>Más</span></div>`;
 }
 
 function forecastBlock() {
@@ -1024,7 +1327,8 @@ function chargeForm(c, m, pay = null) {
     <p class="preview">${esc(c.name)}${lines.length ? ` · ${esc(linesText(lines))} · ${money(logged, clientCur(c))}` : ''}</p>
     ${moneyField('Te pagó', 'amount', clientCur(c), pay ? pay.amount : logged || '', 'min="0.01" required', ' ')}
     <label class="field"><span>Lo recibiste en</span><select name="wallet">${walletOptions(w0)}</select></label>
-    ${moneyField('', 'balance', wallet(w0).currency, '', pay ? 'placeholder="Sin cambios"' : 'required', ' ')}
+    <div data-balwrap>${moneyField('', 'balance', wallet(w0).currency, '', pay ? 'placeholder="Sin cambios"' : '', ' ')}</div>
+    <p class="preview" data-linked hidden></p>
     <label class="field"><span>Fecha</span><input name="date" type="date" required value="${pay?.date || todayISO()}"></label>
     ${pay ? deleteButton('deletePayment', pay.id, 'Deshacer cobro') : ''}
     ${formActions(pay ? 'Guardar' : 'Cobrar')}
@@ -1036,28 +1340,50 @@ function chargeForm(c, m, pay = null) {
       setText(form, '[data-hint="amount"]', cc !== w.currency && amount > 0 ? `Unos ${money(convert(amount, cc, w.currency), w.currency)} en ${w.name}` : '');
       setText(form, '[data-cur="balance"]', CURRENCIES[w.currency]);
       setText(form, '[data-label="balance"]', `¿Cuánto tienes ahora en ${w.name}?`);
-      setText(form, '[data-hint="balance"]', pay ? `Ahora: ${money(w.balance, w.currency)}. Déjalo vacío si no cambió.` : `Antes de este cobro: ${money(w.balance, w.currency)}`);
+      setText(form, '[data-hint="balance"]', pay ? `Ahora: ${money(w.balance, w.currency)}. Déjalo vacío si no cambió.` : `Antes de este cobro: ${money(w.balance, w.currency)}. Déjalo vacío si aún no lo revisas.`);
+      // En la billetera de gastos no se escribe el saldo: el cobro se anota como ingreso y el saldo sube solo.
+      const linked = isLinked(w);
+      form.querySelector('[data-balwrap]').hidden = linked;
+      form.querySelector('[data-linked]').hidden = !linked;
+      if (linked) setText(form, '[data-linked]', `Se anota como ingreso en Gastos${amount > 0 ? ` (+${money(convert(amount, cc, 'PEN'))})` : ''} y tu saldo de ${w.name} sube solo.`);
     };
     el('wallet').addEventListener('change', sync);
     el('amount').addEventListener('input', sync);
     sync();
-    if (!pay) el('balance').focus();
+    if (!pay && !isLinked(wallet(el('wallet').value))) el('balance').focus();
     form.onsubmit = e => {
       e.preventDefault();
       const w = wallet(el('wallet').value);
       const amount = round2(el('amount').value);
       if (!(amount > 0)) return toast('Escribe cuánto te pagó');
-      const typed = el('balance').value;
+      const date = el('date').value;
+      const linked = isLinked(w);
+      const typed = linked ? '' : el('balance').value;
       const before = w.balance;
       if (typed !== '') setBalance(w, typed);
+      // Movimiento de ingreso en Gastos cuando el cobro llega a la billetera de gastos.
+      let moveId = pay?.moveId || '';
+      const mv = moveId && data.expenses.find(x => x.id === moveId);
+      if (linked) {
+        const amt = round2(convert(amount, cc, 'PEN'));
+        if (mv) Object.assign(mv, { amount: amt, date });
+        else {
+          moveId = uid();
+          data.expenses.push({ id: moveId, kind: 'in', date, amount: amt, currency: 'PEN', category: 'Cobro', contact: c.name, note: `Cobro de ${monthName(m)}` });
+        }
+      } else if (mv) {
+        data.expenses = data.expenses.filter(x => x !== mv);
+        moveId = '';
+      }
+      syncLinked();
       if (pay) {
-        Object.assign(pay, { amount, currency: cc, wallet: w.id, date: el('date').value });
-        if (typed !== '') Object.assign(pay, { balanceBefore: before, balanceAfter: w.balance });
+        Object.assign(pay, { amount, currency: cc, wallet: w.id, date, moveId });
+        if (typed !== '' || linked) Object.assign(pay, { balanceBefore: before, balanceAfter: w.balance });
       } else {
-        data.payments.push({ id: uid(), clientId: c.id, month: m, amount, currency: cc, wallet: w.id, date: el('date').value, balanceBefore: before, balanceAfter: w.balance });
+        data.payments.push({ id: uid(), clientId: c.id, month: m, amount, currency: cc, wallet: w.id, date, balanceBefore: before, balanceAfter: w.balance, moveId });
       }
       closeSheet();
-      commit(pay ? 'Cobro actualizado' : `${c.name}: ${monthName(m)} cobrado`);
+      commit(pay ? 'Cobro actualizado' : `${c.name}: ${monthName(m)} cobrado`, pay ? 0 : XP.payment);
     };
   });
 }
@@ -1415,22 +1741,26 @@ function gViewHome() {
   const m = thisMonth(), mv = data.expenses.filter(x => monthKey(x.date) === m && !isAdj(x));
   const inT = sumAmount(mv.filter(isIncome)), outT = sumAmount(mv.filter(isOut));
   const recent = [...data.expenses].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0)).slice(0, 6);
+  const sw = spendWallet(), b = data.goals.budget, left = b - outT;
   return `
-  <section class="card">
-    <div class="forecast"><div class="fc-box">
-      <p class="label">Saldo de Yape</p>
-      <p class="hero-amount ${yapeBalance() < 0 ? 'neg' : ''}">${money(yapeBalance())}</p>
-    </div></div>
-    <div class="btn-row"><button class="btn ghost" data-act="adjustYape">${icon('edit')}Ajustar saldo</button></div>
+  <section class="card hero spend-hero">
+    <p class="label">${sw ? `Saldo de ${esc(sw.name)}` : 'Saldo de gastos'}</p>
+    <p class="hero-amount ${yapeBalance() < 0 ? 'neg' : ''}">${money(yapeBalance())}</p>
+    <p class="hero-note">${sw ? `${icon('link')}Es la misma billetera ${esc(sw.name)} de Inicio: cada gasto o ingreso que anotas aquí cambia ese saldo.` : 'No está unida a ninguna billetera. Puedes unirla en Ajustes.'}</p>
+    <div class="btn-row"><button class="btn ghost on-dark" data-act="adjustYape">${icon('edit')}Ajustar saldo</button></div>
   </section>
-  <div class="btn-row">
-    <button class="btn primary big" data-act="newExpense">${icon('plus')}Gasto</button>
-    <button class="btn primary big" data-act="newIncome">${icon('plus')}Ingreso</button>
+  <div class="btn-row big-actions">
+    <button class="btn out big" data-act="newExpense">${icon('minus')}Gasto<span class="xp-pill">+${XP.move} XP</span></button>
+    <button class="btn in big" data-act="newIncome">${icon('plus')}Ingreso<span class="xp-pill">+${XP.move} XP</span></button>
   </div>
-  <div class="stats two">
+  ${b > 0 ? `<section class="card hp">
+    <div class="hp-head"><span class="label">${icon('shield')}Presupuesto de ${monthName(m)}</span><b class="${left < 0 ? 'neg' : ''}">${left < 0 ? `Te pasaste ${money(-left)}` : `Te quedan ${money(left)}`}</b></div>
+    <div class="hp-bar ${left / b > 0.5 ? 'ok' : left / b > 0.2 ? 'mid' : 'low'}"><i style="width:${Math.round(Math.max(0, Math.min(1, left / b)) * 100)}%"></i></div>
+    <small class="muted">Gastos ${money(outT)} · Ingresos ${money(inT)}</small>
+  </section>` : `<div class="stats two">
     <div class="stat"><span>Gastos de ${monthName(m)}</span><b class="neg">${money(outT)}</b></div>
     <div class="stat"><span>Ingresos de ${monthName(m)}</span><b class="pos">${money(inT)}</b></div>
-  </div>
+  </div>`}
   <section class="card">
     <div class="card-head"><h2>Últimos movimientos</h2>${data.expenses.length > 6 ? '<button class="link" data-act="gTab" data-tab="movs">Ver todos</button>' : ''}</div>
     ${recent.length ? `<div class="rows">${recent.map(moveRow).join('')}</div>` : emptyState('Aún no anotas movimientos. Empieza ajustando tu saldo de Yape.')}
@@ -1482,8 +1812,9 @@ function contactSheet(c) {
 
 // Escribes cuánto tienes ahora en Yape: la diferencia queda como un ajuste de saldo (no cuenta en estadísticas).
 function yapeForm() {
-  openSheet('Ajustar saldo de Yape', `<form class="form">
-    ${moneyField('Cuánto tienes ahora en Yape', 'balance', 'PEN', yapeBalance(), 'required')}
+  const name = spendWallet()?.name || 'Yape';
+  openSheet(`Ajustar saldo de ${name}`, `<form class="form">
+    ${moneyField(`Cuánto tienes ahora en ${esc(name)}`, 'balance', 'PEN', yapeBalance(), 'required')}
     <label class="field"><span>Motivo</span><input name="note" maxlength="80" placeholder="Opcional. Ej. Cuadré con la app de Yape"></label>
     <p class="muted small">Se anota como ajuste de saldo: cambia tu saldo pero no cuenta como gasto ni ingreso.</p>
     ${formActions()}
@@ -1493,7 +1824,10 @@ function yapeForm() {
       e.preventDefault();
       if (el('balance').value === '' || !Number.isFinite(Number(el('balance').value))) return toast('Escribe tu saldo');
       const prev = yapeBalance(), after = round2(el('balance').value), diff = round2(after - prev);
-      if (!diff) return toast('Ya tienes ese saldo');
+      const hadConflict = Boolean(data.linkConflict);
+      data.linkConflict = null;
+      if (spendWallet()) spendWallet().updated = todayISO();
+      if (!diff) { closeSheet(); return commit(hadConflict ? 'Saldo confirmado' : 'Ya tienes ese saldo'); }
       const note = el('note').value.trim() || (data.expenses.length ? '' : 'Saldo inicial');
       data.expenses.push({ id: uid(), kind: 'adj', date: todayISO(), amount: diff, currency: 'PEN', category: 'Ajuste', note, prev, after });
       closeSheet();
@@ -1726,11 +2060,13 @@ function withdrawalForm() {
       const received = round2(toAfter - toBefore);
       if (!(amount > 0)) return toast('Escribe cuánto retiraste');
       if (!(received > 0)) return toast(`El saldo de ${b.name} debería ser mayor que ${money(toBefore, b.currency)}`);
-      setBalance(a, Math.max(0, fromBefore - amount));
-      setBalance(b, toAfter);
-      data.withdrawals.push({ id: uid(), date: el('date').value, from: a.id, to: b.id, amount, received, fromBefore, fromAfter: a.balance, toBefore, toAfter, note: el('note').value.trim() });
+      const moves = [
+        setBalance(a, Math.max(0, fromBefore - amount), `Retiro hacia ${b.name}`),
+        setBalance(b, toAfter, `Retiro desde ${a.name}`),
+      ].filter(Boolean);
+      data.withdrawals.push({ id: uid(), date: el('date').value, from: a.id, to: b.id, amount, received, fromBefore, fromAfter: a.balance, toBefore, toAfter, note: el('note').value.trim(), moves });
       closeSheet();
-      commit('Retiro registrado');
+      commit('Retiro registrado', XP.withdrawal);
     };
   });
 }
@@ -1941,8 +2277,10 @@ const actions = {
     const p = data.payments.find(x => x.id === d.id);
     if (!p || !confirm('¿Deshacer este cobro? Lo anotado se mantiene.')) return;
     const w = wallet(p.wallet);
+    // Si el cobro se anotó como ingreso en Gastos, se quita ese movimiento.
+    if (p.moveId) data.expenses = data.expenses.filter(x => x.id !== p.moveId);
     // Si el saldo no se ha tocado desde el cobro, vuelve al valor anterior.
-    if (w && p.balanceBefore != null && w.balance === p.balanceAfter) setBalance(w, p.balanceBefore);
+    else if (w && !isLinked(w) && p.balanceBefore != null && w.balance === p.balanceAfter) setBalance(w, p.balanceBefore);
     data.payments = data.payments.filter(x => x !== p);
     closeSheet();
     commit('Cobro deshecho');
@@ -1992,10 +2330,12 @@ const actions = {
     const x = data.withdrawals.find(y => y.id === d.id);
     if (!x || !confirm('¿Eliminar este retiro?')) return;
     const a = wallet(x.from), b = wallet(x.to);
-    // Si los saldos siguen como quedaron tras el retiro, se restauran.
-    if (a && b && x.fromBefore != null && a.balance === x.fromAfter && b.balance === x.toAfter) {
-      setBalance(a, x.fromBefore);
-      setBalance(b, x.toBefore);
+    // Los ajustes que el retiro hizo en la billetera de gastos se quitan.
+    const moves = arr(x.moves);
+    if (moves.length) { data.expenses = data.expenses.filter(y => !moves.includes(y.id)); syncLinked(); }
+    // En las demás, si el saldo sigue como quedó tras el retiro, se restaura.
+    for (const [w, before, after] of [[a, x.fromBefore, x.fromAfter], [b, x.toBefore, x.toAfter]]) {
+      if (w && !isLinked(w) && before != null && w.balance === after) setBalance(w, before);
     }
     data.withdrawals = data.withdrawals.filter(y => y !== x);
     closeSheet();
