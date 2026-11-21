@@ -873,5 +873,5 @@ body.scrolled .page-title { font-size: 20px; letter-spacing: -.4px; }
 /* iPhone con teclado abierto: la hoja se ajusta al área visible (app.js pone --vvh y --vvt) y la barra inferior se esconde */
 .sidebar { transition: opacity .2s, transform .25s var(--ease); }
 html.ios-kb .sheet-backdrop { inset: var(--vvt, 0px) 0 auto 0; height: var(--vvh, 100%); }
-html.ios-kb .sheet { max-height: calc(var(--vvh, 100vh) - 14px); padding-bottom: 16px; }
+html.ios-kb .sheet { max-height: calc(var(--vvh, 100vh) - max(env(safe-area-inset-top, 0px), 20px) - 16px); padding-bottom: 16px; }
 html.ios-kb .sidebar { opacity: 0; pointer-events: none; transform: translateY(24px); }

@@ -2,7 +2,7 @@
 
 // ── Configuración ──
 // Versión publicada: debe coincidir con version.json y con el ?v= de index.html.
-const APP_VERSION = 37;
+const APP_VERSION = 38;
 const KEY = 'saldo-v2';
 const OLD_KEY = 'saldo-freelance-v1';
 // ID de cliente OAuth (público). Se usa para guardar tus datos en tu Google Drive (carpeta oculta de la app).
@@ -1363,12 +1363,16 @@ if (IS_IOS && window.visualViewport) {
   vv.addEventListener('scroll', syncVV);
   document.addEventListener('focusout', () => setTimeout(syncVV, 250));
 }
-// Sube el campo enfocado dentro de la hoja, a la parte alta del espacio visible.
+// Si el campo enfocado (con su etiqueta) queda cortado arriba o abajo, lo acomoda dentro de la hoja. Si ya se ve, no mueve nada.
 function iosReveal(field) {
   const box = field.closest('.sheet');
   if (!box || document.activeElement !== field) return;
-  const top = field.getBoundingClientRect().top - box.getBoundingClientRect().top;
-  if (top > box.clientHeight * 0.55 || top < 8) box.scrollBy({ top: top - box.clientHeight * 0.25, behavior: 'smooth' });
+  const el = field.closest('.field') || field;
+  const b = box.getBoundingClientRect(), r = el.getBoundingClientRect();
+  const top = r.top - b.top, bottom = r.bottom - b.top;
+  const pad = 56; // espacio para la cabecera de la hoja
+  if (top < pad) box.scrollBy({ top: top - pad, behavior: 'smooth' });
+  else if (bottom > box.clientHeight - 12) box.scrollBy({ top: bottom - box.clientHeight + 24, behavior: 'smooth' });
 }
 document.addEventListener('focusin', e => {
   if (!isTextField(e.target) || !window.matchMedia('(pointer: coarse)').matches) return;
