@@ -2,7 +2,7 @@
 
 // ── Configuración ──
 // Versión publicada: debe coincidir con version.json y con el ?v= de index.html.
-const APP_VERSION = 40;
+const APP_VERSION = 49;
 const KEY = 'saldo-v2';
 const OLD_KEY = 'saldo-freelance-v1';
 // ID de cliente OAuth (público). Se usa para guardar tus datos en tu Google Drive (carpeta oculta de la app).
@@ -726,9 +726,20 @@ function placeLens() {
   const a = nav.querySelector('.nav-item.active:not(.desk)');
   if (!a || !a.offsetWidth) { navLens.style.opacity = '0'; return; }
   navLens.style.opacity = '';
+  // Efecto líquido: la lente se estira en el sentido del movimiento y se aplasta un poco, y luego se asienta con rebote.
+  const prev = parseFloat(navLens.style.getPropertyValue('--lx'));
+  const dist = Math.abs(a.offsetLeft - prev);
+  if (dist > 1 && navLens.animate && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const sx = 1 + Math.min(dist / a.offsetWidth * 0.32, 0.9), sy = Math.max(0.86, 1 - dist / a.offsetWidth * 0.06);
+    navLens.animate([{ scale: '1 1' }, { scale: sx + ' ' + sy, offset: .38 }, { scale: '0.96 1.08', offset: .72 }, { scale: '1 1' }], { duration: 620, easing: 'cubic-bezier(.3,.7,.3,1)' });
+  }
   navLens.style.setProperty('--lx', a.offsetLeft + 'px');
   navLens.style.setProperty('--lw', a.offsetWidth + 'px');
 }
+
+// Al apoyar el dedo en la barra, la lente se infla como una gota de cristal.
+document.addEventListener('pointerdown', e => { if (navLens && e.target.closest && e.target.closest('.nav-item')) navLens.classList.add('press'); });
+['pointerup', 'pointercancel', 'dragend'].forEach(t => document.addEventListener(t, () => navLens && navLens.classList.remove('press')));
 
 function render() {
   syncLinked();
@@ -3137,3 +3148,47 @@ async function checkForUpdate() {
 }
 checkForUpdate();
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkForUpdate(); });
+
+// ── Arrastre de la lente (como Liquidum / iOS 26): la lente se levanta, sigue al dedo estirándose
+//    según la velocidad y, al soltar, se asienta en la pestaña más cercana con rebote. ──
+(() => {
+  let drag = null, suppressClick = false;
+  const items = () => [...document.querySelectorAll('#nav .nav-item:not(.desk)')];
+  document.addEventListener('pointerdown', e => {
+    if (!navLens || !matchMedia('(max-width: 899px)').matches) return;
+    const it = e.target.closest && e.target.closest('#nav .nav-item');
+    if (!it) return;
+    const nav = $('nav'), r = nav.getBoundingClientRect();
+    drag = { x0: e.clientX, lx0: parseFloat(navLens.style.getPropertyValue('--lx')) || 0, w: navLens.offsetWidth, nw: r.width, left: r.left, moved: false, lx: 0, t: performance.now(), px: e.clientX, v: 0, id: e.pointerId };
+    drag.lx = drag.lx0;
+  });
+  document.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const dx = e.clientX - drag.x0;
+    if (!drag.moved && Math.abs(dx) < 8) return;
+    if (!drag.moved) { drag.moved = true; navLens.classList.add('drag', 'press'); }
+    const now = performance.now(), dt = Math.max(now - drag.t, 1);
+    drag.v = drag.v * 0.6 + ((e.clientX - drag.px) / dt) * 0.4; drag.t = now; drag.px = e.clientX;
+    drag.lx = Math.min(Math.max(drag.lx0 + dx, 0), drag.nw - drag.w);
+    navLens.style.setProperty('--lx', drag.lx + 'px');
+    const k = Math.min(Math.abs(drag.v) * 0.45, 0.4);
+    navLens.style.scale = (1.14 + k) + ' ' + (1.22 - k * 0.5);
+    const c = drag.lx + drag.w / 2;
+    items().forEach(a => a.classList.toggle('peek', c >= a.offsetLeft && c < a.offsetLeft + a.offsetWidth));
+  });
+  const end = () => {
+    if (!drag) return;
+    const d = drag; drag = null;
+    if (!d.moved) return;
+    suppressClick = true; setTimeout(() => { suppressClick = false; }, 60);
+    navLens.classList.remove('drag', 'press'); navLens.style.scale = '';
+    items().forEach(a => a.classList.remove('peek'));
+    const c = d.lx + d.w / 2;
+    const hit = items().find(a => c >= a.offsetLeft && c < a.offsetLeft + a.offsetWidth);
+    if (hit && !hit.classList.contains('active')) location.hash = hit.getAttribute('href');
+    else placeLens();
+  };
+  document.addEventListener('pointerup', end);
+  document.addEventListener('pointercancel', end);
+  document.addEventListener('click', e => { if (suppressClick && e.target.closest && e.target.closest('#nav')) { e.preventDefault(); e.stopPropagation(); } }, true);
+})();

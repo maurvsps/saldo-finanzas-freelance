@@ -1197,3 +1197,59 @@ body.scrolled .page-title { font-size: 17px; font-weight: 600; letter-spacing: -
   body.scrolled .topbar { background: #0c0c0e; }
   .picker-list, .toast { background: #2c2c2e; }
 }
+
+/* v43b · Barra de pestañas con Liquid Glass completo:
+   cristal muy translúcido con desenfoque y saturación, filo de luz en degradado,
+   brillo superior y una lente que ilumina y amplifica lo que hay detrás. */
+@media (max-width: 899px) {
+  .sidebar {
+    background: linear-gradient(180deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .05) 55%, rgba(255, 255, 255, .09)), rgba(40, 42, 52, .22);
+    border: 0;
+    backdrop-filter: blur(22px) saturate(210%) brightness(1.08); -webkit-backdrop-filter: blur(22px) saturate(210%) brightness(1.08);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, .42), inset 0 -1px 0 rgba(255, 255, 255, .1),
+      inset 1px 0 0 rgba(255, 255, 255, .12), inset -1px 0 0 rgba(255, 255, 255, .12),
+      inset 0 10px 18px -8px rgba(255, 255, 255, .22),
+      0 16px 40px rgba(0, 0, 0, .5), 0 2px 8px rgba(0, 0, 0, .35);
+  }
+  .sidebar::before {
+    display: block !important; content: ''; position: absolute; inset: 0; z-index: 0; padding: 1px; border-radius: inherit; pointer-events: none;
+    background: linear-gradient(160deg, rgba(255, 255, 255, .75), rgba(255, 255, 255, .1) 30%, rgba(255, 255, 255, .04) 62%, rgba(255, 255, 255, .4));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  }
+  .nav-lens {
+    background: linear-gradient(180deg, rgba(255, 255, 255, .34), rgba(255, 255, 255, .12) 55%, rgba(255, 255, 255, .2));
+    backdrop-filter: blur(4px) saturate(190%) brightness(1.3); -webkit-backdrop-filter: blur(4px) saturate(190%) brightness(1.3);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6), inset 0 -1px 0 rgba(255, 255, 255, .2), inset 0 0 14px rgba(255, 255, 255, .12), 0 6px 18px rgba(0, 0, 0, .35);
+  }
+  .nav-item { text-shadow: 0 1px 6px rgba(0, 0, 0, .35); }
+  .nav-item .ic { filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .3)); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .sidebar { background: #2c2c2e; box-shadow: none; }
+  .sidebar::before { display: none !important; }
+}
+
+/* v44b · menos blanco y lente líquida: transparente con filo fino, se infla al tocar */
+@media (max-width: 899px) {
+  .sidebar {
+    background: linear-gradient(180deg, rgba(255, 255, 255, .07), rgba(255, 255, 255, .015) 55%, rgba(255, 255, 255, .04)), rgba(30, 32, 40, .3);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22), inset 0 -1px 0 rgba(255, 255, 255, .06), inset 0 8px 14px -8px rgba(255, 255, 255, .1), 0 16px 40px rgba(0, 0, 0, .5);
+  }
+  .sidebar::before { opacity: .55; }
+  .nav-lens {
+    background: linear-gradient(180deg, rgba(255, 255, 255, .15), rgba(255, 255, 255, .03) 55%, rgba(255, 255, 255, .08)), rgba(120, 130, 160, .12);
+    backdrop-filter: blur(3px) saturate(220%) brightness(1.18); -webkit-backdrop-filter: blur(3px) saturate(220%) brightness(1.18);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .38), inset 0 -1px 0 rgba(255, 255, 255, .1), inset 0 0 12px rgba(255, 255, 255, .05), 0 6px 18px rgba(0, 0, 0, .35);
+    transform-origin: center; transition: transform .55s var(--spring), width .55s var(--spring), opacity .2s, scale .35s var(--spring);
+  }
+  .nav-lens.press { scale: 1.14 1.22; }
+}
+
+/* Arrastre de la lente: sin transición mientras sigue al dedo; la pestaña bajo la lente se tiñe de azul */
+@media (max-width: 899px) {
+  .nav-lens.drag { transition: width .2s, opacity .2s, scale .12s linear; }
+  .nav-item { touch-action: none; -webkit-user-select: none; user-select: none; }
+  .nav-item.peek { color: #0a84ff; }
+}
