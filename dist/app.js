@@ -2,7 +2,7 @@
 
 // ── Configuración ──
 // Versión publicada: debe coincidir con version.json y con el ?v= de index.html.
-const APP_VERSION = 36;
+const APP_VERSION = 37;
 const KEY = 'saldo-v2';
 const OLD_KEY = 'saldo-freelance-v1';
 // ID de cliente OAuth (público). Se usa para guardar tus datos en tu Google Drive (carpeta oculta de la app).
@@ -1348,9 +1348,32 @@ function closeKeyboard() {
   if (sv.box && sv.box.isConnected) sv.box.scrollTop = sv.top;
   else if (!sv.box) window.scrollTo(0, sv.top);
 }
+// iPhone: el teclado no cambia el tamaño de la página, la tapa y Safari la desplaza. En vez de estimar el teclado,
+// la hoja sigue el área realmente visible (visualViewport): --vvh es su alto y --vvt cuánto se desplazó.
+const IS_IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+if (IS_IOS && window.visualViewport) {
+  const vv = window.visualViewport;
+  const syncVV = () => {
+    const open = vv.scale <= 1.01 && window.innerHeight - vv.height - vv.offsetTop > 80 && isTextField(document.activeElement);
+    kbRoot.style.setProperty('--vvh', Math.round(vv.height) + 'px');
+    kbRoot.style.setProperty('--vvt', Math.round(vv.offsetTop) + 'px');
+    kbRoot.classList.toggle('ios-kb', open);
+  };
+  vv.addEventListener('resize', syncVV);
+  vv.addEventListener('scroll', syncVV);
+  document.addEventListener('focusout', () => setTimeout(syncVV, 250));
+}
+// Sube el campo enfocado dentro de la hoja, a la parte alta del espacio visible.
+function iosReveal(field) {
+  const box = field.closest('.sheet');
+  if (!box || document.activeElement !== field) return;
+  const top = field.getBoundingClientRect().top - box.getBoundingClientRect().top;
+  if (top > box.clientHeight * 0.55 || top < 8) box.scrollBy({ top: top - box.clientHeight * 0.25, behavior: 'smooth' });
+}
 document.addEventListener('focusin', e => {
   if (!isTextField(e.target) || !window.matchMedia('(pointer: coarse)').matches) return;
   const field = e.target;
+  if (IS_IOS) { setTimeout(() => { if (window.visualViewport) window.visualViewport.dispatchEvent(new Event('resize')); iosReveal(field); }, 380); return; }
   clearTimeout(kbTimer);
   if (!savedScroll) { const box = field.closest('.sheet'); savedScroll = { box, top: box ? box.scrollTop : window.scrollY }; }
   if (!kbRoot.style.getPropertyValue('--kb') || kbRoot.style.getPropertyValue('--kb') === '0px') setKb(Math.round(baseH() * 0.45));
