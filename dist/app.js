@@ -16,7 +16,7 @@ const CURRENCIES = { PEN: 'S/', USD: '$', EUR: '€', GBP: '£' };
 const CURRENCY_NAMES = { PEN: 'Soles (PEN)', USD: 'Dólares (USD)', EUR: 'Euros (EUR)', GBP: 'Libras (GBP)' };
 // Monedas en las que te puede pagar un cliente.
 const CLIENT_CURRENCIES = ['USD', 'EUR', 'GBP', 'PEN'];
-const COLORS = ['#6be38f', '#b48cff', '#5fa8ff', '#ffa24c', '#3fd6c6', '#ff7a95'];
+const COLORS = ['#0a84ff', '#b48cff', '#5fa8ff', '#ffa24c', '#5ac8fa', '#ff7a95'];
 const OTHERS = 'Otros trabajos';
 // Cada cuánto haces un producto: solo se usa para estimar lo que falta del mes.
 // Para estimar: cuántas veces haces un producto por semana o al mes (0 = a pedido).
@@ -47,12 +47,12 @@ const PLAN_MONTHS = 12;
 // Icono y color de cada categoría; las que creas tú guardan el suyo en data.catStyles.
 const CAT_META = {
   Comida: ['utensils', '#ffa24c'], Transporte: ['bus', '#5fa8ff'], Vivienda: ['home', '#b48cff'], Servicios: ['bolt', '#f4cb4f'],
-  Salud: ['heart', '#ff7a95'], Ocio: ['gamepad', '#3fd6c6'], Compras: ['bag', '#f472d0'], Trabajo: ['briefcase', '#6be38f'],
-  Impuestos: ['percent', '#9fb5a8'], Otros: ['dots', '#7d9486'],
-  Cobro: ['banknote', '#6be38f'], 'Yape recibido': ['phone', '#b48cff'], Regalo: ['gift', '#f472d0'], Reembolso: ['refresh', '#5fa8ff'], Venta: ['tag', '#ffa24c'],
+  Salud: ['heart', '#ff7a95'], Ocio: ['gamepad', '#5ac8fa'], Compras: ['bag', '#f472d0'], Trabajo: ['briefcase', '#0a84ff'],
+  Impuestos: ['percent', '#8e8e93'], Otros: ['dots', '#7d9486'],
+  Cobro: ['banknote', '#0a84ff'], 'Yape recibido': ['phone', '#b48cff'], Regalo: ['gift', '#f472d0'], Reembolso: ['refresh', '#5fa8ff'], Venta: ['tag', '#ffa24c'],
 };
 const CAT_ICONS = ['utensils', 'coffee', 'bus', 'car', 'home', 'bolt', 'wifi', 'heart', 'gamepad', 'bag', 'briefcase', 'percent', 'gift', 'book', 'plane', 'tag', 'star', 'user', 'banknote', 'dots'];
-const CAT_COLORS = ['#6be38f', '#5fa8ff', '#b48cff', '#f472d0', '#ff7a95', '#ffa24c', '#f4cb4f', '#3fd6c6', '#9fb5a8', '#c6f53b'];
+const CAT_COLORS = ['#0a84ff', '#5fa8ff', '#b48cff', '#f472d0', '#ff7a95', '#ffa24c', '#f4cb4f', '#5ac8fa', '#8e8e93', '#0a84ff'];
 // Colores de categorías creadas antes del tema oscuro → su versión clara (mismo tono).
 const OLD_CAT_COLORS = ['#2f7a59', '#2563a8', '#7b3fa0', '#c2478a', '#a8445a', '#b26a2c', '#946013', '#3f7f88', '#646c66', '#1b211e'];
 const liveColor = c => (OLD_CAT_COLORS.includes(c) ? CAT_COLORS[OLD_CAT_COLORS.indexOf(c)] : c);
@@ -947,7 +947,7 @@ function goalsCard(m) {
   return `<section class="card goals">
     <div class="card-head"><h2>Metas de ${monthName(m)}</h2><button class="btn-sm ghost" data-act="goals">${icon('edit')}Editar</button></div>
     ${g.income > 0 ? `<div class="goal-ring${reached ? ' reached' : ''}">
-      <svg viewBox="0 0 110 110" class="ring" aria-hidden="true"><defs><linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c6f53b"/><stop offset="1" stop-color="#2fe3b4"/></linearGradient></defs>
+      <svg viewBox="0 0 110 110" class="ring" aria-hidden="true"><defs><linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a84ff"/><stop offset="1" stop-color="#64d2ff"/></linearGradient></defs>
         <circle cx="55" cy="55" r="${R}" class="ring-bg"/>
         <circle cx="55" cy="55" r="${R}" class="ring-fg" stroke-dasharray="${(pct * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 55 55)"/>
       </svg>
@@ -1716,7 +1716,7 @@ function gTimeChart(list) {
   const x = i => padX + (n === 1 ? (W - 2 * padX) / 2 : (i * (W - 2 * padX)) / (n - 1));
   const y = v => H - padB - (v / max) * (H - padB - padT);
   const base = H - padB;
-  const col = { in: ['#c6f53b', '#2fe3b4'], out: ['#ff8a6b', '#ff6f61'] };
+  const col = { in: ['#0a84ff', '#64d2ff'], out: ['#ff8a6b', '#ff6f61'] };
   const grid = [0.25, 0.5, 0.75, 1].map(f => `<line x1="0" x2="${W}" y1="${y(max * f).toFixed(1)}" y2="${y(max * f).toFixed(1)}" class="chart-grid"/>`).join('');
   const defs = series.map(s => `<linearGradient id="ln-${s}" x1="0" x2="1"><stop offset="0" stop-color="${col[s][0]}"/><stop offset="1" stop-color="${col[s][1]}"/></linearGradient>
     <linearGradient id="ar-${s}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${col[s][1]}" stop-opacity=".38"/><stop offset="1" stop-color="${col[s][1]}" stop-opacity="0"/></linearGradient>`).join('');
@@ -1740,7 +1740,7 @@ function gTimeChart(list) {
   const labels = items.map((b, i) => (i % step && i !== n - 1 ? '' : `<text x="${x(i).toFixed(1)}" y="${H - 6}" text-anchor="${i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'}" class="chart-t">${esc(label(b.key))}</text>`)).join('');
   const unit = mode === 'day' ? 'por día' : mode === 'week' ? 'por semana' : 'por mes';
   return `<section class="card">
-    <div class="card-head"><h2>${gf.type === 'in' ? 'Ingresos' : gf.type === 'out' ? 'Gastos' : 'Ingresos y gastos'} ${unit}</h2>${series.length > 1 ? '<span class="legend"><i style="background:#2fe3b4"></i>Ingresos <i style="background:#ff6f61"></i>Gastos</span>' : ''}</div>
+    <div class="card-head"><h2>${gf.type === 'in' ? 'Ingresos' : gf.type === 'out' ? 'Gastos' : 'Ingresos y gastos'} ${unit}</h2>${series.length > 1 ? '<span class="legend"><i style="background:#64d2ff"></i>Ingresos <i style="background:#ff6f61"></i>Gastos</span>' : ''}</div>
     <svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Gráfica ${unit}">
       <defs>${defs}</defs>${grid}${paths}${marker}${labels}${hits}
     </svg>
@@ -1833,7 +1833,7 @@ function gCell(c, x) {
     case 'date': return fmtDate(x.date, x.date.slice(0, 4) === todayISO().slice(0, 4) ? { day: 'numeric', month: 'short' } : { day: 'numeric', month: 'short', year: 'numeric' });
     case 'contact': return esc(x.contact || '');
     case 'note': return esc(x.note || '');
-    case 'category': return isAdj(x) ? `<span class="cell-cat"><span class="cat-ic sm" style="--c:#9fb5a8">${icon('refresh')}</span>Ajuste de saldo</span>` : `<span class="cell-cat">${catBadge(x.category, true)}${esc(x.category)}</span>`;
+    case 'category': return isAdj(x) ? `<span class="cell-cat"><span class="cat-ic sm" style="--c:#8e8e93">${icon('refresh')}</span>Ajuste de saldo</span>` : `<span class="cell-cat">${catBadge(x.category, true)}${esc(x.category)}</span>`;
     case 'kind': return `<span class="tag-kind ${isAdj(x) ? 'adj' : isIncome(x) ? 'in' : 'out'}">${kindName(x)}</span>`;
     default: return `<b class="${isAdj(x) ? 'muted' : gSigned(x) < 0 ? 'neg' : 'pos'}">${gMoney(x)}</b>`;
   }
@@ -1870,7 +1870,7 @@ function gColsSheet() {
 function moveRow(x) {
   if (isAdj(x)) {
     return `<button class="row" data-act="editExpense" data-id="${x.id}">
-      <span class="cat-ic" style="--c:#9fb5a8">${icon('refresh')}</span>
+      <span class="cat-ic" style="--c:#8e8e93">${icon('refresh')}</span>
       <span class="row-main"><b>${esc(x.note || 'Ajuste de saldo')}</b><small>Ajuste · no cuenta en estadísticas · ${fmtDate(x.date)}</small></span>
       <span class="amount muted">${gMoney(x)}</span>
     </button>`;
