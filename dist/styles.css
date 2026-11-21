@@ -875,3 +875,140 @@ body.scrolled .page-title { font-size: 20px; letter-spacing: -.4px; }
 html.ios-kb .sheet-backdrop { inset: var(--vvt, 0px) 0 auto 0; height: var(--vvh, 100%); }
 html.ios-kb .sheet { max-height: calc(var(--vvh, 100vh) - max(env(safe-area-inset-top, 0px), 20px) - 16px); padding-bottom: 16px; }
 html.ios-kb .sidebar { opacity: 0; pointer-events: none; transform: translateY(24px); }
+
+/* ═══════════════════════════════════════════════════════════════
+   v39 · Hojas al estilo iOS: sobrias, sin desplazamiento lateral
+   Fondo gris oscuro liso, título centrado con botón de cerrar gris, campos rellenos sin borde,
+   botones planos. El acento verde solo queda en la acción principal.
+   ═══════════════════════════════════════════════════════════════ */
+.sheet-backdrop { background: rgba(0, 0, 0, .42); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.sheet {
+  max-width: 100%; overflow-x: hidden; overscroll-behavior: contain; touch-action: pan-y;
+  border: 0; border-top: 1px solid rgba(255, 255, 255, .07); border-radius: 28px;
+  background: #1c1f1d; box-shadow: 0 -10px 44px rgba(0, 0, 0, .5);
+}
+.sheet #sheetBody, .sheet .form, .sheet .field, .sheet .picker, .sheet .form > * { min-width: 0; max-width: 100%; }
+.sheet input[type=date], .sheet input[type=time], .sheet input[type=month] {
+  display: block; width: 100%; min-width: 0; max-width: 100%; -webkit-appearance: none; appearance: none; text-align: left;
+}
+.sheet input::-webkit-date-and-time-value { text-align: left; margin: 0; }
+.sheet-grab::after { background: rgba(235, 235, 245, .3); }
+
+/* Cabecera: título centrado, cerrar a la derecha */
+.sheet-head { position: relative; justify-content: center; min-height: 36px; margin-bottom: 14px; }
+.sheet-head h2 { padding: 0 44px; font-size: 17px; font-weight: 600; letter-spacing: -.2px; text-align: center; }
+.sheet-head .icon-btn, .sheet-head .icon-btn:hover {
+  position: absolute; right: 0; top: 50%; width: 30px; height: 30px; transform: translateY(-50%);
+  border: 0; background: rgba(120, 120, 128, .32); box-shadow: none; color: rgba(235, 235, 245, .8);
+}
+.sheet-head .icon-btn:active { transform: translateY(-50%) scale(.92); }
+.sheet-head .icon-btn .ic { width: 15px; height: 15px; }
+
+/* Campos rellenos, sin borde */
+.sheet .field > span:first-child { padding-left: 4px; color: var(--ink-3); font-size: 13px; }
+.sheet .field input, .sheet .field select, .sheet .field textarea, .sheet .money-input, .sheet .picker-btn {
+  border: 0; border-radius: 12px; background: rgba(120, 120, 128, .18); box-shadow: none;
+}
+.sheet .field input:focus, .sheet .field select:focus, .sheet .field textarea:focus, .sheet .money-input:focus-within, .sheet .picker.open .picker-btn {
+  border: 0; background: rgba(120, 120, 128, .26); box-shadow: 0 0 0 1px rgba(255, 255, 255, .2);
+}
+.sheet .field .money-input input, .sheet .field .money-input input:focus { background: transparent; box-shadow: none; }
+
+/* Botones planos */
+.sheet .btn { min-height: 50px; border: 0; border-radius: 14px; background: rgba(120, 120, 128, .24); box-shadow: none; font-size: 16px; }
+.sheet .btn:hover { background: rgba(120, 120, 128, .3); }
+.sheet .btn.ghost { background: rgba(120, 120, 128, .18); }
+.sheet .btn.primary, .sheet .btn.in, .sheet .btn.primary:hover, .sheet .btn.in:hover { background: var(--lime); color: var(--on-grad); box-shadow: none; filter: none; }
+.sheet .btn.out { background: rgba(255, 123, 110, .15); color: #ff9388; }
+.sheet .btn.danger-ghost { background: rgba(255, 123, 110, .12); }
+.sheet .btn-sm { border: 0; background: rgba(120, 120, 128, .24); }
+
+/* Segmentos y chips */
+.sheet .seg, .sheet .segmented { padding: 2px; border: 0; border-radius: 10px; background: rgba(118, 118, 128, .24); box-shadow: none; }
+.sheet .seg button, .sheet .segmented span { min-height: 34px; padding: 6px 4px; border-radius: 8px; font-size: 14px; }
+.sheet .seg button.on, .sheet .segmented input:checked + span {
+  background: rgba(255, 255, 255, .18); color: var(--ink); box-shadow: 0 2px 6px rgba(0, 0, 0, .3); animation: none;
+}
+.sheet .chip { border: 0; background: rgba(120, 120, 128, .24); color: var(--ink); box-shadow: none; }
+.sheet .chip:hover, .sheet .chip.on { background: rgba(198, 245, 59, .16); color: var(--lime); }
+
+/* Menú desplegable */
+.picker-list { border: 0; background: #2a2e2c; box-shadow: 0 14px 40px rgba(0, 0, 0, .5); }
+
+@media (max-width: 899px) {
+  .sheet { border-radius: 26px 26px 0 0; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Liquid Glass completo (hojas, bordes con luz, reflejo al tocar)
+   Receta que funciona en Safari: tinte translúcido + desenfoque con saturación + borde de luz
+   en degradado (máscara) + brillo superior. La refracción real (backdrop-filter: url(#svg)) solo la
+   entiende Chromium y Safari la ignora, así que no se usa.
+   Las hojas NO llevan backdrop-filter propio (haría que los menús flotantes se coloquen mal):
+   el desenfoque va en el fondo que las rodea, y la hoja es un cristal tintado encima.
+   ═══════════════════════════════════════════════════════════════ */
+.sheet-backdrop {
+  background: rgba(0, 8, 4, .26);
+  backdrop-filter: blur(22px) saturate(170%); -webkit-backdrop-filter: blur(22px) saturate(170%);
+}
+.sheet {
+  border: 1px solid rgba(255, 255, 255, .14); border-top-color: rgba(255, 255, 255, .34);
+  background:
+    radial-gradient(120% 40% at 50% 0%, rgba(255, 255, 255, .16), transparent 70%),
+    linear-gradient(180deg, rgba(255, 255, 255, .09), rgba(255, 255, 255, .03) 45%),
+    rgba(22, 34, 27, .6);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .38), inset 1px 0 0 rgba(255, 255, 255, .1), inset -1px 0 0 rgba(255, 255, 255, .06),
+    0 -14px 60px rgba(0, 0, 0, .42);
+}
+.sheet-grab::after { background: rgba(255, 255, 255, .42); }
+.sheet .field input, .sheet .field select, .sheet .field textarea, .sheet .money-input, .sheet .picker-btn,
+.sheet .btn:not(.primary):not(.in), .sheet .seg, .sheet .segmented, .sheet .chip {
+  background-color: rgba(255, 255, 255, .09); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12);
+}
+.sheet .field input:focus, .sheet .field select:focus, .sheet .field textarea:focus, .sheet .money-input:focus-within, .sheet .picker.open .picker-btn {
+  background-color: rgba(255, 255, 255, .14); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), 0 0 0 1px rgba(255, 255, 255, .24);
+}
+.sheet .field .money-input input, .sheet .field .money-input input:focus { background-color: transparent; box-shadow: none; }
+.sheet .btn.primary, .sheet .btn.in { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5), 0 6px 18px rgba(140, 235, 100, .18); }
+.picker-list {
+  border: 1px solid rgba(255, 255, 255, .16); background: rgba(34, 48, 40, .74);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .3), 0 18px 50px rgba(0, 0, 0, .5);
+}
+
+/* Borde de luz en degradado (como el filo del cristal que atrapa la luz) */
+.card::before, .player::before, .mission::before, .toast::before, .lvl-chip::before, .sync-chip::before {
+  content: ''; position: absolute; inset: -1px; z-index: 3; padding: 1px; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .5), rgba(255, 255, 255, .07) 30%, rgba(255, 255, 255, .02) 62%, rgba(255, 255, 255, .2));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+.player, .mission, .lvl-chip, .sync-chip { position: relative; }
+@media (max-width: 899px) {
+  .sidebar::before {
+    content: ''; position: absolute; inset: -1px; z-index: 0; padding: 1px; border-radius: inherit; pointer-events: none;
+    background: linear-gradient(160deg, rgba(255, 255, 255, .6), rgba(255, 255, 255, .08) 32%, rgba(255, 255, 255, .03) 65%, rgba(255, 255, 255, .26));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  }
+}
+
+/* Reflejo de luz bajo el dedo: el cristal se ilumina donde lo tocas */
+.touch-glow {
+  position: fixed; left: 0; top: 0; z-index: 95; width: 130px; height: 130px; margin: -65px 0 0 -65px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, rgba(255, 255, 255, .3), rgba(255, 255, 255, 0) 66%); opacity: 0;
+  animation: glowPop .6s var(--ease) forwards;
+}
+@keyframes glowPop { 0% { opacity: .95; transform: scale(.35); } 100% { opacity: 0; transform: scale(1.15); } }
+
+@media (prefers-reduced-transparency: reduce) {
+  .sheet-backdrop { background: rgba(0, 0, 0, .55); }
+  .sheet { background: #1c1f1d; }
+  .picker-list { background: #2a2e2c; }
+  .card::before, .player::before, .mission::before, .toast::before, .lvl-chip::before, .sync-chip::before, .sidebar::before { display: none; }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .sheet-backdrop { background: rgba(0, 0, 0, .55); }
+  .sheet { background: #1c1f1d; }
+  .picker-list { background: #2a2e2c; }
+}

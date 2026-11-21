@@ -2,7 +2,7 @@
 
 // ── Configuración ──
 // Versión publicada: debe coincidir con version.json y con el ?v= de index.html.
-const APP_VERSION = 38;
+const APP_VERSION = 40;
 const KEY = 'saldo-v2';
 const OLD_KEY = 'saldo-freelance-v1';
 // ID de cliente OAuth (público). Se usa para guardar tus datos en tu Google Drive (carpeta oculta de la app).
@@ -2960,6 +2960,17 @@ window.addEventListener('scroll', () => {
   const y = window.scrollY;
   if (!scrolledTop && y > 36) { scrolledTop = true; document.body.classList.add('scrolled'); }
   else if (scrolledTop && y < 8) { scrolledTop = false; document.body.classList.remove('scrolled'); }
+}, { passive: true });
+
+// ── Liquid Glass: el cristal se ilumina donde lo tocas ──
+document.addEventListener('pointerdown', e => {
+  if (!e.target.closest || !e.target.closest('.btn, .btn-sm, .icon-btn, .nav-item, .sidebar, .chip, .seg button, .segmented label, .sheet-head, .fc-chip, .player, .picker-btn, .month-switch')) return;
+  const g = document.createElement('i');
+  g.className = 'touch-glow';
+  g.style.left = e.clientX + 'px';
+  g.style.top = e.clientY + 'px';
+  document.body.appendChild(g);
+  setTimeout(() => g.remove(), 650);
 }, { passive: true });
 
 // ── Hojas: en el móvil se cierran arrastrando hacia abajo desde el agarrador o el título ──
