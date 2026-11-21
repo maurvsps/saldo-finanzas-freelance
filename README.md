@@ -42,6 +42,12 @@ La app guarda sus datos aparte del navegador: para pasar tus datos, usa **Descar
 
 Para firmar con una clave propia (y poder actualizar el APK sin desinstalar), añade en el repo los secretos `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD` y `ANDROID_KEY_ALIAS`.
 
+## iPhone
+
+Saldo se instala en la pantalla de inicio de iPhone (Safari → Compartir → Añadir a pantalla de inicio) y se ve a pantalla completa, con tema oscuro fijo y estilo Liquid Glass. Funciona sin internet gracias a `sw.js`.
+
+Con **Tocar atrás** (doble toque = gasto, triple = ingreso) un atajo de la app Atajos registra un movimiento sin abrir Saldo: lo manda a una hoja de Google (`ios/apps-script/Code.gs`) y Saldo lo trae al abrirse. Todo el paso a paso está en [`ios/GUIA-IPHONE.md`](ios/GUIA-IPHONE.md). La dirección del buzón y la clave se guardan solo en el dispositivo (Ajustes → Atajo del iPhone), no en los respaldos.
+
 ## Publicar una versión
 
-Al cambiar la web, sube el mismo número en tres sitios: `APP_VERSION` en `app.js`, `version.json` y el `?v=` de `styles.css` y `app.js` en `index.html`. Luego copia `index.html`, `app.js`, `styles.css` y `version.json` a `dist/`. La app de Android revisa `version.json` al abrirse o al volver a ella y se recarga sola si hay una versión nueva.
+Al cambiar la web, sube el mismo número en cuatro sitios: `APP_VERSION` en `app.js`, `version.json`, el `?v=` de `styles.css` y `app.js` en `index.html`, y `CACHE` y la lista `SHELL` de `sw.js`. Luego copia `index.html`, `app.js`, `styles.css`, `version.json`, `manifest.webmanifest`, `sw.js` y la carpeta `icons/` a `dist/`. La app de Android revisa `version.json` al abrirse o al volver a ella y se recarga sola si hay una versión nueva.

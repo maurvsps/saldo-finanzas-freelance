@@ -4,14 +4,24 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#06110b" />
+  <meta name="color-scheme" content="dark" />
   <meta name="description" content="Saldo: tus billeteras, cobros y gastos de freelance en un solo lugar." />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Saldo" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icons/icon-180.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
   <title>Saldo — Finanzas freelance</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=35" />
+  <link rel="stylesheet" href="styles.css?v=36" />
 </head>
 <body>
+  <div class="glass-bg" aria-hidden="true"><i></i><i></i><i></i></div>
   <div class="app">
     <aside class="sidebar">
       <a class="brand" href="#inicio" aria-label="Saldo, inicio"><span class="brand-mark">s</span><span>saldo<b>.</b></span></a>
@@ -31,6 +41,7 @@
   </div>
   <div class="sheet-backdrop" id="sheet" hidden>
     <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+      <div class="sheet-grab" aria-hidden="true"></div>
       <div class="sheet-head"><h2 id="sheetTitle"></h2><button class="icon-btn" id="sheetClose" type="button" aria-label="Cerrar"></button></div>
       <div id="sheetBody"></div>
     </div>
@@ -38,6 +49,6 @@
   <div class="celebrate" id="celebrate" hidden></div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <input type="file" id="importFile" accept="application/json,.json" hidden>
-  <script src="app.js?v=35"></script>
+  <script src="app.js?v=36"></script>
 </body>
 </html>

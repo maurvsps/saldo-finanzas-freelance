@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   Saldo · sistema visual (v35)
+   Saldo · sistema visual (v36)
    Reglas que sigue esta hoja:
    1. Un solo acento (degradado lima → turquesa) y solo para lo que importa:
       acción principal, pestaña activa, progreso. El resto es neutro.
@@ -722,4 +722,150 @@ input::placeholder, textarea::placeholder { color: var(--ink-3); }
   .ach-grid { grid-template-columns: 1fr 1fr; }
   .stat b { font-size: 16px; }
   .sync-chip span { display: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   v36 · Liquid Glass (oscuro fijo)
+   Capas translúcidas con desenfoque, borde con brillo (specular) y movimiento de resorte.
+   Ojo: el desenfoque (backdrop-filter) solo va en piezas que NO contienen menús flotantes
+   (barra, cabecera, avisos); en tarjetas y hojas haría que los menús se coloquen mal.
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  color-scheme: dark;
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', system-ui, 'Segoe UI', sans-serif;
+  --glass-line: rgba(255, 255, 255, .16);
+  --glass-blur: blur(28px) saturate(185%);
+  --spec: inset 0 1px 0 rgba(255, 255, 255, .26), inset 0 -1px 0 rgba(255, 255, 255, .04), inset 1px 0 0 rgba(255, 255, 255, .06), inset -1px 0 0 rgba(255, 255, 255, .06);
+  --shadow: var(--spec), 0 12px 34px rgba(0, 0, 0, .26);
+}
+html { background: var(--bg); overscroll-behavior-y: none; }
+body { background: none; -webkit-touch-callout: none; touch-action: manipulation; }
+input, textarea, [contenteditable] { -webkit-touch-callout: default; }
+
+/* Fondo con luz de color detrás del cristal */
+.glass-bg {
+  position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none;
+  background:
+    radial-gradient(60% 36% at 12% -4%, rgba(96, 210, 120, .28), transparent 70%),
+    radial-gradient(40% 30% at 100% 22%, rgba(47, 227, 180, .12), transparent 70%),
+    var(--bg);
+}
+.glass-bg i { position: absolute; border-radius: 50%; filter: blur(70px); }
+.glass-bg i:nth-child(1) { width: 320px; height: 320px; left: -110px; top: 34%; background: rgba(47, 227, 180, .2); }
+.glass-bg i:nth-child(2) { width: 280px; height: 280px; right: -100px; top: 58%; background: rgba(198, 245, 59, .14); }
+.glass-bg i:nth-child(3) { width: 360px; height: 360px; left: 20%; bottom: -160px; background: rgba(60, 170, 110, .22); }
+
+/* Tarjetas: vidrio translúcido con filo de luz */
+.card, #view > .stats .stat, .player, .mission {
+  border-color: rgba(255, 255, 255, .11);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .085), rgba(255, 255, 255, .03));
+  box-shadow: var(--shadow);
+}
+.money-hero {
+  border-color: rgba(198, 245, 59, .22);
+  background: radial-gradient(80% 120% at 100% 0%, rgba(198, 245, 59, .22), transparent 55%), linear-gradient(160deg, rgba(52, 130, 76, .5), rgba(18, 46, 30, .46) 62%, rgba(255, 255, 255, .03));
+}
+.spend-hero {
+  border-color: rgba(47, 227, 180, .24);
+  background: radial-gradient(80% 120% at 100% 0%, rgba(47, 227, 180, .22), transparent 55%), linear-gradient(160deg, rgba(30, 128, 108, .5), rgba(14, 42, 34, .46) 62%, rgba(255, 255, 255, .03));
+}
+.stat, .fc-chip, .month-switch, .seg, .segmented, .sync-chip, .lvl-chip, .chip { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1); }
+.month-switch, .seg, .segmented { background: rgba(255, 255, 255, .05); }
+.sync-chip, .lvl-chip { background: rgba(255, 255, 255, .07); }
+.seg button.on, .segmented input:checked + span {
+  background: linear-gradient(180deg, rgba(255, 255, 255, .24), rgba(255, 255, 255, .1)); color: var(--lime);
+  box-shadow: var(--spec), 0 4px 14px rgba(0, 0, 0, .28);
+}
+
+/* Botones */
+.btn { border-color: rgba(255, 255, 255, .16); background: rgba(255, 255, 255, .08); box-shadow: var(--spec); }
+.btn:hover { background: rgba(255, 255, 255, .13); }
+.btn.ghost { background: rgba(255, 255, 255, .03); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1); }
+.btn.primary, .btn.in, .btn-sm.primary, .counter .icon-btn.add {
+  box-shadow: 0 8px 24px rgba(140, 235, 100, .26), inset 0 1px 0 rgba(255, 255, 255, .6), inset 0 -3px 8px rgba(0, 90, 50, .16);
+}
+.icon-btn { border-color: rgba(255, 255, 255, .16); background: rgba(255, 255, 255, .08); box-shadow: var(--spec); }
+.icon-btn:hover { background: rgba(255, 255, 255, .13); }
+.btn:active, .btn-sm:active, .icon-btn:active { transition-duration: .08s; }
+
+/* Campos */
+.field input, .field select, .field textarea, .money-input, .picker-btn {
+  border-color: rgba(255, 255, 255, .13); background: rgba(0, 0, 0, .18);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, .3), 0 1px 0 rgba(255, 255, 255, .05);
+}
+
+/* Menús flotantes y avisos */
+.picker-list {
+  border-color: var(--glass-line); background: rgba(24, 40, 32, .86);
+  backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--spec), 0 20px 56px rgba(0, 0, 0, .55);
+}
+.toast {
+  border: 1px solid var(--glass-line); background: rgba(30, 46, 37, .7); color: var(--ink);
+  backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--spec), 0 14px 34px rgba(0, 0, 0, .45);
+}
+
+/* Hojas */
+.sheet-backdrop { background: rgba(0, 8, 4, .5); backdrop-filter: blur(10px) saturate(120%); -webkit-backdrop-filter: blur(10px) saturate(120%); }
+.sheet {
+  border-color: var(--glass-line); border-radius: 32px;
+  background: linear-gradient(180deg, rgba(40, 62, 50, .94), rgba(14, 27, 20, .97) 55%);
+  box-shadow: var(--spec), 0 30px 90px rgba(0, 0, 0, .62);
+}
+.sheet::before { display: none !important; }
+.sheet-grab { display: none; }
+.sheet-head { touch-action: none; }
+.celeb-card { box-shadow: var(--spec), 0 30px 80px rgba(0, 0, 0, .5); }
+
+/* Barra lateral (escritorio) */
+.sidebar { background: rgba(14, 28, 20, .55); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); border-right-color: rgba(255, 255, 255, .1); }
+
+/* Cabecera: título grande que se encoge y se vuelve cristal al hacer scroll */
+.topbar { min-height: 76px; border-bottom: 1px solid transparent; transition: background .25s, border-color .25s; }
+.page-title { font-size: 34px; font-weight: 700; letter-spacing: -1.1px; transition: font-size .28s var(--ease), letter-spacing .28s var(--ease); }
+body.scrolled .topbar {
+  background: rgba(8, 20, 13, .52); border-bottom-color: rgba(255, 255, 255, .09);
+  backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+}
+body.scrolled .page-title { font-size: 20px; letter-spacing: -.4px; }
+
+/* Lente de la barra inferior (la mueve app.js) */
+.nav { position: relative; }
+.nav-lens { display: none; }
+
+@media (max-width: 899px) {
+  .topbar { min-height: calc(58px + max(14px, env(safe-area-inset-top))); }
+  .page-title { font-size: 34px; }
+  body.scrolled .page-title { font-size: 19px; }
+  .sidebar {
+    border-radius: 999px; border-color: rgba(255, 255, 255, .2); background: rgba(20, 34, 27, .5);
+    backdrop-filter: blur(30px) saturate(200%); -webkit-backdrop-filter: blur(30px) saturate(200%);
+    box-shadow: var(--spec), 0 18px 44px rgba(0, 0, 0, .5);
+  }
+  .nav-item { z-index: 1; border-radius: 999px; }
+  .nav-item.active::before { display: none; }
+  .nav-item.active { color: var(--lime); }
+  .nav-lens {
+    display: block; position: absolute; top: 0; bottom: 0; left: 0; z-index: 0; width: var(--lw, 20%); border-radius: 999px; pointer-events: none;
+    transform: translateX(var(--lx, 0px));
+    background: linear-gradient(180deg, rgba(255, 255, 255, .22), rgba(255, 255, 255, .08));
+    box-shadow: var(--spec), 0 4px 16px rgba(0, 0, 0, .28);
+    transition: transform .5s var(--spring), width .5s var(--spring), opacity .2s;
+  }
+  .sheet { border-radius: 34px 34px 0 0; }
+  .sheet-grab { display: block; position: relative; height: 26px; margin: -6px 0 2px; touch-action: none; cursor: grab; }
+  .sheet-grab::after { content: ''; position: absolute; left: 50%; top: 10px; width: 42px; height: 5px; margin-left: -21px; border-radius: 999px; background: rgba(255, 255, 255, .3); }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .sidebar, .topbar, .toast, .picker-list, .sheet-backdrop { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+  .sidebar { background: #10231a; }
+  .toast, .picker-list { background: #182b21; }
+  body.scrolled .topbar { background: #08140d; }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .sidebar { background: #10231a; }
+  .toast, .picker-list { background: #182b21; }
+  body.scrolled .topbar { background: #08140d; }
 }

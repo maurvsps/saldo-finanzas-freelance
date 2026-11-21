@@ -2,7 +2,7 @@
 
 // ── Configuración ──
 // Versión publicada: debe coincidir con version.json y con el ?v= de index.html.
-const APP_VERSION = 35;
+const APP_VERSION = 36;
 const KEY = 'saldo-v2';
 const OLD_KEY = 'saldo-freelance-v1';
 // ID de cliente OAuth (público). Se usa para guardar tus datos en tu Google Drive (carpeta oculta de la app).
@@ -711,6 +711,23 @@ function currentView() {
   return VIEWS[h] ? h : ALIASES[h] || 'inicio';
 }
 
+// Lente de cristal de la barra inferior: se desliza hasta la pestaña activa (solo se ve en móvil).
+let navLens = null;
+function placeLens() {
+  const nav = $('nav');
+  if (!navLens) {
+    navLens = document.createElement('i');
+    navLens.className = 'nav-lens';
+    navLens.setAttribute('aria-hidden', 'true');
+  }
+  if (navLens.parentNode !== nav) { nav.appendChild(navLens); void navLens.offsetWidth; }
+  const a = nav.querySelector('.nav-item.active:not(.desk)');
+  if (!a || !a.offsetWidth) { navLens.style.opacity = '0'; return; }
+  navLens.style.opacity = '';
+  navLens.style.setProperty('--lx', a.offsetLeft + 'px');
+  navLens.style.setProperty('--lw', a.offsetWidth + 'px');
+}
+
 function render() {
   syncLinked();
   G = gameState();
@@ -720,6 +737,7 @@ function render() {
     $('nav').innerHTML = Object.entries(VIEWS).map(([k, v]) =>
       `<a class="nav-item${k === name ? ' active' : ''}${v.desk ? ' desk' : ''}" href="#${k}"${k === name ? ' aria-current="page"' : ''}>${icon(v.icon)}<span>${v.label}</span></a>`).join('');
   }
+  placeLens();
   $('pageTitle').textContent = VIEWS[name].label;
   $('view').innerHTML = VIEWS[name].render();
   $('view').classList.forEach(c => { if (c.startsWith('view-')) $('view').classList.remove(c); });
@@ -1209,6 +1227,18 @@ function viewSettings() {
     <p class="muted small">${googleText}</p>
     <div class="btn-row"><button class="btn ${signed ? 'ghost' : 'primary'}" data-act="toggleGoogle"${gTokenClient ? '' : ' disabled'}>${icon('cloud')}${signed ? 'Desconectar' : 'Entrar con Google'}</button></div>
   </section>` : ''}
+  <section class="card">
+    <div class="card-head"><h2>${icon('zap')}Atajo del iPhone</h2><span class="count-pill">${inboxCfg() ? 'Activo' : 'Sin conectar'}</span></div>
+    <p class="muted small">Anota gastos e ingresos con «Tocar atrás» desde la app Atajos, sin abrir Saldo. Pega la dirección y la clave de tu hoja de Google (guía en la carpeta <b class="ink">ios/</b>).</p>
+    <form class="form" id="inboxForm" autocomplete="off">
+      <label class="field"><span>Dirección del buzón</span><input name="url" type="url" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://script.google.com/macros/s/…/exec" value="${esc(inboxCfg()?.url || '')}"></label>
+      <label class="field"><span>Clave</span><input name="token" type="text" autocapitalize="off" spellcheck="false" placeholder="La misma que pusiste en el script" value="${esc(inboxCfg()?.token || '')}"></label>
+      <div class="form-actions">
+        <button type="button" class="btn ghost" data-act="inboxPull"${inboxCfg() ? '' : ' disabled'}>${icon('refresh')}Revisar ahora</button>
+        <button class="btn primary">Guardar</button>
+      </div>
+    </form>
+  </section>
   <section class="card">
     <div class="card-head"><h2>Respaldo</h2></div>
     <div class="btn-row">
@@ -2445,6 +2475,10 @@ function findEntry(id) { return data.entries.find(e => e.id === id); }
 const actions = {
   closeSheet,
   closeCelebrate,
+  inboxPull: async () => {
+    const n = await pullInbox();
+    if (n === 0) toast('No hay movimientos nuevos');
+  },
   goals: () => goalsForm(),
   goClients: () => { location.hash = '#clientes'; },
   newExpenseHome: () => expenseForm(null, 'out'),
@@ -2753,6 +2787,7 @@ async function loadDrive() {
       toast('Datos cargados desde Google Drive');
     }
     setSync('on');
+    syncInbox();
   } catch (e) {
     if (e.message === 'auth') return driveExpired();
     setSync('error');
@@ -2866,7 +2901,20 @@ document.addEventListener('change', e => {
     if (!$('sheet').hidden) forecastDetail();
   }
 });
-document.addEventListener('submit', e => {
+document.addEventListener('submit', async e => {
+  if (e.target.id === 'inboxForm') {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const url = String(f.get('url') || '').trim(), token = String(f.get('token') || '').trim();
+    if (!url && !token) { try { localStorage.removeItem(INBOX_KEY); } catch {} render(); return toast('Atajo desconectado'); }
+    if (!/^https:\/\//i.test(url) || !token) return toast('Escribe la dirección (https://…) y la clave');
+    try { localStorage.setItem(INBOX_KEY, JSON.stringify({ url, token })); } catch {}
+    sessionStorage.removeItem('saldo-meta-t');
+    const n = await pullInbox();
+    render();
+    if (n >= 0) { toast(n ? `Buzón conectado · ${n} movimiento${n === 1 ? '' : 's'} nuevo${n === 1 ? '' : 's'}` : 'Buzón conectado'); pushInboxMeta(); }
+    return;
+  }
   if (e.target.id === 'planForm') { e.preventDefault(); return; }
   if (e.target.id !== 'ratesForm') return;
   e.preventDefault();
@@ -2877,6 +2925,136 @@ document.addEventListener('submit', e => {
 });
 window.addEventListener('hashchange', () => { closeSheet(); render(); window.scrollTo(0, 0); });
 window.addEventListener('load', initDrive);
+window.addEventListener('resize', placeLens);
+
+// ── Liquid Glass: cabecera que se vuelve cristal al hacer scroll ──
+let scrolledTop = false;
+window.addEventListener('scroll', () => {
+  const y = window.scrollY;
+  if (!scrolledTop && y > 36) { scrolledTop = true; document.body.classList.add('scrolled'); }
+  else if (scrolledTop && y < 8) { scrolledTop = false; document.body.classList.remove('scrolled'); }
+}, { passive: true });
+
+// ── Hojas: en el móvil se cierran arrastrando hacia abajo desde el agarrador o el título ──
+(() => {
+  const sheet = document.querySelector('.sheet');
+  let y0 = 0, dy = 0, t0 = 0, pid = null;
+  const mobile = () => window.matchMedia('(max-width: 899px)').matches;
+  const start = e => {
+    if (!mobile() || e.target.closest('button')) return;
+    pid = e.pointerId; y0 = e.clientY; dy = 0; t0 = e.timeStamp;
+    sheet.style.transition = 'none';
+    try { e.currentTarget.setPointerCapture(pid); } catch {}
+  };
+  const move = e => {
+    if (e.pointerId !== pid) return;
+    dy = Math.max(0, e.clientY - y0);
+    sheet.style.transform = `translateY(${dy}px)`;
+  };
+  const end = e => {
+    if (e.pointerId !== pid) return;
+    pid = null;
+    const v = dy / Math.max(1, e.timeStamp - t0);
+    if (dy > 120 || (dy > 30 && v > 0.7)) {
+      sheet.style.transition = 'transform .22s ease-in';
+      sheet.style.transform = 'translateY(100%)';
+      setTimeout(() => { closeSheet(); sheet.style.transition = ''; sheet.style.transform = ''; }, 200);
+    } else {
+      sheet.style.transition = 'transform .4s var(--spring)';
+      sheet.style.transform = '';
+      setTimeout(() => { sheet.style.transition = ''; }, 420);
+    }
+  };
+  for (const el of [sheet.querySelector('.sheet-grab'), sheet.querySelector('.sheet-head')]) {
+    el.addEventListener('pointerdown', start);
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointercancel', end);
+  }
+})();
+
+// ── Buzón de atajos (Google Sheets + Apps Script) ──
+// El atajo del iPhone (Tocar atrás) manda cada movimiento al script, que lo guarda en la hoja «Pendientes».
+// Aquí los traemos, los sumamos a tus movimientos y los marcamos como recibidos. Se guarda aparte de tus
+// datos para que la clave no viaje en los respaldos ni en Drive.
+const INBOX_KEY = 'saldo-inbox';
+function inboxCfg() {
+  try { const c = JSON.parse(localStorage.getItem(INBOX_KEY)); return c && c.url && c.token ? c : null; } catch { return null; }
+}
+async function inboxCall(cfg, params, body) {
+  const u = new URL(cfg.url);
+  let r;
+  if (body) {
+    r = await fetch(u.toString(), { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ token: cfg.token, ...body }) });
+  } else {
+    for (const [k, v] of Object.entries({ token: cfg.token, ...params })) u.searchParams.set(k, v);
+    r = await fetch(u.toString());
+  }
+  const res = await r.json();
+  if (!res || res.ok === false) throw new Error((res && res.error) || 'inbox');
+  return res;
+}
+let inboxBusy = false;
+// Devuelve cuántos movimientos nuevos entraron, o -1 si no se pudo conectar.
+async function pullInbox() {
+  const cfg = inboxCfg();
+  if (!cfg || inboxBusy) return 0;
+  inboxBusy = true;
+  try {
+    const { items } = await inboxCall(cfg, { action: 'pending' });
+    const list = Array.isArray(items) ? items : [];
+    const known = new Set(data.expenses.map(x => x.id));
+    let added = 0;
+    for (const it of list) {
+      const id = String(it.id || '').slice(0, 64);
+      const amount = round2(it.amount);
+      if (!id || known.has(id) || !(amount > 0)) continue;
+      known.add(id);
+      const kind = it.kind === 'in' ? 'in' : 'out';
+      const date = /^\d{4}-\d{2}-\d{2}$/.test(String(it.date)) ? String(it.date) : todayISO();
+      let category = String(it.category || '').trim() || 'Otros';
+      const found = kindCategories(kind).find(c => c.toLowerCase() === category.toLowerCase());
+      if (found) category = found;
+      else (kind === 'in' ? data.incomeCategories : data.customCategories).push(category);
+      const contact = String(it.contact || '').trim().replace(/\s+/g, ' ');
+      const note = String(it.note || '').trim();
+      data.expenses.push({ id, kind, date, amount, currency: 'PEN', category, note, ...(contact ? { contact } : {}), via: 'atajo' });
+      if (contact) {
+        const c = data.contacts.find(y => contactKey(y.name) === contactKey(contact));
+        if (c) { c.uses++; c.lastKind = kind; c.lastCategory = category; }
+        else data.contacts.push({ id: uid(), name: contact, uses: 1, lastKind: kind, lastCategory: category });
+      }
+      added++;
+    }
+    if (added) commit(`${added} movimiento${added === 1 ? '' : 's'} del atajo`, XP.move * added);
+    if (list.length) await inboxCall(cfg, null, { action: 'ack', ids: list.map(i => String(i.id)) });
+    return added;
+  } catch {
+    toast('No pude conectar con el buzón del atajo');
+    return -1;
+  } finally {
+    inboxBusy = false;
+  }
+}
+// Le dice al atajo qué categorías y contactos existen, para que sus listas se mantengan al día.
+async function pushInboxMeta() {
+  const cfg = inboxCfg();
+  if (!cfg) return;
+  if (Date.now() - (Number(sessionStorage.getItem('saldo-meta-t')) || 0) < 600000) return;
+  sessionStorage.setItem('saldo-meta-t', String(Date.now()));
+  try {
+    await inboxCall(cfg, null, { action: 'setmeta', expense: kindCategories('out'), income: kindCategories('in'), contacts: frequentContacts().slice(0, 8).map(c => c.name) });
+  } catch {}
+}
+function syncInbox() { pullInbox().then(() => pushInboxMeta()); }
+if (!GOOGLE_ENABLED || !localStorage.getItem(DRIVE_CONNECTED)) window.addEventListener('load', () => setTimeout(syncInbox, 700));
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') syncInbox(); });
+
+// ── App instalable (iPhone/Android): funciona sin internet y pide que no borren tus datos ──
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+try { navigator.storage?.persist?.(); } catch {}
 
 // Imagen compartida desde otra app (por ejemplo el botón Compartir de Yape). Solo la app de Android la entrega.
 async function checkShared() {
@@ -2898,7 +3076,11 @@ async function checkShared() {
 window.saldoCheckShare = checkShared;
 window.addEventListener('load', checkShared);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkShared(); });
+// Acceso directo «?nuevo=out|in»: abre Gastos con el formulario listo.
+const quickNew = new URLSearchParams(location.search).get('nuevo');
+if (quickNew === 'out' || quickNew === 'in') history.replaceState(null, '', `${location.pathname}#gastos`);
 render();
+if (quickNew === 'out' || quickNew === 'in') setTimeout(() => expenseForm(null, quickNew), 200);
 
 // La app de Android se queda abierta en segundo plano y guarda la página en caché:
 // al abrir o volver a la app se revisa si hay una versión nueva y se recarga.
