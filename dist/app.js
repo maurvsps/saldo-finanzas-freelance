@@ -2,7 +2,7 @@
 
 // ── Configuración ──
 // Versión publicada: debe coincidir con version.json y con el ?v= de index.html.
-const APP_VERSION = 53;
+const APP_VERSION = 54;
 const KEY = 'saldo-v2';
 const OLD_KEY = 'saldo-freelance-v1';
 // ID de cliente OAuth (público). Se usa para guardar tus datos en tu Google Drive (carpeta oculta de la app).
@@ -712,6 +712,7 @@ function render() {
   $('view').classList.forEach(c => { if (c.startsWith('view-')) $('view').classList.remove(c); });
   $('view').classList.add(`view-${name}`);
   enterScreen(name === 'gastos' ? `${name}:${gTab}` : name);
+  syncSeg(name);
   animateCounts($('view'));
   enhanceSelects($('view'));
   renderSync();
@@ -747,11 +748,36 @@ function animateCounts(root) {
 }
 // Entrada escalonada solo al cambiar de pantalla (no en cada toque).
 let lastScreen = '';
+// Control segmentado como el de iOS: una pastilla que se desliza de una opción a otra.
+let lastSeg = null;
+function syncSeg(name) {
+  const seg = $('view').querySelector('.seg');
+  if (!seg) { lastSeg = null; return; }
+  const on = seg.querySelector('button.on');
+  if (!on) return;
+  const thumb = document.createElement('i');
+  thumb.className = 'seg-thumb';
+  seg.prepend(thumb);
+  const to = { name, x: on.offsetLeft, w: on.offsetWidth };
+  const from = lastSeg && lastSeg.name === name && !reducedMotion() ? lastSeg : to;
+  thumb.style.width = `${from.w}px`;
+  thumb.style.transform = `translateX(${from.x}px)`;
+  void thumb.offsetWidth;
+  thumb.classList.add('go');
+  thumb.style.width = `${to.w}px`;
+  thumb.style.transform = `translateX(${to.x}px)`;
+  lastSeg = to;
+}
 function enterScreen(key) {
   const v = $('view');
+  // Entre pestañas de una misma pantalla solo cambia el contenido (el control no vuelve a entrar).
+  const same = lastScreen && key.includes(':') && key.split(':')[0] === lastScreen.split(':')[0];
   if (key === lastScreen || reducedMotion()) { lastScreen = key; return; }
   lastScreen = key;
-  v.classList.remove('enter');
+  v.classList.remove('enter', 'swap');
+  void v.offsetWidth;
+  if (same) { v.classList.add('swap'); clearTimeout(enterScreen.t); enterScreen.t = setTimeout(() => v.classList.remove('swap'), 600); return; }
+
   void v.offsetWidth;
   v.classList.add('enter');
   clearTimeout(enterScreen.t);

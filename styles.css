@@ -1320,3 +1320,22 @@ input[type=date]::-webkit-datetime-edit, input[type=time]::-webkit-datetime-edit
 }
 .sheet-head .icon-btn .ic { width: 16px; height: 16px; }
 .sheet-head .icon-btn::after { content: ''; position: absolute; inset: -6px; }
+
+/* ── v54: control segmentado estilo iOS (pastilla deslizante + contenido que se funde) ── */
+.seg { position: relative; isolation: isolate; }
+.seg button, .seg button.on, .sheet .seg button.on {
+  position: relative; z-index: 1; background: none !important; box-shadow: none !important; animation: none !important;
+  transition: color .25s ease, opacity .2s ease, transform .35s cubic-bezier(.32, .72, 0, 1);
+}
+.seg button { color: rgba(235, 235, 245, .7); }
+.seg button.on { color: #fff; }
+.seg button:active { opacity: .6; transform: scale(.96); }
+.seg-thumb {
+  position: absolute; z-index: 0; top: 3px; bottom: 3px; left: 0; border-radius: 999px; pointer-events: none;
+  background: rgba(120, 120, 128, .5); box-shadow: 0 3px 8px rgba(0, 0, 0, .25), inset 0 .5px 0 rgba(255, 255, 255, .18);
+  will-change: transform, width;
+}
+.seg-thumb.go { transition: transform .5s cubic-bezier(.32, .72, 0, 1), width .5s cubic-bezier(.32, .72, 0, 1); }
+@keyframes segFade { from { opacity: 0; transform: scale(.985); } }
+#view.swap > :not(.seg) { animation: segFade .32s cubic-bezier(.32, .72, 0, 1) both; }
+@media (prefers-reduced-motion: reduce) { .seg-thumb.go { transition: none; } #view.swap > * { animation: none; } }
