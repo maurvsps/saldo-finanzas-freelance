@@ -1,7 +1,7 @@
 /* Saldo · service worker
    Deja la app abrir sin internet y rápido. Los archivos con ?v= se guardan por versión;
    la página y version.json siempre prueban primero la red, para que las actualizaciones lleguen. */
-const CACHE = 'saldo-shell-v55';
+const CACHE = 'saldo-shell-v56';
 const SHELL = ['./', 'index.html', 'styles.css?v=51', 'app.js?v=51', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-180.png'];
 
 self.addEventListener('install', e => {

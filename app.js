@@ -680,11 +680,12 @@ const VIEWS = {
   inicio: { label: 'Inicio', icon: 'home', render: viewHome },
   clientes: { label: 'Clientes', icon: 'users', render: viewClients },
   gastos: { label: 'Gastos', icon: 'receipt', render: viewExpenses },
-  suscripciones: { label: 'Suscripciones', short: 'Suscrip.', icon: 'repeat', render: viewSubs },
-  retiros: { label: 'Retiros', icon: 'banknote', render: viewWithdrawals },
+  suscripciones: { label: 'Suscripciones', icon: 'repeat', render: viewSubs },
   ajustes: { label: 'Ajustes', icon: 'settings', render: viewSettings, desk: true },
 };
-const ALIASES = { cobros: 'clientes' };
+// Retiros vive dentro de Clientes (una pestaña más); su dirección #retiros sigue funcionando.
+const ALIASES = { cobros: 'clientes', retiros: 'clientes' };
+const cTab = () => (location.hash === '#retiros' ? 'retiros' : 'clientes');
 function currentView() {
   const h = location.hash.slice(1);
   return VIEWS[h] ? h : ALIASES[h] || 'inicio';
@@ -729,11 +730,11 @@ function render() {
   const badge = subAlerts().length, subNav = $('nav').querySelector('a[href="#suscripciones"]');
   if (subNav) { subNav.querySelector('.nav-badge')?.remove(); if (badge) subNav.insertAdjacentHTML('beforeend', `<i class="nav-badge" aria-label="${badge} avisos">${badge}</i>`); }
   placeLens();
-  $('pageTitle').textContent = VIEWS[name].label;
+  $('pageTitle').textContent = name === 'clientes' && cTab() === 'retiros' ? 'Retiros' : VIEWS[name].label;
   $('view').innerHTML = VIEWS[name].render();
   $('view').classList.forEach(c => { if (c.startsWith('view-')) $('view').classList.remove(c); });
   $('view').classList.add(`view-${name}`);
-  enterScreen(name === 'gastos' ? `${name}:${gTab}` : name);
+  enterScreen(name === 'gastos' ? `${name}:${gTab}` : name === 'clientes' ? `${name}:${cTab()}` : name);
   syncSeg(name);
   animateCounts($('view'));
   enhanceSelects($('view'));
@@ -866,6 +867,11 @@ function viewHome() {
     <p class="hero-note">${esc(rateNote)}</p>
   </section>
   ${subAlertsCard()}
+  ${pend.length ? `<section class="card">
+    <div class="card-head"><h2>Por cobrar</h2><span class="count-pill">${pend.length}</span></div>
+    <div class="rows">${pend.map(chargeRow).join('')}</div>
+  </section>` : ''}
+  ${plannedHomeCard()}
   <section class="card">
     <div class="card-head"><h2>Tus billeteras</h2><button class="btn-sm ghost" data-act="updateBalances">${icon('refresh')}Actualizar</button></div>
     <div class="wallet-list">${data.wallets.map(w => `
@@ -882,13 +888,8 @@ function viewHome() {
     </div>
   </section>
   ${data.clients.length ? '' : `<section class="card quest">${emptyState('Agrega a tus clientes y lo que les haces para ir anotando cada entrega.', newClientButton())}</section>`}
-  ${goalsCard(now)}
-  ${plannedHomeCard()}
-  ${pend.length ? `<section class="card">
-    <div class="card-head"><h2>Por cobrar</h2><span class="count-pill">${pend.length}</span></div>
-    <div class="rows">${pend.map(chargeRow).join('')}</div>
-  </section>` : ''}
-  ${nextWithdrawalCard()}`;
+  ${nextWithdrawalCard()}
+  ${goalsCard(now)}`;
 }
 
 
@@ -993,6 +994,11 @@ function nextWithdrawalCard() {
 }
 
 function viewClients() {
+  const tab = cTab();
+  const tabs = `<div class="seg" role="tablist">${[['clientes', 'Clientes'], ['retiros', 'Retiros']].map(([k, l]) => `<button role="tab" aria-selected="${k === tab}" class="${k === tab ? 'on' : ''}" data-act="cTab" data-tab="${k}">${l}</button>`).join('')}</div>`;
+  return tabs + (tab === 'retiros' ? viewWithdrawals() : viewClientList());
+}
+function viewClientList() {
   const m = viewMonth;
   if (!data.clients.length) return `<section class="card">${emptyState('Agrega a tus clientes y lo que les haces para ir anotando cada entrega.', newClientButton())}</section>`;
   const t = monthTotals(m);
@@ -2003,11 +2009,23 @@ function monthOutlook() {
   const days = dayDiff(todayISO(), end) + 1;
   return { planned, subs, left, perDay: left > 0 ? left / days : 0, days };
 }
+// Atajo a la pestaña Suscripciones desde Gastos, para ver todo lo futuro junto.
+function subsLinkRow() {
+  const act = data.subs.filter(s => s.active && !s.trial), tr = data.subs.filter(s => s.active && s.trial).length;
+  if (!act.length && !tr) return '';
+  const monthly = act.reduce((t, s) => t + subMonthlyPEN(s), 0);
+  return `<a class="row" href="#suscripciones">
+    <span class="cat-ic" style="--c:#b48cff">${icon('repeat')}</span>
+    <span class="row-main"><b>Suscripciones</b><small>${act.length} ${act.length === 1 ? 'activa' : 'activas'}${tr ? ` · ${tr} ${tr === 1 ? 'prueba gratis' : 'pruebas gratis'}` : ''}</small></span>
+    <span class="amount">${money(monthly)}<small class="muted">/mes</small></span>
+  </a>`;
+}
 function plannedCard() {
   const list = plannedSorted(), o = monthOutlook();
   return `<section class="card">
     <div class="card-head"><h2>Gastos previstos</h2>${list.length ? `<span class="count-pill">${list.length}</span>` : ''}</div>
     ${list.length ? `<div class="rows">${list.slice(0, 6).map(plannedRow).join('')}</div>` : emptyState('Anota lo que sabes que vas a pagar (alquiler, recibos) y verás cuánto te quedaría. Las suscripciones van en su pestaña.')}
+    ${subsLinkRow()}
     ${list.length || o.subs > 0 ? `<p class="muted small planned-note">Hasta fin de ${monthName(thisMonth())}: ${money(o.planned)} previstos${o.subs > 0 ? ` + ${money(o.subs)} en <a class="link" href="#suscripciones">suscripciones</a>` : ''} · tu saldo quedaría en <b class="${o.left < 0 ? 'neg' : 'ink'}">${money(o.left)}</b>${o.perDay > 0 ? ` (≈ ${money(o.perDay)} al día)` : ''}</p>` : ''}
     <div class="btn-row"><button class="btn ghost" data-act="newPlanned">${icon('plus')}Añadir previsto</button>${list.length > 6 ? `<button class="btn ghost" data-act="allPlanned">Ver todos (${list.length})</button>` : ''}</div>
   </section>`;
@@ -2777,6 +2795,7 @@ const actions = {
     closeSheet();
     commit('Contacto quitado');
   },
+  cTab: d => { location.hash = d.tab === 'retiros' ? '#retiros' : '#clientes'; },
   gTab: d => { gTab = d.tab in G_TABS ? d.tab : 'resumen'; gf.limit = 100; render(); window.scrollTo(0, 0); },
   gPrevMonth: () => { gf.month = shiftMonth(gf.month, -1); render(); },
   gNextMonth: () => { gf.month = shiftMonth(gf.month, 1); render(); },
