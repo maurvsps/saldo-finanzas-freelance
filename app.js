@@ -115,6 +115,10 @@ const PATHS = {
 };
 // Iconos estilo iOS (Ionicons, MIT): contorno y, para las pestañas activas, relleno
 const ION = {"home":{"o":"<path d=\"M80 212v236a16 16 0 0016 16h96V328a24 24 0 0124-24h80a24 24 0 0124 24v136h96a16 16 0 0016-16V212\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/><path d=\"M480 256L266.89 52c-5-5.28-16.69-5.34-21.78 0L32 256M400 179V64h-48v69\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>","f":"<path d=\"M261.56 101.28a8 8 0 00-11.06 0L66.4 277.15a8 8 0 00-2.47 5.79L63.9 448a32 32 0 0032 32H192a16 16 0 0016-16V328a8 8 0 018-8h80a8 8 0 018 8v136a16 16 0 0016 16h96.06a32 32 0 0032-32V282.94a8 8 0 00-2.47-5.79z\"/><path d=\"M490.91 244.15l-74.8-71.56V64a16 16 0 00-16-16h-48a16 16 0 00-16 16v32l-57.92-55.38C272.77 35.14 264.71 32 256 32c-8.68 0-16.72 3.14-22.14 8.63l-212.7 203.5c-6.22 6-7 15.87-1.34 22.37A16 16 0 0043 267.56L250.5 69.28a8 8 0 0111.06 0l207.52 198.28a16 16 0 0022.59-.44c6.14-6.36 5.63-16.86-.76-22.97z\"/>"},"banknote":{"o":"<rect x=\"32\" y=\"80\" width=\"448\" height=\"256\" rx=\"16\" ry=\"16\" transform=\"rotate(180 256 208)\" fill=\"none\" stroke=\"currentColor\" stroke-linejoin=\"round\" stroke-width=\"32\"/><path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\" d=\"M64 384h384M96 432h320\"/><circle cx=\"256\" cy=\"208\" r=\"80\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/><path d=\"M480 160a80 80 0 01-80-80M32 160a80 80 0 0080-80M480 256a80 80 0 00-80 80M32 256a80 80 0 0180 80\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>","f":"<path d=\"M448 400H64a16 16 0 010-32h384a16 16 0 010 32zM416 448H96a16 16 0 010-32h320a16 16 0 010 32zM32 272H16v48a32 32 0 0032 32h48v-16a64.07 64.07 0 00-64-64z\"/><path d=\"M480 240h16v-64h-16a96.11 96.11 0 01-96-96V64H128v16a96.11 96.11 0 01-96 96H16v64h16a96.11 96.11 0 0196 96v16h256v-16a96.11 96.11 0 0196-96zm-224 64a96 96 0 1196-96 96.11 96.11 0 01-96 96z\"/><circle cx=\"256\" cy=\"208\" r=\"64\"/><path d=\"M416 336v16h48a32 32 0 0032-32v-48h-16a64.07 64.07 0 00-64 64zM480 144h16V96a32 32 0 00-32-32h-48v16a64.07 64.07 0 0064 64zM96 80V64H48a32 32 0 00-32 32v48h16a64.07 64.07 0 0064-64z\"/>"},"users":{"o":"<path d=\"M402 168c-2.93 40.67-33.1 72-66 72s-63.12-31.32-66-72c-3-42.31 26.37-72 66-72s69 30.46 66 72z\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/><path d=\"M336 304c-65.17 0-127.84 32.37-143.54 95.41-2.08 8.34 3.15 16.59 11.72 16.59h263.65c8.57 0 13.77-8.25 11.72-16.59C463.85 335.36 401.18 304 336 304z\" fill=\"none\" stroke=\"currentColor\" stroke-miterlimit=\"10\" stroke-width=\"32\"/><path d=\"M200 185.94c-2.34 32.48-26.72 58.06-53 58.06s-50.7-25.57-53-58.06C91.61 152.15 115.34 128 147 128s55.39 24.77 53 57.94z\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/><path d=\"M206 306c-18.05-8.27-37.93-11.45-59-11.45-52 0-102.1 25.85-114.65 76.2-1.65 6.66 2.53 13.25 9.37 13.25H154\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-miterlimit=\"10\" stroke-width=\"32\"/>","f":"<path d=\"M336 256c-20.56 0-40.44-9.18-56-25.84-15.13-16.25-24.37-37.92-26-61-1.74-24.62 5.77-47.26 21.14-63.76S312 80 336 80c23.83 0 45.38 9.06 60.7 25.52 15.47 16.62 23 39.22 21.26 63.63-1.67 23.11-10.9 44.77-26 61C376.44 246.82 356.57 256 336 256zm66-88zM467.83 432H204.18a27.71 27.71 0 01-22-10.67 30.22 30.22 0 01-5.26-25.79c8.42-33.81 29.28-61.85 60.32-81.08C264.79 297.4 299.86 288 336 288c36.85 0 71 9 98.71 26.05 31.11 19.13 52 47.33 60.38 81.55a30.27 30.27 0 01-5.32 25.78A27.68 27.68 0 01467.83 432zM147 260c-35.19 0-66.13-32.72-69-72.93-1.42-20.6 5-39.65 18-53.62 12.86-13.83 31-21.45 51-21.45s38 7.66 50.93 21.57c13.1 14.08 19.5 33.09 18 53.52-2.87 40.2-33.8 72.91-68.93 72.91zM212.66 291.45c-17.59-8.6-40.42-12.9-65.65-12.9-29.46 0-58.07 7.68-80.57 21.62-25.51 15.83-42.67 38.88-49.6 66.71a27.39 27.39 0 004.79 23.36A25.32 25.32 0 0041.72 400h111a8 8 0 007.87-6.57c.11-.63.25-1.26.41-1.88 8.48-34.06 28.35-62.84 57.71-83.82a8 8 0 00-.63-13.39c-1.57-.92-3.37-1.89-5.42-2.89z\"/>"},"settings":{"o":"<path d=\"M262.29 192.31a64 64 0 1057.4 57.4 64.13 64.13 0 00-57.4-57.4zM416.39 256a154.34 154.34 0 01-1.53 20.79l45.21 35.46a10.81 10.81 0 012.45 13.75l-42.77 74a10.81 10.81 0 01-13.14 4.59l-44.9-18.08a16.11 16.11 0 00-15.17 1.75A164.48 164.48 0 01325 400.8a15.94 15.94 0 00-8.82 12.14l-6.73 47.89a11.08 11.08 0 01-10.68 9.17h-85.54a11.11 11.11 0 01-10.69-8.87l-6.72-47.82a16.07 16.07 0 00-9-12.22 155.3 155.3 0 01-21.46-12.57 16 16 0 00-15.11-1.71l-44.89 18.07a10.81 10.81 0 01-13.14-4.58l-42.77-74a10.8 10.8 0 012.45-13.75l38.21-30a16.05 16.05 0 006-14.08c-.36-4.17-.58-8.33-.58-12.5s.21-8.27.58-12.35a16 16 0 00-6.07-13.94l-38.19-30A10.81 10.81 0 0149.48 186l42.77-74a10.81 10.81 0 0113.14-4.59l44.9 18.08a16.11 16.11 0 0015.17-1.75A164.48 164.48 0 01187 111.2a15.94 15.94 0 008.82-12.14l6.73-47.89A11.08 11.08 0 01213.23 42h85.54a11.11 11.11 0 0110.69 8.87l6.72 47.82a16.07 16.07 0 009 12.22 155.3 155.3 0 0121.46 12.57 16 16 0 0015.11 1.71l44.89-18.07a10.81 10.81 0 0113.14 4.58l42.77 74a10.8 10.8 0 01-2.45 13.75l-38.21 30a16.05 16.05 0 00-6.05 14.08c.33 4.14.55 8.3.55 12.47z\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>","f":"<circle cx=\"256\" cy=\"256\" r=\"48\"/><path d=\"M470.39 300l-.47-.38-31.56-24.75a16.11 16.11 0 01-6.1-13.33v-11.56a16 16 0 016.11-13.22L469.92 212l.47-.38a26.68 26.68 0 005.9-34.06l-42.71-73.9a1.59 1.59 0 01-.13-.22A26.86 26.86 0 00401 92.14l-.35.13-37.1 14.93a15.94 15.94 0 01-14.47-1.29q-4.92-3.1-10-5.86a15.94 15.94 0 01-8.19-11.82l-5.59-39.59-.12-.72A27.22 27.22 0 00298.76 26h-85.52a26.92 26.92 0 00-26.45 22.39l-.09.56-5.57 39.67a16 16 0 01-8.13 11.82 175.21 175.21 0 00-10 5.82 15.92 15.92 0 01-14.43 1.27l-37.13-15-.35-.14a26.87 26.87 0 00-32.48 11.34l-.13.22-42.77 73.95a26.71 26.71 0 005.9 34.1l.47.38 31.56 24.75a16.11 16.11 0 016.1 13.33v11.56a16 16 0 01-6.11 13.22L42.08 300l-.47.38a26.68 26.68 0 00-5.9 34.06l42.71 73.9a1.59 1.59 0 01.13.22 26.86 26.86 0 0032.45 11.3l.35-.13 37.07-14.93a15.94 15.94 0 0114.47 1.29q4.92 3.11 10 5.86a15.94 15.94 0 018.19 11.82l5.56 39.59.12.72A27.22 27.22 0 00213.24 486h85.52a26.92 26.92 0 0026.45-22.39l.09-.56 5.57-39.67a16 16 0 018.18-11.82c3.42-1.84 6.76-3.79 10-5.82a15.92 15.92 0 0114.43-1.27l37.13 14.95.35.14a26.85 26.85 0 0032.48-11.34 2.53 2.53 0 01.13-.22l42.71-73.89a26.7 26.7 0 00-5.89-34.11zm-134.48-40.24a80 80 0 11-83.66-83.67 80.21 80.21 0 0183.66 83.67z\"/>"},"plus":{"o":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\" d=\"M256 112v288M400 256H112\"/>"},"minus":{"o":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\" d=\"M400 256H112\"/>"},"list":{"o":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"48\" d=\"M160 144h288M160 256h288M160 368h288\"/><circle cx=\"80\" cy=\"144\" r=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/><circle cx=\"80\" cy=\"256\" r=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/><circle cx=\"80\" cy=\"368\" r=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>"},"x":{"o":"<path d=\"M289.94 256l95-95A24 24 0 00351 127l-95 95-95-95a24 24 0 00-34 34l95 95-95 95a24 24 0 1034 34l95-95 95 95a24 24 0 0034-34z\"/>"},"check":{"o":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\" d=\"M416 128L192 384l-96-96\"/>"},"chevronLeft":{"o":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"48\" d=\"M328 112L184 256l144 144\"/>"},"chevronRight":{"o":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"48\" d=\"M184 112l144 144-144 144\"/>"},"chevronDown":{"o":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"48\" d=\"M112 184l144 144 144-144\"/>"},"chevronUp":{"o":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"48\" d=\"M112 328l144-144 144 144\"/>"},"edit":{"o":"<path d=\"M384 224v184a40 40 0 01-40 40H104a40 40 0 01-40-40V168a40 40 0 0140-40h167.48\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/><path d=\"M459.94 53.25a16.06 16.06 0 00-23.22-.56L424.35 65a8 8 0 000 11.31l11.34 11.32a8 8 0 0011.34 0l12.06-12c6.1-6.09 6.67-16.01.85-22.38zM399.34 90L218.82 270.2a9 9 0 00-2.31 3.93L208.16 299a3.91 3.91 0 004.86 4.86l24.85-8.35a9 9 0 003.93-2.31L422 112.66a9 9 0 000-12.66l-9.95-10a9 9 0 00-12.71 0z\"/>"},"trash":{"o":"<path d=\"M112 112l20 320c.95 18.49 14.4 32 32 32h184c17.67 0 30.87-13.51 32-32l20-320\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/><path stroke=\"currentColor\" stroke-linecap=\"round\" stroke-miterlimit=\"10\" stroke-width=\"32\" d=\"M80 112h352\"/><path d=\"M192 112V72h0a23.93 23.93 0 0124-24h80a23.93 23.93 0 0124 24h0v40M256 176v224M184 176l8 224M328 176l-8 224\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>"},"cloud":{"o":"<path d=\"M400 240c-8.89-89.54-71-144-144-144-69 0-113.44 48.2-128 96-60 6-112 43.59-112 112 0 66 54 112 120 112h260c55 0 100-27.44 100-88 0-59.82-53-85.76-96-88z\" fill=\"none\" stroke=\"currentColor\" stroke-linejoin=\"round\" stroke-width=\"32\"/>"},"phone":{"o":"<rect x=\"128\" y=\"16\" width=\"256\" height=\"480\" rx=\"48\" ry=\"48\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/><path d=\"M176 16h24a8 8 0 018 8h0a16 16 0 0016 16h64a16 16 0 0016-16h0a8 8 0 018-8h24\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>"},"upload":{"o":"<path d=\"M320 367.79h76c55 0 100-29.21 100-83.6s-53-81.47-96-83.6c-8.89-85.06-71-136.8-144-136.8-69 0-113.44 45.79-128 91.2-60 5.7-112 43.88-112 106.4s54 106.4 120 106.4h56\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/><path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\" d=\"M320 255.79l-64-64-64 64M256 448.21V207.79\"/>"},"download":{"o":"<path d=\"M320 336h76c55 0 100-21.21 100-75.6s-53-73.47-96-75.6C391.11 99.74 329 48 256 48c-69 0-113.44 45.79-128 91.2-60 5.7-112 35.88-112 98.4S70 336 136 336h56M192 400.1l64 63.9 64-63.9M256 224v224.03\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>"},"receipt":{"o":"<path fill=\"none\" stroke=\"currentColor\" stroke-linejoin=\"round\" stroke-width=\"32\" d=\"M160 336V48l32 16 32-16 31.94 16 32.37-16L320 64l31.79-16 31.93 16L416 48l32.01 16L480 48v224\"/><path d=\"M480 272v112a80 80 0 01-80 80h0a80 80 0 01-80-80v-48H48a15.86 15.86 0 00-16 16c0 64 6.74 112 80 112h288\" fill=\"none\" stroke=\"currentColor\" stroke-linejoin=\"round\" stroke-width=\"32\"/><path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\" d=\"M224 144h192M288 224h128\"/>","f":"<path d=\"M483.82 32.45a16.28 16.28 0 00-11.23 1.37L448 46.1l-24.8-12.4a16 16 0 00-14.31 0l-25.11 12.41L359 33.7a16 16 0 00-14.36 0L320 46.07l-24.45-12.34a16 16 0 00-14.35-.06L256 46.12l-24.8-12.43a16.05 16.05 0 00-14.33 0L192 46.1l-24.84-12.41a16 16 0 00-19.36 3.94 16.25 16.25 0 00-3.8 10.65V288l.05.05H336a32 32 0 0132 32V424c0 30.93 33.07 56 64 56h12a52 52 0 0052-52V48a16 16 0 00-12.18-15.55zM416 240H288.5c-8.64 0-16.1-6.64-16.48-15.28A16 16 0 01288 208h127.5c8.64 0 16.1 6.64 16.48 15.28A16 16 0 01416 240zm0-80H224.5c-8.64 0-16.1-6.64-16.48-15.28A16 16 0 01224 128h191.5c8.64 0 16.1 6.64 16.48 15.28A16 16 0 01416 160z\"/><path d=\"M336 424v-88a16 16 0 00-16-16H48a32.1 32.1 0 00-32 32.05c0 50.55 5.78 71.57 14.46 87.57C45.19 466.79 71.86 480 112 480h245.68a4 4 0 002.85-6.81C351.07 463.7 336 451 336 424z\"/>"},"utensils":{"o":"<path d=\"M57.49 47.74l368.43 368.43a37.28 37.28 0 010 52.72h0a37.29 37.29 0 01-52.72 0l-90-91.55a32 32 0 01-9.2-22.43v-5.53a32 32 0 00-9.52-22.78l-11.62-10.73a32 32 0 00-29.8-7.44h0a48.53 48.53 0 01-46.56-12.63l-85.43-85.44C40.39 159.68 21.74 83.15 57.49 47.74z\" fill=\"none\" stroke=\"currentColor\" stroke-linejoin=\"round\" stroke-width=\"32\"/><path d=\"M400 32l-77.25 77.25A64 64 0 00304 154.51v14.86a16 16 0 01-4.69 11.32L288 192M320 224l11.31-11.31a16 16 0 0111.32-4.69h14.86a64 64 0 0045.26-18.75L480 112M440 72l-80 80M200 368l-99.72 100.28a40 40 0 01-56.56 0h0a40 40 0 010-56.56L128 328\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>"},"coffee":{"o":"<path d=\"M368 80h64a16 16 0 0116 16v34a46 46 0 01-46 46h-34M96 80h272v192a80 80 0 01-80 80H176a80 80 0 01-80-80V80h0zM64 416h336\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>"},"bus":{"o":"<rect x=\"80\" y=\"112\" width=\"352\" height=\"192\" rx=\"32\" ry=\"32\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/><rect x=\"80\" y=\"304\" width=\"352\" height=\"128\" rx=\"32\" ry=\"32\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/><path d=\"M400 112H112a32.09 32.09 0 01-32-32h0a32.09 32.09 0 0132-32h288a32.09 32.09 0 0132 32h0a32.09 32.09 0 01-32 32zM144 432v22a10 10 0 01-10 10h-28a10 10 0 01-10-10v-22zM416 432v22a10 10 0 01-10 10h-28a10 10 0 01-10-10v-22z\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/><circle cx=\"368\" cy=\"368\" r=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-linejoin=\"round\" stroke-width=\"32\"/><circle cx=\"144\" cy=\"368\" r=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-linejoin=\"round\" stroke-width=\"32\"/><path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\" d=\"M256 112v192M80 80v288M432 80v288\"/>"},"car":{"o":"<path d=\"M80 224l37.78-88.15C123.93 121.5 139.6 112 157.11 112h197.78c17.51 0 33.18 9.5 39.33 23.85L432 224M80 224h352v144H80zM112 368v32H80v-32M432 368v32h-32v-32\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/><circle cx=\"144\" cy=\"288\" r=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/><circle cx=\"368\" cy=\"288\" r=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>"},"bolt":{"o":"<path d=\"M315.27 33L96 304h128l-31.51 173.23a2.36 2.36 0 002.33 2.77h0a2.36 2.36 0 001.89-.95L416 208H288l31.66-173.25a2.45 2.45 0 00-2.44-2.75h0a2.42 2.42 0 00-1.95 1z\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>"},"wifi":{"o":"<path d=\"M318.586 363.5L256 424l-62.586-60.5S212 336 256 336s62.586 27.5 62.586 27.5zM407.31 278L372 312s-41-46-116-46-116 46-116 46l-35.31-34S142.5 214 256 214s151.31 64 151.31 64z\" stroke=\"currentColor\" stroke-width=\"32\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M496 192l-36.69 35.5S386.5 141 256 141 52.69 227.5 52.69 227.5L16 192S88 88 256 88s240 104 240 104z\" stroke=\"currentColor\" stroke-width=\"32\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"},"heart":{"o":"<path d=\"M352.92 80C288 80 256 144 256 144s-32-64-96.92-64c-52.76 0-94.54 44.14-95.08 96.81-1.1 109.33 86.73 187.08 183 252.42a16 16 0 0018 0c96.26-65.34 184.09-143.09 183-252.42-.54-52.67-42.32-96.81-95.08-96.81z\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>"},"gamepad":{"o":"<path d=\"M467.51 248.83c-18.4-83.18-45.69-136.24-89.43-149.17A91.5 91.5 0 00352 96c-26.89 0-48.11 16-96 16s-69.15-16-96-16a99.09 99.09 0 00-27.2 3.66C89 112.59 61.94 165.7 43.33 248.83c-19 84.91-15.56 152 21.58 164.88 26 9 49.25-9.61 71.27-37 25-31.2 55.79-40.8 119.82-40.8s93.62 9.6 118.66 40.8c22 27.41 46.11 45.79 71.42 37.16 41.02-14.01 40.44-79.13 21.43-165.04z\" fill=\"none\" stroke=\"currentColor\" stroke-miterlimit=\"10\" stroke-width=\"32\"/><circle cx=\"292\" cy=\"224\" r=\"20\"/><path d=\"M336 288a20 20 0 1120-19.95A20 20 0 01336 288z\"/><circle cx=\"336\" cy=\"180\" r=\"20\"/><circle cx=\"380\" cy=\"224\" r=\"20\"/><path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\" d=\"M160 176v96M208 224h-96\"/>"},"bag":{"o":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\" d=\"M80 176a16 16 0 00-16 16v216c0 30.24 25.76 56 56 56h272c30.24 0 56-24.51 56-54.75V192a16 16 0 00-16-16zM160 176v-32a96 96 0 0196-96h0a96 96 0 0196 96v32\"/>"},"briefcase":{"o":"<rect x=\"32\" y=\"128\" width=\"448\" height=\"320\" rx=\"48\" ry=\"48\" fill=\"none\" stroke=\"currentColor\" stroke-linejoin=\"round\" stroke-width=\"32\"/><path d=\"M144 128V96a32 32 0 0132-32h160a32 32 0 0132 32v32M480 240H32M320 240v24a8 8 0 01-8 8H200a8 8 0 01-8-8v-24\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>"},"gift":{"o":"<path d=\"M256 104v56h56a56 56 0 10-56-56zM256 104v56h-56a56 56 0 1156-56z\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-miterlimit=\"10\" stroke-width=\"32\"/><rect x=\"64\" y=\"160\" width=\"384\" height=\"112\" rx=\"32\" ry=\"32\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/><path d=\"M416 272v144a48 48 0 01-48 48H144a48 48 0 01-48-48V272M256 160v304\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>"},"book":{"o":"<path d=\"M256 160c16-63.16 76.43-95.41 208-96a15.94 15.94 0 0116 16v288a16 16 0 01-16 16c-128 0-177.45 25.81-208 64-30.37-38-80-64-208-64-9.88 0-16-8.05-16-17.93V80a15.94 15.94 0 0116-16c131.57.59 192 32.84 208 96zM256 160v288\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>"},"plane":{"o":"<path d=\"M407.72 224c-3.4 0-14.79.1-18 .3l-64.9 1.7a1.83 1.83 0 01-1.69-.9L193.55 67.56a9 9 0 00-6.66-3.56H160l73 161a2.35 2.35 0 01-2.26 3.35l-121.69 1.8a8.06 8.06 0 01-6.6-3.1l-37-45c-3-3.9-8.62-6-13.51-6H33.08c-1.29 0-1.1 1.21-.75 2.43l19.84 71.42a16.3 16.3 0 010 11.9L32.31 333c-.59 1.95-.52 3 1.77 3H52c8.14 0 9.25-1.06 13.41-6.3l37.7-45.7a8.19 8.19 0 016.6-3.1l120.68 2.7a2.7 2.7 0 012.43 3.74L160 448h26.64a9 9 0 006.65-3.55L323.14 287c.39-.6 2-.9 2.69-.9l63.9 1.7c3.3.2 14.59.3 18 .3C452 288.1 480 275.93 480 256s-27.88-32-72.28-32z\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>"},"tag":{"o":"<path d=\"M435.25 48h-122.9a14.46 14.46 0 00-10.2 4.2L56.45 297.9a28.85 28.85 0 000 40.7l117 117a28.85 28.85 0 0040.7 0L459.75 210a14.46 14.46 0 004.2-10.2v-123a28.66 28.66 0 00-28.7-28.8z\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/><path d=\"M384 160a32 32 0 1132-32 32 32 0 01-32 32z\"/>"},"star":{"o":"<path d=\"M480 208H308L256 48l-52 160H32l140 96-54 160 138-100 138 100-54-160z\" fill=\"none\" stroke=\"currentColor\" stroke-linejoin=\"round\" stroke-width=\"32\"/>"},"user":{"o":"<path d=\"M344 144c-3.92 52.87-44 96-88 96s-84.15-43.12-88-96c-4-55 35-96 88-96s92 42 88 96z\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/><path d=\"M256 304c-87 0-175.3 48-191.64 138.6C62.39 453.52 68.57 464 80 464h352c11.44 0 17.62-10.48 15.65-21.4C431.3 352 343 304 256 304z\" fill=\"none\" stroke=\"currentColor\" stroke-miterlimit=\"10\" stroke-width=\"32\"/>"},"refresh":{"o":"<path d=\"M320 146s24.36-12-64-12a160 160 0 10160 160\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-miterlimit=\"10\" stroke-width=\"32\"/><path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\" d=\"M256 58l80 80-80 80\"/>"},"flame":{"o":"<path d=\"M112 320c0-93 124-165 96-272 66 0 192 96 192 272a144 144 0 01-288 0z\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/><path d=\"M320 368c0 57.71-32 80-64 80s-64-22.29-64-80 40-86 32-128c42 0 96 70.29 96 128z\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>"},"trophy":{"o":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\" d=\"M176 464h160M256 464V336M384 224c0-50.64-.08-134.63-.12-160a16 16 0 00-16-16l-223.79.26a16 16 0 00-16 15.95c0 30.58-.13 129.17-.13 159.79 0 64.28 83 112 128 112S384 288.28 384 224z\"/><path d=\"M128 96H48v16c0 55.22 33.55 112 80 112M384 96h80v16c0 55.22-33.55 112-80 112\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>","f":"<path d=\"M464 80h-60.1a4 4 0 01-4-4V63.92a32 32 0 00-32-31.92l-223.79.26a32 32 0 00-31.94 31.93V76a4 4 0 01-4 4H48a16 16 0 00-16 16v16c0 54.53 30 112.45 76.52 125.35a7.82 7.82 0 015.55 5.9c5.77 26.89 23.52 52.5 51.41 73.61 20.91 15.83 45.85 27.5 68.27 32.48a8 8 0 016.25 7.8V444a4 4 0 01-4 4h-59.55c-8.61 0-16 6.62-16.43 15.23A16 16 0 00176 480h159.55c8.61 0 16-6.62 16.43-15.23A16 16 0 00336 448h-60a4 4 0 01-4-4v-86.86a8 8 0 016.25-7.8c22.42-5 47.36-16.65 68.27-32.48 27.89-21.11 45.64-46.72 51.41-73.61a7.82 7.82 0 015.55-5.9C450 224.45 480 166.53 480 112V96a16 16 0 00-16-16zM112 198.22a4 4 0 01-6 3.45c-10.26-6.11-17.75-15.37-22.14-21.89-11.91-17.69-19-40.67-19.79-63.63a4 4 0 014-4.15h40a4 4 0 014 4c-.02 27.45-.07 58.87-.07 82.22zm316.13-18.44c-4.39 6.52-11.87 15.78-22.13 21.89a4 4 0 01-6-3.46c0-26.51 0-56.63-.05-82.21a4 4 0 014-4h40a4 4 0 014 4.15c-.79 22.96-7.9 45.94-19.81 63.63z\"/>"},"target":{"o":"<circle cx=\"256\" cy=\"256\" r=\"208\" fill=\"none\" stroke=\"currentColor\" stroke-miterlimit=\"10\" stroke-width=\"32\"/><circle cx=\"256\" cy=\"256\" r=\"96\" fill=\"none\" stroke=\"currentColor\" stroke-miterlimit=\"10\" stroke-width=\"32\"/><circle cx=\"256\" cy=\"256\" r=\"32\"/>"},"zap":{"o":"<path d=\"M315.27 33L96 304h128l-31.51 173.23a2.36 2.36 0 002.33 2.77h0a2.36 2.36 0 001.89-.95L416 208H288l31.66-173.25a2.45 2.45 0 00-2.44-2.75h0a2.42 2.42 0 00-1.95 1z\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>"},"lock":{"o":"<path d=\"M336 208v-95a80 80 0 00-160 0v95\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/><rect x=\"96\" y=\"208\" width=\"320\" height=\"272\" rx=\"48\" ry=\"48\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>"},"shield":{"o":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\" d=\"M336 176L225.2 304 176 255.8\"/><path d=\"M463.1 112.37C373.68 96.33 336.71 84.45 256 48c-80.71 36.45-117.68 48.33-207.1 64.37C32.7 369.13 240.58 457.79 256 464c15.42-6.21 223.3-94.87 207.1-351.63z\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>"},"sparkles":{"o":"<path d=\"M259.92 262.91L216.4 149.77a9 9 0 00-16.8 0l-43.52 113.14a9 9 0 01-5.17 5.17L37.77 311.6a9 9 0 000 16.8l113.14 43.52a9 9 0 015.17 5.17l43.52 113.14a9 9 0 0016.8 0l43.52-113.14a9 9 0 015.17-5.17l113.14-43.52a9 9 0 000-16.8l-113.14-43.52a9 9 0 01-5.17-5.17zM108 68L88 16 68 68 16 88l52 20 20 52 20-52 52-20-52-20zM426.67 117.33L400 48l-26.67 69.33L304 144l69.33 26.67L400 240l26.67-69.33L496 144l-69.33-26.67z\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>"},"rocket":{"o":"<path d=\"M461.81 53.81a4.4 4.4 0 00-3.3-3.39c-54.38-13.3-180 34.09-248.13 102.17a294.9 294.9 0 00-33.09 39.08c-21-1.9-42-.3-59.88 7.5-50.49 22.2-65.18 80.18-69.28 105.07a9 9 0 009.8 10.4l81.07-8.9a180.29 180.29 0 001.1 18.3 18.15 18.15 0 005.3 11.09l31.39 31.39a18.15 18.15 0 0011.1 5.3 179.91 179.91 0 0018.19 1.1l-8.89 81a9 9 0 0010.39 9.79c24.9-4 83-18.69 105.07-69.17 7.8-17.9 9.4-38.79 7.6-59.69a293.91 293.91 0 0039.19-33.09c68.38-68 115.47-190.86 102.37-247.95zM298.66 213.67a42.7 42.7 0 1160.38 0 42.65 42.65 0 01-60.38 0z\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/><path d=\"M109.64 352a45.06 45.06 0 00-26.35 12.84C65.67 382.52 64 448 64 448s65.52-1.67 83.15-19.31A44.73 44.73 0 00160 402.32\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>"},"medal":{"o":"<circle cx=\"256\" cy=\"352\" r=\"112\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/><circle cx=\"256\" cy=\"352\" r=\"48\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/><path d=\"M147 323L41.84 159.32a32 32 0 01-1.7-31.61l31-62A32 32 0 0199.78 48h312.44a32 32 0 0128.62 17.69l31 62a32 32 0 01-1.7 31.61L365 323M371 144H37M428.74 52.6L305 250M140.55 144L207 250\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>"},"link":{"o":"<path d=\"M208 352h-64a96 96 0 010-192h64M304 160h64a96 96 0 010 192h-64M163.29 256h187.42\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"36\"/>"},"wallet":{"o":"<rect x=\"48\" y=\"144\" width=\"416\" height=\"288\" rx=\"48\" ry=\"48\" fill=\"none\" stroke=\"currentColor\" stroke-linejoin=\"round\" stroke-width=\"32\"/><path d=\"M411.36 144v-30A50 50 0 00352 64.9L88.64 109.85A50 50 0 0048 159v49\" fill=\"none\" stroke=\"currentColor\" stroke-linejoin=\"round\" stroke-width=\"32\"/><path d=\"M368 320a32 32 0 1132-32 32 32 0 01-32 32z\"/>"},"dots":{"o":"<circle cx=\"256\" cy=\"256\" r=\"48\"/><circle cx=\"416\" cy=\"256\" r=\"48\"/><circle cx=\"96\" cy=\"256\" r=\"48\"/>"}};
+const ionStroke = 'fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"';
+ION.repeat = { o: `<path ${ionStroke} d="M320 120l48 48-48 48"/><path ${ionStroke} d="M352 168H144a80.24 80.24 0 00-80 80v16M192 392l-48-48 48-48"/><path ${ionStroke} d="M160 344h208a80.24 80.24 0 0080-80v-16"/>` };
+ION.bell = { o: `<path ${ionStroke} d="M427.68 351.43C402 320 383.87 304 383.87 217.35 383.87 138 343.35 109.73 310 96c-4.43-1.82-8.6-6-9.95-10.55C294.2 65.54 277.8 48 256 48s-38.21 17.55-44 37.47c-1.35 4.6-5.52 8.71-9.95 10.53-33.39 13.75-73.87 41.92-73.87 121.35C128.13 304 110 320 84.32 351.43 73.68 364.45 83 384 101.61 384h308.88c18.51 0 27.77-19.61 17.19-32.57zM320 384v16a64 64 0 01-128 0v-16"/>` };
+ION.calendar = { o: `<rect ${ionStroke} x="48" y="80" width="416" height="384" rx="48"/><path ${ionStroke} d="M128 48v32M384 48v32M464 160H48"/>` };
 const icon = (name, cls = '', filled = false) => { const n = ION[name]; if (n) return `<svg class="ic ${cls}" width="24" height="24" viewBox="0 0 512 512" fill="currentColor" aria-hidden="true">${filled && n.f ? n.f : n.o}</svg>`; return `<svg class="ic ${cls}" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${PATHS[name]}</svg>`; };
 
 // ── Utilidades ──
@@ -183,6 +187,7 @@ function blank() {
     expenses: [], // movimientos: { id, kind: 'in' | 'out' | 'adj', date, amount, currency: 'PEN', category, note }
     customCategories: [], // categorías de gasto creadas por ti
     planned: [], // gastos previstos: { id, amount, category, note, contact, date, repeat: 'none' | 'weekly' | 'monthly' }
+    subs: [], // suscripciones: { id, name, amount, currency, cycle: 'weekly' | 'monthly' | 'yearly', next, category, trial, remind, note, active }
     incomeCategories: [], // categorías de ingreso creadas por ti
     yape: { opening: 0 }, // saldo de Yape antes de los movimientos anotados
     catStyles: {}, // icono y color de las categorías que creas: { nombre: { icon, color } }
@@ -322,6 +327,12 @@ function normalize(raw) {
     }),
     customCategories: arr(raw.customCategories).map(String),
     planned: arr(raw.planned).filter(x => x && Number(x.amount) > 0 && /^\d{4}-\d{2}-\d{2}$/.test(x.date || '')).map(x => ({ id: x.id || uid(), amount: round2(x.amount), category: String(x.category || 'Otros'), note: String(x.note || ''), contact: String(x.contact || ''), date: x.date, repeat: x.repeat === 'weekly' || x.repeat === 'monthly' ? x.repeat : 'none' })),
+    subs: arr(raw.subs).filter(s => s && /^\d{4}-\d{2}-\d{2}$/.test(s.next || '')).map(s => ({
+      id: s.id || uid(), name: String(s.name || 'Suscripción'), amount: round2(Math.max(0, Number(s.amount) || 0)),
+      currency: CURRENCIES[s.currency] ? s.currency : 'PEN', cycle: s.cycle === 'weekly' || s.cycle === 'yearly' ? s.cycle : 'monthly',
+      next: s.next, category: String(s.category || 'Ocio'), trial: Boolean(s.trial), remind: Math.min(14, Math.max(0, Math.round(Number(s.remind ?? 2)))),
+      note: String(s.note || ''), active: s.active !== false,
+    })),
     incomeCategories: arr(raw.incomeCategories).map(String),
     yape: { opening: round2(raw.yape?.opening) },
     catStyles: raw.catStyles && typeof raw.catStyles === 'object' ? raw.catStyles : {},
@@ -516,7 +527,15 @@ function forecast(until) {
   const tomorrow = addDays(todayISO(), 1);
   const future = data.clients.reduce((s, c) => s + toPEN(estimateRange(c, tomorrow, until), clientCur(c)), 0);
   const costs = withdrawalCosts(until);
-  return { now, pending, future, costs, total: now + pending + future - costs.total };
+  // Lo que ya sabes que vas a pagar: gastos previstos y suscripciones (las pruebas gratis no cuentan hasta que te las quedes).
+  const planned = plannedTotal(until), subs = subsTotal(until);
+  return { now, pending, future, costs, planned, subs, total: now + pending + future - planned - subs - costs.total };
+}
+// Punto más bajo que tocaría tu dinero hasta una fecha pagando lo previsto y las suscripciones, sin contar cobros futuros.
+function lowestPoint(until) {
+  let bal = data.wallets.reduce((s, w) => s + toPEN(w.balance, w.currency), 0), low = null;
+  for (const o of upcomingOutflows(until)) { bal -= o.amount; if (!low || bal < low.value) low = { date: o.date, value: bal }; }
+  return low;
 }
 // Comisión fija de los retiros que tu plan haría hasta la fecha (uno a fin de cada mes en que toque retirar).
 function withdrawalCosts(until) {
@@ -661,6 +680,7 @@ const VIEWS = {
   inicio: { label: 'Inicio', icon: 'home', render: viewHome },
   clientes: { label: 'Clientes', icon: 'users', render: viewClients },
   gastos: { label: 'Gastos', icon: 'receipt', render: viewExpenses },
+  suscripciones: { label: 'Suscripciones', short: 'Suscrip.', icon: 'repeat', render: viewSubs },
   retiros: { label: 'Retiros', icon: 'banknote', render: viewWithdrawals },
   ajustes: { label: 'Ajustes', icon: 'settings', render: viewSettings, desk: true },
 };
@@ -704,8 +724,10 @@ function render() {
   if ($('nav').dataset.view !== name) {
     $('nav').dataset.view = name;
     $('nav').innerHTML = Object.entries(VIEWS).map(([k, v]) =>
-      `<a class="nav-item${k === name ? ' active' : ''}${v.desk ? ' desk' : ''}" href="#${k}"${k === name ? ' aria-current="page"' : ''}>${icon(v.icon, '', k === name)}<span>${v.label}</span></a>`).join('');
+      `<a class="nav-item${k === name ? ' active' : ''}${v.desk ? ' desk' : ''}" href="#${k}"${k === name ? ' aria-current="page"' : ''}>${icon(v.icon, '', k === name)}<span>${v.short || v.label}</span></a>`).join('');
   }
+  const badge = subAlerts().length, subNav = $('nav').querySelector('a[href="#suscripciones"]');
+  if (subNav) { subNav.querySelector('.nav-badge')?.remove(); if (badge) subNav.insertAdjacentHTML('beforeend', `<i class="nav-badge" aria-label="${badge} avisos">${badge}</i>`); }
   placeLens();
   $('pageTitle').textContent = VIEWS[name].label;
   $('view').innerHTML = VIEWS[name].render();
@@ -843,6 +865,7 @@ function viewHome() {
     ${forecastBlock()}
     <p class="hero-note">${esc(rateNote)}</p>
   </section>
+  ${subAlertsCard()}
   <section class="card">
     <div class="card-head"><h2>Tus billeteras</h2><button class="btn-sm ghost" data-act="updateBalances">${icon('refresh')}Actualizar</button></div>
     <div class="wallet-list">${data.wallets.map(w => `
@@ -943,7 +966,8 @@ function forecastBlock() {
   <div class="fc-breakdown">
     <span><small>Por cobrar</small><b>${money(f.pending)}</b></span>
     <span><small>Por hacer</small><b>${money(f.future)}</b></span>
-    ${plannedTotal(until) > 0 ? `<span><small>Previstos</small><b>−${money(plannedTotal(until))}</b></span>` : ''}
+    ${f.planned > 0 ? `<span><small>Previstos</small><b>−${money(f.planned)}</b></span>` : ''}
+    ${f.subs > 0 ? `<span><small>Suscripciones</small><b>−${money(f.subs)}</b></span>` : ''}
     ${f.costs.count ? `<span><small>Comisiones</small><b>−${money(f.costs.total)}</b></span>` : ''}
   </div>`;
 }
@@ -1936,19 +1960,35 @@ async function readYape(file) {
 const REPEATS = { none: 'Una vez', weekly: 'Cada semana', monthly: 'Cada mes' };
 const nextDue = p => (p.repeat === 'weekly' ? addDays(p.date, 7) : p.repeat === 'monthly' ? addMonthsClamped(p.date, 1) : '');
 const plannedSorted = () => [...data.planned].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
-// Veces que toca pagar un gasto previsto hasta una fecha (lo atrasado cuenta una vez).
-function plannedCount(p, until) {
-  let n = 0;
-  while (p.date && p.date <= until && n < 60) {
-    n++;
-    const d = nextDue(p);
-    if (!d) break;
-    p = { ...p, date: d };
-  }
-  return n;
+// Fechas en que toca pagar algo que empieza en `date` y se repite con `step` (devuelve '' si no se repite).
+// Lo atrasado cuenta una sola vez, como pendiente de hoy.
+function occurrences(date, step, until) {
+  const t = todayISO(), out = [];
+  let late = false;
+  for (let i = 0; date && date < t && i < 400; i++) { late = true; date = step(date); }
+  if (late) out.push({ date: t, late: true });
+  for (let i = 0; date && date <= until && i < 60; i++) { out.push({ date, late: false }); date = step(date); }
+  return out;
 }
+const plannedStep = p => d => nextDue({ ...p, date: d });
+const plannedCount = (p, until) => occurrences(p.date, plannedStep(p), until).length;
 const plannedTotal = until => data.planned.reduce((t, p) => t + p.amount * plannedCount(p, until), 0);
 const monthEnd = () => addDays(addMonthsClamped(`${thisMonth()}-01`, 1), -1);
+// Todo lo que ya sabes que vas a pagar hasta una fecha (previstos y suscripciones), por fecha y en soles.
+function upcomingOutflows(until) {
+  const out = [];
+  for (const p of data.planned) for (const o of occurrences(p.date, plannedStep(p), until)) out.push({ ...o, kind: 'planned', id: p.id, name: p.note || p.contact || p.category, category: p.category, amount: p.amount });
+  for (const s of data.subs) if (subCounts(s)) for (const o of occurrences(s.next, subStep(s), until)) out.push({ ...o, kind: 'sub', id: s.id, name: s.name, category: s.category, amount: toPEN(s.amount, s.currency) });
+  return out.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+}
+function dueRow(o) {
+  const tag = o.kind === 'sub' ? 'suscripción' : '';
+  return `<button class="row${o.late ? ' late' : ''}" data-act="${o.kind === 'sub' ? 'editSub' : 'editPlanned'}" data-id="${o.id}">
+    ${catBadge(o.category)}
+    <span class="row-main"><b>${esc(o.name)}</b><small>${o.late ? 'Vencido · ' : ''}${cap(relDate(o.date))}${tag ? ` · ${tag}` : ''}</small></span>
+    <span class="amount neg">−${money(o.amount)}</span>
+  </button>`;
+}
 function plannedRow(p) {
   const late = p.date < todayISO();
   return `<button class="row${late ? ' late' : ''}" data-act="editPlanned" data-id="${p.id}">
@@ -1957,22 +1997,30 @@ function plannedRow(p) {
     <span class="amount neg">−${money(p.amount)}</span>
   </button>`;
 }
+// Saldo de Gastos que te quedaría a fin de mes pagando lo previsto y las suscripciones, y cuánto podrías gastar al día.
+function monthOutlook() {
+  const end = monthEnd(), planned = plannedTotal(end), subs = subsTotal(end), left = round2(yapeBalance() - planned - subs);
+  const days = dayDiff(todayISO(), end) + 1;
+  return { planned, subs, left, perDay: left > 0 ? left / days : 0, days };
+}
 function plannedCard() {
-  const list = plannedSorted(), tot = plannedTotal(monthEnd());
+  const list = plannedSorted(), o = monthOutlook();
   return `<section class="card">
     <div class="card-head"><h2>Gastos previstos</h2>${list.length ? `<span class="count-pill">${list.length}</span>` : ''}</div>
-    ${list.length ? `<div class="rows">${list.slice(0, 6).map(plannedRow).join('')}</div>
-      <p class="muted small planned-note">Hasta fin de ${monthName(thisMonth())}: ${money(tot)} · tu saldo quedaría en ${money(yapeBalance() - tot)}</p>` : emptyState('Anota lo que sabes que vas a pagar (alquiler, recibos, suscripciones) y verás cuánto te quedaría.')}
+    ${list.length ? `<div class="rows">${list.slice(0, 6).map(plannedRow).join('')}</div>` : emptyState('Anota lo que sabes que vas a pagar (alquiler, recibos) y verás cuánto te quedaría. Las suscripciones van en su pestaña.')}
+    ${list.length || o.subs > 0 ? `<p class="muted small planned-note">Hasta fin de ${monthName(thisMonth())}: ${money(o.planned)} previstos${o.subs > 0 ? ` + ${money(o.subs)} en <a class="link" href="#suscripciones">suscripciones</a>` : ''} · tu saldo quedaría en <b class="${o.left < 0 ? 'neg' : 'ink'}">${money(o.left)}</b>${o.perDay > 0 ? ` (≈ ${money(o.perDay)} al día)` : ''}</p>` : ''}
     <div class="btn-row"><button class="btn ghost" data-act="newPlanned">${icon('plus')}Añadir previsto</button>${list.length > 6 ? `<button class="btn ghost" data-act="allPlanned">Ver todos (${list.length})</button>` : ''}</div>
   </section>`;
 }
+// Inicio: los próximos pagos que ya conoces (previstos y suscripciones) y cómo cambian tu saldo de aquí a fin de mes.
 function plannedHomeCard() {
-  if (!data.planned.length) return '';
-  const list = plannedSorted(), tot = plannedTotal(monthEnd());
+  const list = upcomingOutflows(monthEnd());
+  if (!list.length) return '';
+  const o = monthOutlook(), total = o.planned + o.subs;
   return `<section class="card">
-    <div class="card-head"><h2>Gastos previstos</h2><a class="link" href="#gastos">Ver</a></div>
-    <div class="rows">${list.slice(0, 3).map(plannedRow).join('')}</div>
-    <p class="muted small planned-note">Hasta fin de ${monthName(thisMonth())}: ${money(tot)}</p>
+    <div class="card-head"><h2>Próximos pagos</h2><a class="link" href="#gastos">Ver</a></div>
+    <div class="rows">${list.slice(0, 4).map(dueRow).join('')}</div>
+    <p class="muted small planned-note">${list.length > 4 ? `${list.length - 4} más · ` : ''}Hasta fin de ${monthName(thisMonth())}: ${money(total)} · te quedarían <b class="${o.left < 0 ? 'neg' : 'ink'}">${money(o.left)}</b>${o.perDay > 0 ? ` (≈ ${money(o.perDay)} al día)` : ''}</p>
   </section>`;
 }
 function plannedForm(x = null) {
@@ -2000,6 +2048,175 @@ function plannedForm(x = null) {
 }
 function plannedAllSheet() {
   openSheet('Gastos previstos', `<div class="form"><div class="rows">${plannedSorted().map(plannedRow).join('')}</div></div>`);
+}
+
+// ── Suscripciones y pruebas gratis ──
+const SUB_CYCLES = { weekly: 'Cada semana', monthly: 'Cada mes', yearly: 'Cada año' };
+const SUB_CYCLE_SHORT = { weekly: 'semana', monthly: 'mes', yearly: 'año' };
+const SUB_PRESETS = ['Netflix', 'Spotify', 'YouTube Premium', 'Disney+', 'Max', 'Prime Video', 'iCloud', 'ChatGPT', 'Claude', 'Canva', 'Adobe', 'Notion', 'Google One', 'Duolingo'];
+const REMIND_OPTIONS = { 0: 'El mismo día', 1: '1 día antes', 2: '2 días antes', 3: '3 días antes', 5: '5 días antes', 7: '1 semana antes' };
+const subStep = s => d => (s.cycle === 'weekly' ? addDays(d, 7) : addMonthsClamped(d, s.cycle === 'yearly' ? 12 : 1));
+// Las pruebas gratis no cuentan en la previsión: se suman cuando decides quedártelas.
+const subCounts = s => s.active && !s.trial;
+const subsTotal = until => data.subs.filter(subCounts).reduce((t, s) => t + toPEN(s.amount, s.currency) * occurrences(s.next, subStep(s), until).length, 0);
+const subMonthlyPEN = s => toPEN(s.amount, s.currency) * (s.cycle === 'weekly' ? 52 / 12 : s.cycle === 'yearly' ? 1 / 12 : 1);
+const subDays = s => dayDiff(todayISO(), s.next);
+const subSorted = list => [...list].sort((a, b) => (a.next < b.next ? -1 : a.next > b.next ? 1 : 0));
+// Pruebas gratis que ya toca cancelar (dentro de su plazo de aviso o ya terminadas).
+const subAlerts = () => subSorted(data.subs.filter(s => s.active && s.trial && subDays(s) <= s.remind));
+function dueText(s) {
+  const d = subDays(s);
+  if (s.trial) return d < 0 ? `Terminó ${relDate(s.next)}: ¿te cobraron?` : d === 0 ? 'Termina hoy' : d === 1 ? 'Termina mañana' : `Termina en ${d} días (${fmtDate(s.next)})`;
+  return d < 0 ? `Venció ${relDate(s.next)}` : d === 0 ? 'Se cobra hoy' : d === 1 ? 'Se cobra mañana' : `Se cobra en ${d} días`;
+}
+const subPrice = s => `${money(s.amount, s.currency)}/${SUB_CYCLE_SHORT[s.cycle]}`;
+
+function subRow(s) {
+  const late = subDays(s) < 0 && s.active;
+  return `<button class="row${late ? ' late' : ''}${s.active ? '' : ' paused'}" data-act="editSub" data-id="${s.id}">
+    ${avatar(s.name, catMeta(s.category).color)}
+    <span class="row-main"><b>${esc(s.name)}${s.trial ? '<em class="tag">Prueba</em>' : ''}${s.active ? '' : '<em class="tag">Pausada</em>'}</b><small>${s.active ? `${dueText(s)}${s.trial ? '' : ` · ${SUB_CYCLES[s.cycle].toLowerCase()}`}` : 'No se cuenta en tu previsión'}</small></span>
+    <span class="row-side"><span class="amount">${money(s.amount, s.currency)}</span>${s.currency !== 'PEN' ? `<small class="muted">≈ ${money(toPEN(s.amount, s.currency))}</small>` : ''}</span>
+  </button>`;
+}
+// Lo que hay que cancelar (o decidir) ya: se usa en Inicio y en Suscripciones.
+function subAlertsCard() {
+  const list = subAlerts();
+  if (!list.length) return '';
+  return `<section class="card sub-alert">
+    <div class="card-head"><h2>${icon('bell')}Cancela a tiempo</h2><span class="count-pill">${list.length}</span></div>
+    ${list.map(s => `<div class="alert-item">
+      <span class="row-main"><b>${esc(s.name)}</b><small>${dueText(s)} · después te cobran ${money(s.amount, s.currency)}</small></span>
+      <div class="btn-row"><button class="btn-sm ghost" data-act="cancelSub" data-id="${s.id}">${icon('check')}Ya la cancelé</button><button class="btn-sm ghost" data-act="keepSub" data-id="${s.id}">Me la quedo</button></div>
+    </div>`).join('')}
+  </section>`;
+}
+function viewSubs() {
+  const active = subSorted(data.subs.filter(s => s.active && !s.trial)), trials = subSorted(data.subs.filter(s => s.active && s.trial)), paused = data.subs.filter(s => !s.active);
+  const monthly = active.reduce((t, s) => t + subMonthlyPEN(s), 0), in30 = subsTotal(addDays(todayISO(), 30));
+  const perm = 'Notification' in window ? Notification.permission : 'unsupported';
+  const list = (title, items, extra = '') => items.length ? `<section class="card"><div class="card-head"><h2>${title}</h2><span class="count-pill">${items.length}</span>${extra}</div><div class="rows">${items.map(subRow).join('')}</div></section>` : '';
+  return `
+  <section class="card hero spend-hero">
+    <p class="label">Gastas en suscripciones</p>
+    <p class="hero-amount">${countNum('subs', monthly)}<span class="dec"> /mes</span></p>
+    <p class="hero-note">≈ ${money(monthly * 12)} al año · ${active.length} ${active.length === 1 ? 'activa' : 'activas'}${in30 > 0 ? ` · ${money(in30)} en los próximos 30 días` : ''}</p>
+    <div class="btn-row"><button class="btn ghost on-dark" data-act="newSub">${icon('plus')}Suscripción</button><button class="btn ghost on-dark" data-act="newTrial">${icon('bell')}Prueba gratis</button></div>
+  </section>
+  ${subAlertsCard()}
+  ${list('Pruebas gratis', trials, trials.length > 1 ? `<button class="btn-sm ghost" data-act="subIcsAll">${icon('calendar')}Calendario</button>` : '')}
+  ${list('Activas', active)}
+  ${list('Pausadas', paused)}
+  ${data.subs.length ? '' : `<section class="card">${emptyState('Anota tus suscripciones (Netflix, Spotify, iCloud…) y tus pruebas gratis. Te aviso antes de que terminen para que cancelas a tiempo, y todo se descuenta de tu previsión.')}</section>`}
+  <section class="card">
+    <div class="card-head"><h2>${icon('bell')}Recordatorios</h2></div>
+    <p class="muted small">${perm === 'granted' ? 'Avisos activados: te recuerdo las pruebas que terminan cuando abras Saldo.' : perm === 'denied' ? 'Los avisos están bloqueados en este navegador. Actívalos en los permisos del sitio.' : perm === 'unsupported' ? 'Este navegador no permite avisos.' : 'Activa los avisos para que Saldo te recuerde cancelar las pruebas gratis.'}</p>
+    <p class="muted small planned-note">Para que suene aunque no abras Saldo, toca <b class="ink">Añadir al calendario</b> en una prueba: crea un evento con alarma en tu calendario del teléfono.</p>
+    ${perm === 'default' ? `<div class="btn-row"><button class="btn primary" data-act="enableNotif">${icon('bell')}Activar avisos</button></div>` : ''}
+  </section>`;
+}
+
+function subForm(x = null, pre = {}) {
+  const trial0 = x ? x.trial : Boolean(pre.trial), cur0 = x?.currency || 'PEN';
+  const catOptions = sel => kindCategories('out').map(c => `<option value="${esc(c)}"${c === sel ? ' selected' : ''}>${esc(c)}</option>`).join('');
+  const d0 = x?.next || (trial0 ? addDays(todayISO(), 7) : addMonthsClamped(todayISO(), 1));
+  openSheet(x ? 'Editar suscripción' : trial0 ? 'Prueba gratis' : 'Nueva suscripción', `<form class="form">
+    <label class="field"><span>Nombre</span><input name="name" required maxlength="40" autocomplete="off" value="${esc(x?.name || '')}" placeholder="Ej. Netflix">
+      ${x ? '' : `<span class="chips">${SUB_PRESETS.map(n => `<button type="button" class="chip" data-preset="${esc(n)}">${esc(n)}</button>`).join('')}</span>`}</label>
+    <label class="field"><span>Tipo</span><select name="trial"><option value="no"${trial0 ? '' : ' selected'}>Suscripción activa</option><option value="yes"${trial0 ? ' selected' : ''}>Prueba gratis (aún no pago)</option></select></label>
+    ${moneyField(trial0 ? 'Precio que cobran después' : 'Precio', 'amount', cur0, x?.amount)}
+    <label class="field"><span>Moneda</span><select name="currency">${currencyOptions(cur0)}</select></label>
+    <label class="field"><span>Se cobra</span><select name="cycle">${Object.entries(SUB_CYCLES).map(([k, l]) => `<option value="${k}"${(x?.cycle || 'monthly') === k ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
+    <label class="field"><span data-datelabel>${trial0 ? 'La prueba termina el (primer cobro)' : 'Próximo cobro'}</span><input name="date" type="date" required value="${d0}"></label>
+    <label class="field" data-remindwrap${trial0 ? '' : ' hidden'}><span>Avisarme para cancelar</span><select name="remind">${Object.entries(REMIND_OPTIONS).map(([k, l]) => `<option value="${k}"${(x ? x.remind : 2) === +k ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
+    <label class="field"><span>Categoría</span><select name="category">${catOptions(x?.category || 'Ocio')}</select></label>
+    <label class="field"><span>Nota</span><input name="note" maxlength="80" value="${esc(x?.note || '')}" placeholder="Opcional. Ej. Plan familiar, cuenta de mi hermano"></label>
+    ${x && x.trial ? `<button type="button" class="btn primary" data-act="keepSub" data-id="${x.id}">Me la quedo (empieza a cobrar)</button><button type="button" class="btn ghost" data-act="cancelSub" data-id="${x.id}">${icon('check')}Ya la cancelé</button>` : ''}
+    ${x && !x.trial && x.active ? `<button type="button" class="btn primary" data-act="paySub" data-id="${x.id}">${icon('check')}Ya se cobró: anotar el gasto</button>` : ''}
+    ${x ? `<button type="button" class="btn ghost" data-act="subIcs" data-id="${x.id}">${icon('calendar')}Añadir al calendario</button>` : ''}
+    ${x && !x.trial ? `<button type="button" class="btn ghost" data-act="toggleSub" data-id="${x.id}">${x.active ? 'Pausar (no la cuento)' : 'Reanudar'}</button>` : ''}
+    ${x ? deleteButton('deleteSub', x.id) : ''}
+    ${formActions(x ? 'Guardar' : 'Añadir')}
+  </form>`, (form, el) => {
+    if (!x) el('name').focus();
+    const sync = () => {
+      const t = el('trial').value === 'yes';
+      setText(form, '[data-label="amount"]', t ? 'Precio que cobran después' : 'Precio');
+      setText(form, '[data-datelabel]', t ? 'La prueba termina el (primer cobro)' : 'Próximo cobro');
+      setText(form, '[data-cur="amount"]', CURRENCIES[el('currency').value] || '');
+      form.querySelector('[data-remindwrap]').hidden = !t;
+    };
+    form.addEventListener('change', sync);
+    form.addEventListener('click', e => { const b = e.target.closest('[data-preset]'); if (b) { el('name').value = b.dataset.preset; el('amount').focus(); } });
+    form.onsubmit = e => {
+      e.preventDefault();
+      const amount = round2(el('amount').value);
+      if (!(amount > 0)) return toast('Escribe el precio');
+      const next = { name: el('name').value.trim() || 'Suscripción', amount, currency: el('currency').value, cycle: el('cycle').value, next: el('date').value, category: el('category').value, trial: el('trial').value === 'yes', remind: +el('remind').value, note: el('note').value.trim() };
+      if (x) Object.assign(x, next); else data.subs.push({ id: uid(), active: true, ...next });
+      closeSheet();
+      commit(x ? 'Suscripción actualizada' : next.trial ? `Prueba añadida. Te aviso ${next.remind ? `${next.remind} ${next.remind === 1 ? 'día' : 'días'} antes` : 'ese día'}` : 'Suscripción añadida');
+    };
+  });
+}
+
+// Evento de calendario (.ics) con alarma: es el recordatorio que suena aunque no abras Saldo.
+function icsEscape(s) { return String(s).replace(/\\/g, '\\\\').replace(/[,;]/g, m => '\\' + m).replace(/\r?\n/g, '\\n'); }
+function buildIcs(list) {
+  const d8 = s => s.replace(/-/g, ''), stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  const alarm = (trigger, text) => ['BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${icsEscape(text)}`, `TRIGGER:${trigger}`, 'END:VALARM'];
+  const events = list.flatMap(s => {
+    const price = money(s.amount, s.currency);
+    const alarms = s.trial
+      ? [...(s.remind > 0 ? alarm(`-PT${s.remind * 24 - 9}H`, `Cancela ${s.name} antes de que termine la prueba`) : []), ...alarm('PT9H', `Hoy termina la prueba de ${s.name}: cancela o te cobran ${price}`)]
+      : alarm('-PT15H', `Mañana cobran ${s.name}: ${price}`);
+    return ['BEGIN:VEVENT', `UID:${s.id}-${s.next}@saldo`, `DTSTAMP:${stamp}`, `DTSTART;VALUE=DATE:${d8(s.next)}`, `DTEND;VALUE=DATE:${d8(addDays(s.next, 1))}`,
+      `SUMMARY:${icsEscape(s.trial ? `Cancelar ${s.name} (termina la prueba gratis)` : `Cobro de ${s.name} · ${price}`)}`,
+      `DESCRIPTION:${icsEscape(s.trial ? `Si no la cancelas te cobran ${price}/${SUB_CYCLE_SHORT[s.cycle]}.` : `${SUB_CYCLES[s.cycle]}.`)}`,
+      ...(s.trial ? [] : [`RRULE:FREQ=${s.cycle === 'weekly' ? 'WEEKLY' : s.cycle === 'yearly' ? 'YEARLY' : 'MONTHLY'}`]),
+      ...alarms, 'END:VEVENT'];
+  });
+  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Saldo//Suscripciones//ES', 'CALSCALE:GREGORIAN', ...events, 'END:VCALENDAR'].join('\r\n');
+}
+async function shareCalendar(list) {
+  const text = buildIcs(list), name = list.length === 1 ? `saldo-${list[0].name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'aviso'}.ics` : 'saldo-pruebas-gratis.ics';
+  const native = window.Capacitor?.isNativePlatform?.() && window.Capacitor.Plugins;
+  if (native?.Filesystem && native?.Share) {
+    try {
+      const file = await native.Filesystem.writeFile({ path: name, data: text, directory: 'CACHE', encoding: 'utf8' });
+      await native.Share.share({ title: 'Recordatorio de Saldo', files: [file.uri], dialogTitle: 'Añadir al calendario' });
+    } catch (e) { if (!/cancel/i.test(e?.message || '')) toast('No se pudo abrir el calendario'); }
+    return;
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type: 'text/calendar' }));
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast('Ábrelo para añadirlo a tu calendario');
+}
+
+// Avisos del navegador: salen cuando abres Saldo (una vez al día por prueba).
+const NOTIFIED_KEY = 'saldo-notified';
+async function showNotice(title, body, tag) {
+  try {
+    const reg = await navigator.serviceWorker?.ready;
+    if (reg?.showNotification) return await reg.showNotification(title, { body, tag, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png' });
+  } catch {}
+  try { new Notification(title, { body, tag, icon: 'icons/icon-192.png' }); } catch {}
+}
+function notifyDue() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  let seen = {};
+  try { seen = JSON.parse(localStorage.getItem(NOTIFIED_KEY)) || {}; } catch {}
+  const today = todayISO();
+  for (const k of Object.keys(seen)) if (seen[k] !== today) delete seen[k];
+  for (const s of subAlerts()) {
+    if (seen[s.id] === today) continue;
+    seen[s.id] = today;
+    showNotice(`Cancela ${s.name} a tiempo`, `${dueText(s)}. Después te cobran ${money(s.amount, s.currency)}.`, `trial-${s.id}`);
+  }
+  try { localStorage.setItem(NOTIFIED_KEY, JSON.stringify(seen)); } catch {}
 }
 
 function expenseForm(x = null, kind0 = 'out', pre = {}) {
@@ -2210,12 +2427,26 @@ function forecastDetail() {
     return c.products.map(p => ({ p, e: productEstimate(c, p, tomorrow, until) })).filter(x => x.e.qty > 0)
       .map(({ p, e }) => line(`≈ ${qtyText(e.qty)} × ${esc(p.name)}`, `${esc(c.name)} · ${money(p.price, cur)} c/u · ${estText(p)}`, money(e.amount, cur), pen(e.amount, cur))).join('');
   }).join('');
+  // Previstos y suscripciones, agrupados por concepto: cuántas veces toca pagar cada uno hasta la fecha.
+  const group = kind => {
+    const by = {};
+    for (const o of upcomingOutflows(until).filter(x => x.kind === kind)) (by[o.id] ||= { o, n: 0, sum: 0 }).n++, by[o.id].sum += o.amount;
+    return Object.values(by).map(({ o, n, sum }) => `<button class="row compact" data-act="${kind === 'sub' ? 'editSub' : 'editPlanned'}" data-id="${o.id}"><span class="row-main"><b>${esc(o.name)}</b><small>${o.late ? 'Vencido · ' : ''}${n > 1 ? `${n} veces · desde ` : ''}${relDate(o.date)}</small></span><span class="amount neg">−${money(sum)}</span></button>`).join('');
+  };
+  const trials = data.subs.filter(s => s.active && s.trial && s.next <= until);
+  const m0 = horizonDate(''), spans = [['Fin de mes', ''], ['3 meses', 3], ['6 meses', 6], ['1 año', 12]].map(([l, n]) => ({ l, n, d: n ? addMonthsClamped(todayISO(), n) : m0 }));
+  const lowest = lowestPoint(until);
   openSheet(`Al ${fmtDate(until, { day: 'numeric', month: 'long', year: 'numeric' })}`, `<div class="form">
-    <label class="field"><span>Ver previsión al</span><input type="date" id="horizonDate" value="${until}" min="${addDays(todayISO(), 1)}"></label>
-    <div class="account-total"><span>Tendrías</span><b class="pos">${money(f.total)}</b></div>
+    <span class="chips">${spans.map(s => `<button type="button" class="chip${s.d === until ? ' on' : ''}" data-act="setHorizon" data-months="${s.n}">${s.l}</button>`).join('')}</span>
+    <label class="field"><span>O elige una fecha</span><input type="date" id="horizonDate" value="${until}" min="${addDays(todayISO(), 1)}"></label>
+    <div class="account-total"><span>Tendrías</span><b class="${f.total < 0 ? 'neg' : 'pos'}">${money(f.total)}</b></div>
+    ${lowest && lowest.value < f.now - 0.005 ? `<p class="preview">Sin contar cobros, tu dinero bajaría a <b>${money(lowest.value)}</b> el ${fmtDate(lowest.date)}${lowest.value < 0 ? ': conviene cobrar antes o mover un pago' : ''}.</p>` : ''}
     ${section('Hoy tienes', f.now, wallets)}
     ${section('Por cobrar', f.pending, pending)}
     ${section(`Por hacer hasta el ${fmtDate(until)}`, f.future, todo)}
+    ${f.planned > 0 ? section('Gastos previstos', -f.planned, group('planned')) : ''}
+    ${f.subs > 0 ? section('Suscripciones', -f.subs, group('sub')) : ''}
+    ${trials.length ? `<p class="preview">${icon('bell')} Pruebas gratis que no cuento: ${trials.map(s => `${esc(s.name)} (${money(toPEN(s.amount, s.currency))} el ${fmtDate(s.next)})`).join(', ')}. Si te las quedas, se suman.</p>` : ''}
     ${f.costs.count ? section('Comisión de retiro', -f.costs.total, line(`${f.costs.count} × comisión fija de ${money(f.costs.fee)}`, `Según tu plan: ${STRATEGIES[data.plan.strategy].toLowerCase()}`, `−${money(f.costs.total)}`)) : ''}
     <small class="field-hint">Todo convertido a soles con el tipo de cambio de Ajustes. "Por hacer" estima según cuántas veces haces cada producto.</small>
     <div class="form-actions"><button type="button" class="btn ghost" data-act="closeSheet">Cerrar</button></div>
@@ -2410,6 +2641,66 @@ const actions = {
     if (nd) x.date = nd; else data.planned = data.planned.filter(y => y !== x);
     closeSheet();
     commit('Pagado y anotado en tus gastos');
+  },
+  setHorizon: d => {
+    const n = +d.months;
+    data.horizon = n ? addMonthsClamped(todayISO(), n) : '';
+    persist();
+    render();
+    forecastDetail();
+  },
+  newSub: () => subForm(),
+  newTrial: () => subForm(null, { trial: true }),
+  editSub: d => { const x = data.subs.find(y => y.id === d.id); if (x) subForm(x); },
+  deleteSub: d => {
+    const x = data.subs.find(y => y.id === d.id);
+    if (!x || !confirm(`¿Eliminar ${x.name}?`)) return;
+    data.subs = data.subs.filter(y => y !== x);
+    closeSheet();
+    commit('Suscripción eliminada');
+  },
+  // Prueba gratis que decides conservar: desde su fecha empieza a cobrarse y entra en la previsión.
+  keepSub: d => {
+    const x = data.subs.find(y => y.id === d.id);
+    if (!x) return;
+    x.trial = false;
+    const step = subStep(x);
+    while (x.next < todayISO()) x.next = step(x.next);
+    closeSheet();
+    commit(`${x.name} ahora cuenta como suscripción: ${money(x.amount, x.currency)} el ${fmtDate(x.next)}`);
+  },
+  cancelSub: d => {
+    const x = data.subs.find(y => y.id === d.id);
+    if (!x) return;
+    data.subs = data.subs.filter(y => y !== x);
+    closeSheet();
+    commit(x.trial ? `Cancelada a tiempo: te ahorras ${money(x.amount, x.currency)}` : `${x.name} cancelada`);
+  },
+  toggleSub: d => {
+    const x = data.subs.find(y => y.id === d.id);
+    if (!x) return;
+    x.active = !x.active;
+    closeSheet();
+    commit(x.active ? `${x.name} reanudada` : `${x.name} en pausa`);
+  },
+  // Ya te cobraron: se anota como gasto y la fecha pasa al siguiente cobro.
+  paySub: d => {
+    const x = data.subs.find(y => y.id === d.id);
+    if (!x) return;
+    data.expenses.push({ id: uid(), kind: 'out', date: todayISO(), amount: round2(toPEN(x.amount, x.currency)), currency: 'PEN', category: x.category, note: x.name });
+    const step = subStep(x);
+    x.next = step(x.next);
+    while (x.next < todayISO()) x.next = step(x.next);
+    closeSheet();
+    commit(`Anotado. Próximo cobro de ${x.name}: ${fmtDate(x.next)}`);
+  },
+  subIcs: d => { const x = data.subs.find(y => y.id === d.id); if (x) shareCalendar([x]); },
+  subIcsAll: () => { const l = data.subs.filter(s => s.active && s.trial); if (l.length) shareCalendar(l); },
+  enableNotif: async () => {
+    if (!('Notification' in window)) return toast('Este navegador no permite avisos');
+    const r = await Notification.requestPermission();
+    render();
+    if (r === 'granted') { toast('Avisos activados'); notifyDue(); } else toast('No se activaron los avisos');
   },
 
   pickLink: d => {
@@ -3036,6 +3327,9 @@ async function checkForUpdate() {
 }
 checkForUpdate();
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkForUpdate(); });
+// Recordatorios de pruebas gratis: al abrir Saldo y al volver a él.
+window.addEventListener('load', () => setTimeout(notifyDue, 1500));
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') notifyDue(); });
 
 // ── Arrastre de la lente (como Liquidum / iOS 26): la lente se levanta, sigue al dedo estirándose
 //    según la velocidad y, al soltar, se asienta en la pestaña más cercana con rebote. ──

@@ -178,8 +178,8 @@ a { -webkit-tap-highlight-color: transparent; }
 .fc-chip-ic { width: 34px; height: 34px; flex: none; display: grid; place-items: center; border-radius: 10px; background: var(--lime-a); color: var(--lime); }
 .fc-chip-ic .ic { width: 18px; height: 18px; }
 .fc-more { width: 18px; height: 18px; color: var(--ink-3); }
-.fc-breakdown { display: flex; gap: 8px; margin-top: 10px; }
-.fc-breakdown span { flex: 1; min-width: 0; padding: 10px 12px; border-radius: var(--r-ctl); background: rgba(0, 0, 0, .2); }
+.fc-breakdown { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.fc-breakdown span { flex: 1 1 calc(33% - 8px); min-width: 0; padding: 10px 12px; border-radius: var(--r-ctl); background: rgba(0, 0, 0, .2); }
 .fc-breakdown small { display: block; color: var(--ink-3); font-size: 12px; font-weight: 500; }
 .fc-breakdown b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
@@ -1339,3 +1339,15 @@ input[type=date]::-webkit-datetime-edit, input[type=time]::-webkit-datetime-edit
 @keyframes segFade { from { opacity: 0; transform: scale(.985); } }
 #view.swap > :not(.seg) { animation: segFade .32s cubic-bezier(.32, .72, 0, 1) both; }
 @media (prefers-reduced-motion: reduce) { .seg-thumb.go { transition: none; } #view.swap > * { animation: none; } }
+
+/* Suscripciones y pruebas gratis */
+.nav-badge { position: absolute; top: 2px; left: calc(50% + 6px); min-width: 17px; height: 17px; padding: 0 5px; border-radius: 999px; background: #ff453a; color: #fff; font-size: 11px; font-style: normal; font-weight: 700; line-height: 17px; text-align: center; pointer-events: none; }
+@media (min-width: 900px) { .nav-badge { position: static; margin-left: auto; } }
+.sub-alert { border-color: rgba(255, 159, 10, .45); }
+.sub-alert .card-head h2 { color: var(--warn); }
+.sub-alert .card-head h2 .ic { width: 18px; height: 18px; margin-right: 6px; vertical-align: -3px; }
+.alert-item { display: grid; gap: 10px; padding: 12px 0; border-top: 1px solid var(--line); }
+.alert-item:first-of-type { border-top: 0; }
+.alert-item .btn-row { justify-content: flex-start; flex-wrap: wrap; }
+.row.paused { opacity: .55; }
+.row-side small { font-size: 12px; }
