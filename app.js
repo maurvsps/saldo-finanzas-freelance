@@ -2,7 +2,7 @@
 
 // ── Configuración ──
 // Versión publicada: debe coincidir con version.json y con el ?v= de index.html.
-const APP_VERSION = 51;
+const APP_VERSION = 53;
 const KEY = 'saldo-v2';
 const OLD_KEY = 'saldo-freelance-v1';
 // ID de cliente OAuth (público). Se usa para guardar tus datos en tu Google Drive (carpeta oculta de la app).
@@ -182,6 +182,7 @@ function blank() {
     // Sección Gastos: va aparte del resto (solo soles, su propio saldo de Yape).
     expenses: [], // movimientos: { id, kind: 'in' | 'out' | 'adj', date, amount, currency: 'PEN', category, note }
     customCategories: [], // categorías de gasto creadas por ti
+    planned: [], // gastos previstos: { id, amount, category, note, contact, date, repeat: 'none' | 'weekly' | 'monthly' }
     incomeCategories: [], // categorías de ingreso creadas por ti
     yape: { opening: 0 }, // saldo de Yape antes de los movimientos anotados
     catStyles: {}, // icono y color de las categorías que creas: { nombre: { icon, color } }
@@ -320,6 +321,7 @@ function normalize(raw) {
       return { ...x, kind: x.kind === 'in' ? 'in' : x.kind === 'adj' ? 'adj' : 'out', currency: 'PEN', amount: round2((Number(x.amount) || 0) * rate) };
     }),
     customCategories: arr(raw.customCategories).map(String),
+    planned: arr(raw.planned).filter(x => x && Number(x.amount) > 0 && /^\d{4}-\d{2}-\d{2}$/.test(x.date || '')).map(x => ({ id: x.id || uid(), amount: round2(x.amount), category: String(x.category || 'Otros'), note: String(x.note || ''), contact: String(x.contact || ''), date: x.date, repeat: x.repeat === 'weekly' || x.repeat === 'monthly' ? x.repeat : 'none' })),
     incomeCategories: arr(raw.incomeCategories).map(String),
     yape: { opening: round2(raw.yape?.opening) },
     catStyles: raw.catStyles && typeof raw.catStyles === 'object' ? raw.catStyles : {},
@@ -832,6 +834,7 @@ function viewHome() {
   </section>
   ${data.clients.length ? '' : `<section class="card quest">${emptyState('Agrega a tus clientes y lo que les haces para ir anotando cada entrega.', newClientButton())}</section>`}
   ${goalsCard(now)}
+  ${plannedHomeCard()}
   ${pend.length ? `<section class="card">
     <div class="card-head"><h2>Por cobrar</h2><span class="count-pill">${pend.length}</span></div>
     <div class="rows">${pend.map(chargeRow).join('')}</div>
@@ -914,6 +917,7 @@ function forecastBlock() {
   <div class="fc-breakdown">
     <span><small>Por cobrar</small><b>${money(f.pending)}</b></span>
     <span><small>Por hacer</small><b>${money(f.future)}</b></span>
+    ${plannedTotal(until) > 0 ? `<span><small>Previstos</small><b>−${money(plannedTotal(until))}</b></span>` : ''}
     ${f.costs.count ? `<span><small>Comisiones</small><b>−${money(f.costs.total)}</b></span>` : ''}
   </div>`;
 }
@@ -1784,6 +1788,7 @@ function gViewHome() {
     <div class="stat"><span>Gastos de ${monthName(m)}</span><b class="neg">${money(outT)}</b></div>
     <div class="stat"><span>Ingresos de ${monthName(m)}</span><b class="pos">${money(inT)}</b></div>
   </div>`}
+  ${plannedCard()}
   <section class="card">
     <div class="card-head"><h2>Últimos movimientos</h2>${data.expenses.length > 6 ? '<button class="link" data-act="gTab" data-tab="movs">Ver todos</button>' : ''}</div>
     ${recent.length ? `<div class="rows">${recent.map(moveRow).join('')}</div>` : emptyState('Aún no anotas movimientos. Empieza ajustando tu saldo de Yape.')}
@@ -1899,6 +1904,76 @@ async function readYape(file) {
   await loadTesseract();
   const { data: d } = await window.Tesseract.recognize(file, 'spa');
   return parseYape(d);
+}
+
+// ── Gastos previstos ──
+const REPEATS = { none: 'Una vez', weekly: 'Cada semana', monthly: 'Cada mes' };
+const nextDue = p => (p.repeat === 'weekly' ? addDays(p.date, 7) : p.repeat === 'monthly' ? addMonthsClamped(p.date, 1) : '');
+const plannedSorted = () => [...data.planned].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+// Veces que toca pagar un gasto previsto hasta una fecha (lo atrasado cuenta una vez).
+function plannedCount(p, until) {
+  let n = 0;
+  while (p.date && p.date <= until && n < 60) {
+    n++;
+    const d = nextDue(p);
+    if (!d) break;
+    p = { ...p, date: d };
+  }
+  return n;
+}
+const plannedTotal = until => data.planned.reduce((t, p) => t + p.amount * plannedCount(p, until), 0);
+const monthEnd = () => addDays(addMonthsClamped(`${thisMonth()}-01`, 1), -1);
+function plannedRow(p) {
+  const late = p.date < todayISO();
+  return `<button class="row${late ? ' late' : ''}" data-act="editPlanned" data-id="${p.id}">
+    ${catBadge(p.category)}
+    <span class="row-main"><b>${esc(p.note || p.contact || p.category)}</b><small>${late ? 'Vencido · ' : ''}${cap(relDate(p.date))}${p.repeat !== 'none' ? ` · ${REPEATS[p.repeat].toLowerCase()}` : ''} · ${esc(p.category)}</small></span>
+    <span class="amount neg">−${money(p.amount)}</span>
+  </button>`;
+}
+function plannedCard() {
+  const list = plannedSorted(), tot = plannedTotal(monthEnd());
+  return `<section class="card">
+    <div class="card-head"><h2>Gastos previstos</h2>${list.length ? `<span class="count-pill">${list.length}</span>` : ''}</div>
+    ${list.length ? `<div class="rows">${list.slice(0, 6).map(plannedRow).join('')}</div>
+      <p class="muted small planned-note">Hasta fin de ${monthName(thisMonth())}: ${money(tot)} · tu saldo quedaría en ${money(yapeBalance() - tot)}</p>` : emptyState('Anota lo que sabes que vas a pagar (alquiler, recibos, suscripciones) y verás cuánto te quedaría.')}
+    <div class="btn-row"><button class="btn ghost" data-act="newPlanned">${icon('plus')}Añadir previsto</button>${list.length > 6 ? `<button class="btn ghost" data-act="allPlanned">Ver todos (${list.length})</button>` : ''}</div>
+  </section>`;
+}
+function plannedHomeCard() {
+  if (!data.planned.length) return '';
+  const list = plannedSorted(), tot = plannedTotal(monthEnd());
+  return `<section class="card">
+    <div class="card-head"><h2>Gastos previstos</h2><a class="link" href="#gastos">Ver</a></div>
+    <div class="rows">${list.slice(0, 3).map(plannedRow).join('')}</div>
+    <p class="muted small planned-note">Hasta fin de ${monthName(thisMonth())}: ${money(tot)}</p>
+  </section>`;
+}
+function plannedForm(x = null) {
+  const catOptions = sel => kindCategories('out').map(c => { const m = catMeta(c); return `<option value="${esc(c)}" data-icon="${m.icon}" data-color="${m.color}"${c === sel ? ' selected' : ''}>${esc(c)}</option>`; }).join('');
+  openSheet(x ? 'Editar previsto' : 'Gasto previsto', `<form class="form">
+    ${moneyField('Monto', 'amount', 'PEN', x?.amount)}
+    <label class="field"><span>Categoría</span><select name="category">${catOptions(x?.category)}</select></label>
+    <label class="field"><span>Detalle</span><input name="note" maxlength="80" value="${esc(x?.note || '')}" placeholder="Ej. Alquiler"></label>
+    <label class="field"><span>Fecha prevista</span><input name="date" type="date" required value="${x?.date || todayISO()}"></label>
+    <label class="field"><span>Se repite</span><select name="repeat">${Object.entries(REPEATS).map(([k, l]) => `<option value="${k}"${(x?.repeat || 'none') === k ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
+    ${x ? `<button type="button" class="btn primary" data-act="payPlanned" data-id="${x.id}">${icon('check')}Marcar como pagado</button>${deleteButton('deletePlanned', x.id)}` : ''}
+    ${formActions(x ? 'Guardar' : 'Añadir')}
+  </form>`, (form, el) => {
+    if (!x) el('amount').focus();
+    form.onsubmit = e => {
+      e.preventDefault();
+      const amount = round2(el('amount').value);
+      if (!(amount > 0)) return toast('Escribe el monto');
+      const next = { amount, category: el('category').value, note: el('note').value.trim(), date: el('date').value, repeat: el('repeat').value, contact: x?.contact || '' };
+      if (x) Object.assign(x, next); else data.planned.push({ id: uid(), ...next });
+      closeSheet();
+      commit(x ? 'Previsto actualizado' : 'Gasto previsto añadido');
+    };
+  });
+}
+function plannedAllSheet() {
+  openSheet('Gastos previstos', `<div class="form"><div class="rows">${plannedSorted().map(plannedRow).join('')}</div></div>`);
 }
 
 function expenseForm(x = null, kind0 = 'out', pre = {}) {
@@ -2291,6 +2366,26 @@ const actions = {
   goals: () => goalsForm(),
   goClients: () => { location.hash = '#clientes'; },
   newExpenseHome: () => expenseForm(null, 'out'),
+  newPlanned: () => plannedForm(),
+  allPlanned: () => plannedAllSheet(),
+  editPlanned: d => { const x = data.planned.find(y => y.id === d.id); if (x) plannedForm(x); },
+  deletePlanned: d => {
+    const x = data.planned.find(y => y.id === d.id);
+    if (!x || !confirm('¿Eliminar este gasto previsto?')) return;
+    data.planned = data.planned.filter(y => y !== x);
+    closeSheet();
+    commit('Previsto eliminado');
+  },
+  payPlanned: d => {
+    const x = data.planned.find(y => y.id === d.id);
+    if (!x) return;
+    data.expenses.push({ id: uid(), kind: 'out', date: todayISO(), amount: x.amount, currency: 'PEN', category: x.category, note: x.note, ...(x.contact ? { contact: x.contact } : {}) });
+    const nd = nextDue(x);
+    if (nd) x.date = nd; else data.planned = data.planned.filter(y => y !== x);
+    closeSheet();
+    commit('Pagado y anotado en tus gastos');
+  },
+
   pickLink: d => {
     const c = data.linkConflict;
     if (!c) return;

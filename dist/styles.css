@@ -1271,3 +1271,52 @@ body.scrolled .page-title { font-size: 17px; font-weight: 600; letter-spacing: -
 .tile-glyph { aspect-ratio: 1; display: grid; place-items: center; padding: 0; border: 0; border-radius: 12px; background: transparent; color: rgba(235, 235, 245, .75); }
 .tile-glyph svg { width: 22px; height: 22px; }
 .tile-glyph.on { background: rgba(10, 132, 255, .25); color: #409cff; }
+
+/* ── v52: iconos de categoría estilo iOS (cuadro redondeado, degradado y glifo blanco) ── */
+.cat-ic, .avatar.cat-ic {
+  width: 40px; height: 40px; border-radius: 9px; color: #fff;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c, #8e8e93) 72%, #fff) 0%, var(--c, #8e8e93) 100%);
+  box-shadow: inset 0 .5px 0 rgba(255, 255, 255, .45), inset 0 -.5px 0 rgba(0, 0, 0, .18), 0 1px 2px rgba(0, 0, 0, .3);
+}
+.cat-ic .ic { width: 23px; height: 23px; filter: drop-shadow(0 .5px .5px rgba(0, 0, 0, .18)); }
+.cat-ic.sm { width: 29px; height: 29px; border-radius: 7px; }
+.cat-ic.sm .ic { width: 18px; height: 18px; }
+.picker-label .cat-ic { flex: none; }
+
+/* Fechas: el texto centrado en la caja (en iPhone salía pegado arriba) */
+.field input[type=date], .field input[type=time], .field input[type=month], .sheet input[type=date], .sheet input[type=time], .sheet input[type=month] {
+  display: flex; align-items: center; min-height: 50px; height: 50px; padding: 0 14px; line-height: normal;
+}
+input[type=date]::-webkit-date-and-time-value, input[type=time]::-webkit-date-and-time-value, input[type=month]::-webkit-date-and-time-value {
+  min-height: 0; margin: 0; text-align: left; display: flex; align-items: center;
+}
+input[type=date]::-webkit-datetime-edit, input[type=time]::-webkit-datetime-edit, input[type=month]::-webkit-datetime-edit { padding: 0; line-height: normal; }
+.field input, .field select, .money-input input { line-height: normal; }
+.picker-btn { min-height: 50px; }
+
+/* Gastos previstos */
+.planned-note { margin: 10px 2px 0; }
+.sheet .btn.primary { width: 100%; }
+
+/* ── v52b: cabeceras de tarjeta que no se rompen, tabla que cabe y botón de cerrar uniforme ── */
+.card-head { flex-wrap: wrap; row-gap: 10px; }
+.card-head > h2 { min-width: 0; }
+.card-head > .btn-row, .card-head > .btn-row.tight { flex-wrap: nowrap; margin-top: 0; gap: 8px; flex: none; }
+.card-head > .btn-row .btn-sm, .card-head > .btn-sm { white-space: nowrap; flex: none; }
+.tbl { font-size: 13px; }
+.tbl td { padding-right: 8px; }
+.tbl td.num { padding-left: 8px; }
+.tbl th button { padding-right: 8px; }
+.tbl td:not(.num) { white-space: nowrap; }
+.tbl .cell-cat { display: inline-flex; align-items: center; gap: 7px; max-width: 120px; }
+.tbl .cell-cat .cat-ic.sm { width: 26px; height: 26px; border-radius: 6px; }
+.tbl .cell-cat .cat-ic.sm .ic { width: 16px; height: 16px; }
+@media (max-width: 480px) { .tbl .cell-cat { max-width: 104px; overflow: hidden; text-overflow: ellipsis; } }
+
+/* Botón de cerrar de las hojas: círculo fijo, centrado con el título y la X bien visible */
+.sheet-head .icon-btn, .sheet-head .icon-btn:hover {
+  width: 32px; height: 32px; min-width: 32px; min-height: 32px; padding: 0; display: grid; place-items: center;
+  top: 50%; right: 0; border-radius: 50%; background: rgba(120, 120, 128, .32); color: rgba(235, 235, 245, .85);
+}
+.sheet-head .icon-btn .ic { width: 16px; height: 16px; }
+.sheet-head .icon-btn::after { content: ''; position: absolute; inset: -6px; }
